@@ -1,6 +1,6 @@
 import React, { useCallback } from "react";
 import { useDropzone } from "react-dropzone";
-import parseGPX from "./parseGPX";
+import parseGPX from "./utils/parseGPX";
 
 interface MyDropzoneProps {
   onFileUploaded: (data: any) => void;

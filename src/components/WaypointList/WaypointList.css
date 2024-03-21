@@ -1,0 +1,29 @@
+/* WaypointList.css */
+.waypoint-list {
+    margin: 20px 0;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+  
+  .waypoint-list h2 {
+    margin-top: 0;
+  }
+  
+  .waypoint-list ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  .waypoint-list li {
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .waypoint-list li:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+  

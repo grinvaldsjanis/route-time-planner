@@ -1,1 +1,1 @@
-declare module 'gpx-parser-builder';
+declare module 'leaflet';
