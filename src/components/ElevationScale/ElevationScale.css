@@ -1,0 +1,21 @@
+.elevation-scale {
+  display: flex;
+  height: 70px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.elevation-gradient {
+  width: 100%;
+  height: 10px;
+  background: linear-gradient(to right, blue, red);
+  margin-bottom: 5px;
+}
+
+.elevation-labels {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}

@@ -1,29 +1,53 @@
-/* WaypointList.css */
 .waypoint-list {
-    margin: 20px 0;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-  }
-  
-  .waypoint-list h2 {
-    margin-top: 0;
-  }
-  
-  .waypoint-list ul {
-    list-style-type: none;
-    padding: 0;
-  }
-  
-  .waypoint-list li {
-    margin-bottom: 10px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #eee;
-  }
-  
-  .waypoint-list li:last-child {
-    margin-bottom: 0;
-    padding-bottom: 0;
-    border-bottom: none;
-  }
-  
+  width: 400px;
+  height: 100vh; /* or 100% if it's within another container with a defined height */
+  overflow-y: auto; /* Enables vertical scrolling */
+
+}
+
+.waypoint-list h2 {
+  margin-top: 0;
+}
+
+.waypoint-list ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.waypoint-list li {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.waypoint-list li {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+}
+
+
+.item-content-container {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+}
+
+.item-top-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.item-order-number {
+  max-width: 20px;
+  padding-right: 5px;
+}
+
+.item-name {
+  text-align: left;
+}

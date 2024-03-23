@@ -1,32 +1,47 @@
 // App.tsx
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
 import FileUploader from "./components/FileUploader/FileUploader";
 import MapView from "./components/MapView/MapView";
 import WaypointList from "./components/WaypointList/WaypointList";
 import parseGPX from "./utils/parseGPX";
+import React from "react";
+import ElevationScale from "./components/ElevationScale/ElevationScale";
 
 function App() {
-  // Assuming gpxData structure contains waypoints, routes, and tracks after parsing
   const [gpxData, setGpxData] = useState<any>(null);
 
   const handleFileUploaded = (fileContent: string) => {
-    // Parse the GPX file content and set the parsed data to state
     const parsedData = parseGPX(fileContent);
     console.log("GPX Data:", parsedData);
     setGpxData(parsedData);
+
+    // Store the parsed data in localStorage
+    localStorage.setItem("gpxData", JSON.stringify(parsedData));
   };
+
+  useEffect(() => {
+    const savedGpxData = localStorage.getItem("gpxData");
+    if (savedGpxData) {
+      setGpxData(JSON.parse(savedGpxData));
+    }
+  }, []);
 
   return (
     <div className="App">
-      <h1>GPX Route Time Planner</h1>
       <FileUploader onFileUploaded={handleFileUploaded} />
-      {/* Conditionally render MapView and WaypointList if gpxData is not null */}
       {gpxData && (
-        <>
-          <MapView waypoints={gpxData.waypoints} routes={gpxData.routes} tracks={gpxData.tracks} />
+        <div className="App-main-container">
           <WaypointList waypoints={gpxData.waypoints} />
-        </>
+          <div className="App-graph-container">
+            <MapView
+              waypoints={gpxData.waypoints}
+              routes={gpxData.routes}
+              tracks={gpxData.tracks}
+            />
+             <ElevationScale tracks={gpxData.tracks} />
+          </div>
+        </div>
       )}
     </div>
   );

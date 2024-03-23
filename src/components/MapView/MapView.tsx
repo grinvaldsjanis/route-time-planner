@@ -1,69 +1,103 @@
 import React from "react";
-import { LatLngTuple } from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet/dist/images/marker-shadow.png";
 import {
   MapContainer,
-  TileLayer,
   Marker,
-  Popup,
   Polyline,
+  Popup,
+  TileLayer,
 } from "react-leaflet";
-import { LatLngExpression } from "leaflet";
-
-interface Point {
-  lat: string;
-  lon: string;
-  name?: string | null;
-}
+import type { LatLngExpression, LatLngTuple } from "leaflet";
+import "./MapView.css";
+import { Waypoint, Track, Route } from "../../utils/parseGPX";
+import { createMarkerIcon } from "../../utils/markerStyles";
+import { calculateBounds } from "../../utils/calculateBonds";
+import { calculateElevationRange } from "../../utils/calculateElevationRange";
+import getColorForElevation from "../../utils/getColorForElevation";
 
 interface MapViewProps {
-  waypoints: Point[];
-  routes: Point[];
-  tracks: Point[][];
+  waypoints: Waypoint[];
+  routes: Route[];
+  tracks: Track[];
 }
 
-const MapView: React.FC<MapViewProps> = ({ waypoints, routes, tracks }) => {
-  const centralPoint = waypoints[0]
-    ? [parseFloat(waypoints[0].lat), parseFloat(waypoints[0].lon)]
-    : [0, 0];
+const MapView: React.FC<MapViewProps> = ({ waypoints, tracks }) => {
+  
+
+  const { minElevation, maxElevation } = calculateElevationRange(tracks);
+
+  const centralPoint: LatLngTuple = [0, 0]; // Define a central point for your map
+  const defaultZoom: number = 10;
+  const outerBounds = calculateBounds(waypoints);
+
   return (
-    <div>
-      <MapContainer
-        center={[51.505, -0.09]}
-        zoom={13}
-        style={{ height: "400px", width: "100%" }}
-      >
-        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-        {waypoints.map((point, idx) => (
+    <MapContainer
+      className="map-container"
+      center={centralPoint}
+      {...(outerBounds ? { bounds: outerBounds } : { zoom: defaultZoom })}
+      scrollWheelZoom={true}
+    >
+      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+      {waypoints.map((point, idx) => {
+        const icon = createMarkerIcon(point.type || "default", idx + 1);
+        return (
           <Marker
             key={idx}
             position={[parseFloat(point.lat), parseFloat(point.lon)]}
+            icon={icon}
           >
             <Popup>{point.name || `Waypoint ${idx + 1}`}</Popup>
           </Marker>
-        ))}
-        {routes.length > 0 && (
+        );
+      })}
+      {tracks.map((track, trackIdx) => {
+        const trackPoints: LatLngExpression[] = [];
+        track.segments.forEach((segment) => {
+          segment.points.forEach((point) => {
+            trackPoints.push([
+              parseFloat(point.lat),
+              parseFloat(point.lon),
+            ] as LatLngTuple);
+          });
+        });
+
+        // Outline (black line)
+        const outline = (
           <Polyline
-            positions={routes.map((pt) => [
-              parseFloat(pt.lat),
-              parseFloat(pt.lon),
-            ])}
-            pathOptions={{ color: "red" }}
+            key={`${trackIdx}-outline`}
+            positions={trackPoints}
+            color="rgba(0,0,0,0.4)"
+            weight={9}
           />
-        )}
-        {tracks.map((track, idx) => (
-          <Polyline
-            key={idx}
-            positions={track.map((pt) => [
-              parseFloat(pt.lat),
-              parseFloat(pt.lon),
-            ])}
-            pathOptions={{ color: "blue" }}
-          />
-        ))}
-      </MapContainer>
-    </div>
+        );
+
+        // Colored line based on elevation
+        const colored = trackPoints.map((pos, idx, arr) => {
+          if (idx === 0) return null; // Skip the first point
+          const startPos = arr[idx - 1];
+          const endPos = pos;
+          const elevation = parseFloat(
+            track.segments[0].points[idx]?.ele || "0"
+          );
+          const color = getColorForElevation(
+            elevation,
+            minElevation,
+            maxElevation
+          );
+          return (
+            <Polyline
+              key={`${trackIdx}-colored-${idx}`}
+              positions={[startPos, endPos]}
+              color={color}
+              weight={3}
+            />
+          );
+        });
+
+        return [outline, ...colored.filter(Boolean)];
+      })}
+    </MapContainer>
   );
 };
 

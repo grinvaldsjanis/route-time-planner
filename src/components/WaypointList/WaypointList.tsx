@@ -1,14 +1,6 @@
-// Assuming this is in WaypointList.tsx within your components/WaypointList directory
-
 import React from "react";
-import "./WaypointList.css"; // Make sure to create and style your component accordingly
-
-interface Waypoint {
-  lat: string;
-  lon: string;
-  name: string | null;
-  desc: string | null;
-}
+import "./WaypointList.css";
+import { Waypoint } from "../../utils/parseGPX";
 
 interface WaypointListProps {
   waypoints: Waypoint[];
@@ -17,13 +9,22 @@ interface WaypointListProps {
 const WaypointList: React.FC<WaypointListProps> = ({ waypoints }) => {
   return (
     <div className="waypoint-list">
-      <h2>Waypoints</h2>
       <ul>
         {waypoints.map((waypoint, index) => (
           <li key={index}>
-            <strong>{waypoint.name ? waypoint.name : `Waypoint ${index + 1}`}</strong>
-            <p>Coordinates: {waypoint.lat}, {waypoint.lon}</p>
-            {waypoint.desc && <p>Description: {waypoint.desc}</p>}
+            <div className="item-content-container">
+              <div className="item-top-row">
+                <div className="item-order-number">
+                  <p>{index + 1}</p>
+                </div>
+                <div className="item-name">
+                  <strong>
+                    {waypoint.name ? waypoint.name : `Waypoint ${index + 1}`}
+                  </strong>
+                </div>
+              </div>
+              <div>{waypoint.desc && <p>{waypoint.desc}</p>}</div>
+            </div>
           </li>
         ))}
       </ul>

@@ -1,27 +1,28 @@
-interface Waypoint {
-  lat: string | null;
-  lon: string | null;
+export interface Waypoint {
+  type: string | null;
+  lat: string;
+  lon: string;
   name: string | null;
   desc: string | null;
+  sym: string | null;
 }
-
 interface RoutePoint extends Waypoint {}
 
-interface Route {
+export interface Route {
   name: string | null;
   points: RoutePoint[];
 }
 
 interface TrackPoint extends Waypoint {
-  ele: string | null; // Elevation
-  time: string | null; // Timestamp
+  ele: string | null;
+  time: string | null;
 }
 
 interface TrackSegment {
   points: TrackPoint[];
 }
 
-interface Track {
+export interface Track {
   name: string | null;
   segments: TrackSegment[];
 }
@@ -75,7 +76,7 @@ export default function parseGPX(gpxContent: string): {
 
       for (let k = 0; k < trkpts.length; k++) {
         const trkpt = trkpts[k];
-        const pt = parseWaypoint(trkpt, true) as TrackPoint; // Cast to TrackPoint to include ele and time
+        const pt = parseWaypoint(trkpt, true) as TrackPoint;
         if (pt) points.push(pt);
       }
 
@@ -100,9 +101,12 @@ function parseWaypoint(
   const lon = element.getAttribute("lon");
   const name = element.getElementsByTagName("name")[0]?.textContent;
   const desc = element.getElementsByTagName("desc")[0]?.textContent;
+  // Extract "type" and "sym" directly from the element.
+  const type = element.getElementsByTagName("type")[0]?.textContent || null;
+  const sym = element.getElementsByTagName("sym")[0]?.textContent || null;
 
   if (lat !== null && lon !== null) {
-    const waypoint: Waypoint = { lat, lon, name, desc };
+    const waypoint: Waypoint = { type, lat, lon, name, desc, sym };
     if (isTrackPoint) {
       const ele = element.getElementsByTagName("ele")[0]?.textContent;
       const time = element.getElementsByTagName("time")[0]?.textContent;
