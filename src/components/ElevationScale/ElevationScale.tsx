@@ -1,8 +1,8 @@
 import React from "react";
 import { Track } from "../../utils/parseGPX";
-import { calculateElevationRange } from "../../utils/calculateElevationRange";
+import { calculateElevationRange } from "../../utils/calculateRange";
 import "./ElevationScale.css";
-import getColorForElevation from "../../utils/getColorForElevation";
+import getColorForValue from "../../utils/getColorForValue";
 
 interface ElevationScaleProps {
   tracks: Track[];
@@ -12,14 +12,14 @@ const ElevationScale: React.FC<ElevationScaleProps> = ({ tracks }) => {
   const { minElevation, maxElevation } = calculateElevationRange(tracks);
 
   const generateElevationLabels = () => {
-    const steps = 9; // Number of steps between min and max
+    const steps = 9;
     const stepValue = (maxElevation - minElevation) / steps;
     const labels = [];
     for (let i = 0; i <= steps; i++) {
       const elevation = minElevation + stepValue * i;
       labels.push({
         value: Math.round(elevation),
-        color: getColorForElevation(elevation, minElevation, maxElevation),
+        color: getColorForValue(elevation, minElevation, maxElevation),
       });
     }
     return labels;

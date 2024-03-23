@@ -42,6 +42,7 @@ function App() {
              <ElevationScale tracks={gpxData.tracks} />
           </div>
         </div>
+
       )}
     </div>
   );
