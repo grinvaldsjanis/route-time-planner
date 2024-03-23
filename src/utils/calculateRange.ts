@@ -6,7 +6,7 @@ export function calculateElevationRange(tracks: Track[]): { minElevation: number
   tracks.forEach(track =>
     track.segments.forEach(segment =>
       segment.points.forEach(point => {
-        const elevation = point.ele ?? 0; // Ensure elevation is a number
+        const elevation = point.ele ?? 0;
         minElevation = Math.min(minElevation, elevation);
         maxElevation = Math.max(maxElevation, elevation);
       })
@@ -21,7 +21,7 @@ export function calculateCurvatureRange(tracks: Track[]): { minCurve: number; ma
   tracks.forEach(track =>
     track.segments.forEach(segment =>
       segment.points.forEach(point => {
-        const curvature = point.curve ?? 10000; // Assume 10000 as a default or maximum curve radius
+        const curvature = point.curve ?? 1000;
         minCurve = Math.min(minCurve, curvature);
         maxCurve = Math.max(maxCurve, curvature);
       })

@@ -1,7 +1,7 @@
 import React from "react";
 import { Track } from "../../utils/parseGPX";
 import { calculateElevationRange } from "../../utils/calculateRange";
-import "./ElevationScale.css";
+import "./ScaleStrip.css";
 import getColorForValue from "../../utils/getColorForValue";
 
 interface ElevationScaleProps {

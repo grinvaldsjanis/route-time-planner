@@ -6,7 +6,7 @@ import MapView from "./components/MapView/MapView";
 import WaypointList from "./components/WaypointList/WaypointList";
 import parseGPX from "./utils/parseGPX";
 import React from "react";
-import ElevationScale from "./components/ElevationScale/ElevationScale";
+import ScaleStrip from "./components/ScaleStrip/ScaleStrip";
 
 function App() {
   const [gpxData, setGpxData] = useState<any>(null);
@@ -36,10 +36,9 @@ function App() {
           <div className="App-graph-container">
             <MapView
               waypoints={gpxData.waypoints}
-              routes={gpxData.routes}
               tracks={gpxData.tracks}
             />
-             <ElevationScale tracks={gpxData.tracks} />
+             <ScaleStrip tracks={gpxData.tracks} />
           </div>
         </div>
 
