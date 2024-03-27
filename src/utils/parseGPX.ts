@@ -1,4 +1,12 @@
 import calculateCurveRadius from "./calculateCurvature";
+import  calculateSlope  from "./calculateSlope";
+import { preprocessTrackSegments } from "./preprocessNewPoints";
+
+export interface GPXData {
+  waypoints: Waypoint[];
+  routes: Route[];
+  tracks: Track[];
+}
 
 export interface Waypoint {
   type: string | null;
@@ -19,6 +27,7 @@ export interface TrackPoint extends Waypoint {
   ele: number | null;
   time: string | null;
   curve: number | null;
+  slope: number | null;
 }
 
 export interface TrackSegment {
@@ -70,38 +79,38 @@ export default function parseGPX(gpxContent: string): {
     const trk = tracks[i];
     const name = trk.getElementsByTagName("name")[0]?.textContent;
     const trksegs = trk.getElementsByTagName("trkseg");
-    const segments: TrackSegment[] = [];
 
+    const segments: TrackSegment[] = [];
     for (let j = 0; j < trksegs.length; j++) {
       const seg = trksegs[j];
       const trkpts = seg.getElementsByTagName("trkpt");
-      const points: TrackPoint[] = [];
+      let points: TrackPoint[] = [];
 
+      // Parse points
       for (let k = 0; k < trkpts.length; k++) {
         const pt = parseWaypoint(trkpts[k], true) as TrackPoint;
-
-        if (!pt) continue;
-
-        if (k > 0 && k < trkpts.length - 1) {
-          const prevPt = parseWaypoint(trkpts[k - 1], true) as TrackPoint;
-          const nextPt = parseWaypoint(trkpts[k + 1], true) as TrackPoint;
-
-          // Check if prevPt and nextPt are not null
-          if (prevPt && nextPt) {
-            const curve = calculateCurveRadius(prevPt, pt, nextPt);
-
-            pt.curve = isNaN(curve) ? 1000 : curve;
-          } else {
-            pt.curve = 1000;
-          }
-        } else {
-          pt.curve = 1000;
-        }
-
-        points.push(pt);
+        if (pt) points.push(pt);
       }
 
-      segments.push({ points });
+      // Preprocess the segment points to add interpolated points
+      let preprocessedSegment = preprocessTrackSegments([{ points }])[0];
+
+      // Calculate curvature for all points, including interpolated ones
+      for (let k = 0; k < preprocessedSegment.points.length; k++) {
+
+        if (k > 0 && k < preprocessedSegment.points.length - 1) {
+          // Calculate curvature using three consecutive points
+          const prevPt = preprocessedSegment.points[k - 1];
+          const currentPt = preprocessedSegment.points[k];
+          const nextPt = preprocessedSegment.points[k + 1];
+
+          currentPt.curve = calculateCurveRadius(prevPt, currentPt, nextPt);
+          currentPt.slope = calculateSlope(prevPt, currentPt);
+        }
+
+      }
+
+      segments.push(preprocessedSegment);
     }
 
     parsedTracks.push({ name, segments });
@@ -140,11 +149,11 @@ function parseWaypoint(
         sym,
         ele,
         time,
-        curve: null, // curve initialized to null
+        curve: null,
+        slope: null,
       };
     }
 
-    // For Waypoint, we return the necessary properties
     return { type, lat, lon, name, desc, sym };
   } else {
     console.warn("Skipping point with missing lat or lon");

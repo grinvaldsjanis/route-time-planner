@@ -15,7 +15,7 @@ const WaypointList: React.FC<WaypointListProps> = ({ waypoints }) => {
             <div className="item-content-container">
               <div className="item-top-row">
                 <div className="item-order-number">
-                  <p>{index + 1}</p>
+                  {index + 1}
                 </div>
                 <div className="item-name">
                   <strong>

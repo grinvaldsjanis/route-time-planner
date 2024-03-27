@@ -7,17 +7,27 @@ import WaypointList from "./components/WaypointList/WaypointList";
 import parseGPX from "./utils/parseGPX";
 import React from "react";
 import ScaleStrip from "./components/ScaleStrip/ScaleStrip";
+import { useGlobalState } from "./context/GlobalContext";
 
 function App() {
   const [gpxData, setGpxData] = useState<any>(null);
+  const [gpxDataKey, setGpxDataKey] = useState<number>(0);
+  const { dispatch } = useGlobalState();
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const handleFileUploaded = (fileContent: string) => {
-    const parsedData = parseGPX(fileContent);
-    console.log("GPX Data:", parsedData);
-    setGpxData(parsedData);
+  const handleFileUploaded = async (fileContent: string) => {
+    setIsLoading(true); // Set loading to true at the start of file processing
 
-    // Store the parsed data in localStorage
-    localStorage.setItem("gpxData", JSON.stringify(parsedData));
+    const parsedGPXData = parseGPX(fileContent);
+    console.log("GPX Data:", parsedGPXData);
+  
+    localStorage.setItem("gpxData", JSON.stringify(parsedGPXData));
+    dispatch({ type: "SET_GPX_DATA", payload: parsedGPXData });
+
+    setGpxData(parsedGPXData);
+    setGpxDataKey(prevKey => prevKey + 1);
+
+    setIsLoading(false); // Set loading to false once processing is complete
   };
 
   useEffect(() => {
@@ -26,6 +36,10 @@ function App() {
       setGpxData(JSON.parse(savedGpxData));
     }
   }, []);
+
+  if (isLoading) {
+    return <div>Loading...</div>; // Display a loading indicator or message
+  }
 
   return (
     <div className="App">
@@ -37,11 +51,11 @@ function App() {
             <MapView
               waypoints={gpxData.waypoints}
               tracks={gpxData.tracks}
+              gpxDataKey={gpxDataKey}
             />
-             <ScaleStrip tracks={gpxData.tracks} />
+            <ScaleStrip tracks={gpxData.tracks} />
           </div>
         </div>
-
       )}
     </div>
   );

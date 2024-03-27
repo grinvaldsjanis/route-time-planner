@@ -1,6 +1,6 @@
 import React from "react";
 import { Track } from "../../utils/parseGPX";
-import { calculateElevationRange } from "../../utils/calculateRange";
+import { calculateElevationRange } from "../../utils/calculateValueRange";
 import "./ScaleStrip.css";
 import getColorForValue from "../../utils/getColorForValue";
 

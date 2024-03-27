@@ -1,35 +1,74 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   MapContainer,
   TileLayer,
   Polyline,
   Marker,
   Popup,
-  LayersControl,
   LayerGroup,
+  useMapEvents,
 } from "react-leaflet";
 import type { LatLngTuple } from "leaflet";
 import "./MapView.css";
 import { Waypoint, Track, TrackPoint } from "../../utils/parseGPX";
 import { createMarkerIcon } from "../../utils/markerStyles";
 import { calculateBounds } from "../../utils/calculateBonds";
-import {
-  calculateElevationRange,
-  calculateCurvatureRange,
-} from "../../utils/calculateRange";
+import { calculateValueRange } from "../../utils/calculateValueRange";
 import getColorForValue from "../../utils/getColorForValue";
+import { useGlobalState } from "../../context/GlobalContext";
 
-const { Overlay } = LayersControl;
+interface MapEventsProps {
+  onMapMove: (center: LatLngTuple, zoom: number) => void;
+}
+
+function MapEvents({ onMapMove }: MapEventsProps) {
+  useMapEvents({
+    moveend: (e) => {
+      const center = e.target.getCenter();
+      const zoom = e.target.getZoom();
+      onMapMove([center.lat, center.lng], zoom);
+    },
+  });
+  return null; // This component doesn't render anything itself
+}
 
 interface MapViewProps {
   waypoints: Waypoint[];
   tracks: Track[];
+  gpxDataKey?: number;
 }
 
-const MapView: React.FC<MapViewProps> = ({ waypoints, tracks }) => {
-  const centralPoint: LatLngTuple = [0, 0];
-  const defaultZoom: number = 10;
+const MapView: React.FC<MapViewProps> = ({ waypoints, tracks, gpxDataKey }) => {
+  const { state, dispatch } = useGlobalState();
+  const [activeLayer, setActiveLayer] = useState(state.mapMode);
   const outerBounds = calculateBounds(waypoints);
+  const { mapCenter, mapZoom } = state;
+
+  const handleMapMove = (center: LatLngTuple, zoom: number) => {
+    // Dispatch actions to update global state
+    dispatch({ type: "SET_MAP_CENTER", payload: center });
+    dispatch({ type: "SET_MAP_ZOOM", payload: zoom });
+
+    // Save to localStorage (optional, if you want to persist these values)
+    localStorage.setItem("mapCenter", JSON.stringify(center));
+    localStorage.setItem("mapZoom", JSON.stringify(zoom));
+  };
+
+  useEffect(() => {
+    dispatch({ type: "SET_MAP_MODE", payload: activeLayer });
+  }, [activeLayer, dispatch]);
+
+  const handleLayerChange = (layer: string) => {
+    setActiveLayer(layer);
+  };
+
+  const LayerToggles = () => (
+    <div style={{ position: "absolute", top: 10, right: 10, zIndex: 1000 }}>
+      <button onClick={() => handleLayerChange("elevation")}>Elevation</button>
+      <button onClick={() => handleLayerChange("curvature")}>Curvature</button>
+      <button onClick={() => handleLayerChange("slope")}>Slope</button>
+    </div>
+  );
 
   const getValueForMode = (
     point: TrackPoint,
@@ -41,16 +80,48 @@ const MapView: React.FC<MapViewProps> = ({ waypoints, tracks }) => {
         return ((point.ele ?? 0) + (prevPoint.ele ?? 0)) / 2;
       case "curvature":
         return ((point.curve ?? 1000) + (prevPoint.curve ?? 1000)) / 2;
+      case "slope":
+        return point.slope ?? 0;
       default:
         return 0;
     }
   };
 
   const renderTracks = (mode: string) => {
-    const { minElevation, maxElevation } = calculateElevationRange(tracks);
-    const { minCurve, maxCurve } = calculateCurvatureRange(tracks);
-    const minValue = mode === "elevation" ? minElevation : minCurve;
-    const maxValue = mode === "elevation" ? maxElevation : maxCurve;
+    const { minValue: minElevation, maxValue: maxElevation } =
+      calculateValueRange(tracks, "elevation", 0);
+    const { minValue: minCurve, maxValue: maxCurve } = calculateValueRange(
+      tracks,
+      "curvature",
+      1000
+    );
+    const { minValue: minSlope, maxValue: maxSlope } = calculateValueRange(
+      tracks,
+      "slope",
+      0
+    );
+
+    let minValue: number;
+    let maxValue: number;
+
+    switch (mode) {
+      case "elevation":
+        minValue = minElevation;
+        maxValue = maxElevation;
+        break;
+      case "curvature":
+        minValue = minCurve;
+        maxValue = maxCurve;
+        break;
+      case "slope":
+        minValue = minSlope;
+        maxValue = maxSlope;
+        break;
+      default:
+        console.error("Unrecognized mode:", mode);
+        minValue = 0;
+        maxValue = 0;
+    }
 
     return tracks.map((track, trackIdx) => (
       <LayerGroup key={trackIdx}>
@@ -68,7 +139,7 @@ const MapView: React.FC<MapViewProps> = ({ waypoints, tracks }) => {
               key={`${trackIdx}-${segmentIdx}-outline`}
               positions={outlinePositions}
               color="rgba(0,0,0,0.6)"
-              weight={9} // Outline is thicker
+              weight={9}
             />
           );
 
@@ -104,18 +175,18 @@ const MapView: React.FC<MapViewProps> = ({ waypoints, tracks }) => {
 
   return (
     <MapContainer
-      center={centralPoint}
-      zoom={defaultZoom}
+      key={gpxDataKey || "defaultKey"}
+      center={mapCenter}
+      zoom={mapZoom}
       scrollWheelZoom={true}
       className="map-container"
-      {...(outerBounds ? { bounds: outerBounds } : { zoom: defaultZoom })}
+      // {...(outerBounds ? { bounds: outerBounds } : { zoom: defaultZoom })}
     >
       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-      <LayersControl position="topright">
-        <Overlay name="Elevation">{renderTracks("elevation")}</Overlay>
-        <Overlay name="Curvature">{renderTracks("curvature")}</Overlay>
-        {/* Add more Overlay components for additional modes as needed */}
-      </LayersControl>
+      <LayerToggles />
+      {activeLayer === "elevation" && <>{renderTracks("elevation")}</>}
+      {activeLayer === "curvature" && <>{renderTracks("curvature")}</>}
+      {activeLayer === "slope" && <>{renderTracks("slope")}</>}
       {waypoints.map((point, idx) => (
         <Marker
           key={idx}
@@ -125,6 +196,7 @@ const MapView: React.FC<MapViewProps> = ({ waypoints, tracks }) => {
           <Popup>{point.name || `Waypoint ${idx + 1}`}</Popup>
         </Marker>
       ))}
+      <MapEvents onMapMove={handleMapMove} />
     </MapContainer>
   );
 };

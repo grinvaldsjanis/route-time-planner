@@ -4,5 +4,5 @@ export default function getColorForValue(
   maxValue: number
 ) {
   const ratio = (value - minValue) / (maxValue - minValue);
-  return `hsl(${180 - ratio * 160}, 100%, 50%)`;
+  return `hsl(${200 - ratio * 190}, 100%, 50%)`;
 }
