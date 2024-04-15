@@ -1,11 +1,31 @@
+import travelModes from "../constants/travelModes";
 import calculateCurveRadius from "./calculateCurvature";
-import  calculateSlope  from "./calculateSlope";
+import calculateSlope from "./calculateSlope";
+import calculateTrackParts from "./calculateTrackParts";
 import { preprocessTrackSegments } from "./preprocessNewPoints";
+
+export interface TrackPointRef {
+  trackIndex: number;
+  segmentIndex: number;
+  pointIndex: number;
+}
 
 export interface GPXData {
   waypoints: Waypoint[];
-  routes: Route[];
   tracks: Track[];
+  trackParts: TrackPart[];
+}
+
+export interface TrackPart {
+  waypoints: number[];
+  trackPoints: {
+    trackIndex: number;
+    segmentIndex: number;
+    startIndex: number;
+    endIndex: number;
+  }[];
+  distance: number;
+  travelTime: number;
 }
 
 export interface Waypoint {
@@ -15,15 +35,14 @@ export interface Waypoint {
   name: string | null;
   desc: string | null;
   sym: string | null;
-}
-interface RoutePoint extends Waypoint {}
-
-export interface Route {
-  name: string | null;
-  points: RoutePoint[];
+  closestTrackpoint?: TrackPointRef;
+  stopTime?: number;
 }
 
-export interface TrackPoint extends Waypoint {
+
+export interface TrackPoint {
+  lat: string;
+  lon: string;
   ele: number | null;
   time: string | null;
   curve: number | null;
@@ -39,41 +58,32 @@ export interface Track {
   segments: TrackSegment[];
 }
 
-export default function parseGPX(gpxContent: string): {
-  waypoints: Waypoint[];
-  routes: Route[];
-  tracks: Track[];
-} {
+function isWithinApproximateDistance(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number
+): boolean {
+  const maxDistanceKm = 5;
+  return (
+    Math.abs(lat1 - lat2) * 111 <= maxDistanceKm &&
+    Math.abs(lon1 - lon2) * 111 <= maxDistanceKm
+  );
+}
+
+export default function parseGPX(gpxContent: string, modeKey: string): GPXData {
+  if (!(modeKey in travelModes)) {
+    throw new Error("Invalid travel mode key");
+  }
+
   const parser = new DOMParser();
   const xmlDoc = parser.parseFromString(gpxContent, "application/xml");
 
   const waypoints = xmlDoc.getElementsByTagName("wpt");
-  const routes = xmlDoc.getElementsByTagName("rte");
   const tracks = xmlDoc.getElementsByTagName("trk");
 
   const parsedWaypoints: Waypoint[] = [];
-  const parsedRoutes: Route[] = [];
   const parsedTracks: Track[] = [];
-
-  for (let i = 0; i < waypoints.length; i++) {
-    const wpt = waypoints[i];
-    const parsedWpt = parseWaypoint(wpt);
-    if (parsedWpt) parsedWaypoints.push(parsedWpt);
-  }
-
-  for (let i = 0; i < routes.length; i++) {
-    const rte = routes[i];
-    const name = rte.getElementsByTagName("name")[0]?.textContent;
-    const rtepts = rte.getElementsByTagName("rtept");
-    const points: RoutePoint[] = [];
-
-    for (let j = 0; j < rtepts.length; j++) {
-      const pt = parseWaypoint(rtepts[j]);
-      if (pt) points.push(pt);
-    }
-
-    parsedRoutes.push({ name, points });
-  }
 
   for (let i = 0; i < tracks.length; i++) {
     const trk = tracks[i];
@@ -97,7 +107,6 @@ export default function parseGPX(gpxContent: string): {
 
       // Calculate curvature for all points, including interpolated ones
       for (let k = 0; k < preprocessedSegment.points.length; k++) {
-
         if (k > 0 && k < preprocessedSegment.points.length - 1) {
           // Calculate curvature using three consecutive points
           const prevPt = preprocessedSegment.points[k - 1];
@@ -107,7 +116,6 @@ export default function parseGPX(gpxContent: string): {
           currentPt.curve = calculateCurveRadius(prevPt, currentPt, nextPt);
           currentPt.slope = calculateSlope(prevPt, currentPt);
         }
-
       }
 
       segments.push(preprocessedSegment);
@@ -115,11 +123,51 @@ export default function parseGPX(gpxContent: string): {
 
     parsedTracks.push({ name, segments });
   }
+  for (let i = 0; i < waypoints.length; i++) {
+    const wpt = waypoints[i];
+    const parsedWpt = parseWaypoint(wpt) as Waypoint;
+    if (parsedWpt) {
+      let closestDistance = Infinity;
+      let closestTrackPointRef: TrackPointRef | undefined;
+
+      parsedTracks.forEach((track, trackIndex) => {
+        track.segments.forEach((segment, segmentIndex) => {
+          segment.points.forEach((point, pointIndex) => {
+            if (
+              isWithinApproximateDistance(
+                parseFloat(parsedWpt.lat),
+                parseFloat(parsedWpt.lon),
+                parseFloat(point.lat),
+                parseFloat(point.lon)
+              )
+            ) {
+              const distance = Math.sqrt(
+                Math.pow(parseFloat(parsedWpt.lat) - parseFloat(point.lat), 2) +
+                  Math.pow(parseFloat(parsedWpt.lon) - parseFloat(point.lon), 2)
+              );
+
+              if (distance < closestDistance) {
+                closestDistance = distance;
+                closestTrackPointRef = { trackIndex, segmentIndex, pointIndex };
+              }
+            }
+          });
+        });
+      });
+
+      parsedWpt.closestTrackpoint = closestTrackPointRef;
+      parsedWaypoints.push(parsedWpt);
+    }
+  }
 
   return {
     waypoints: parsedWaypoints,
-    routes: parsedRoutes,
     tracks: parsedTracks,
+    trackParts: calculateTrackParts(
+      parsedWaypoints,
+      parsedTracks,
+      modeKey as keyof typeof travelModes
+    ),
   };
 }
 
@@ -133,13 +181,15 @@ function parseWaypoint(
   const desc = element.getElementsByTagName("desc")[0]?.textContent;
   const type = element.getElementsByTagName("type")[0]?.textContent || null;
   const sym = element.getElementsByTagName("sym")[0]?.textContent || null;
-  let ele = null;
-  let time = element.getElementsByTagName("time")[0]?.textContent || null;
 
   if (lat !== null && lon !== null) {
+    let ele = null;
+    let time = element.getElementsByTagName("time")[0]?.textContent || null;
+
     if (isTrackPoint) {
       const eleText = element.getElementsByTagName("ele")[0]?.textContent;
       ele = eleText !== null ? parseFloat(eleText) : null;
+
       return {
         type,
         lat,
@@ -155,8 +205,8 @@ function parseWaypoint(
     }
 
     return { type, lat, lon, name, desc, sym };
-  } else {
-    console.warn("Skipping point with missing lat or lon");
-    return null;
   }
+
+  console.warn("Skipping point with missing lat or lon");
+  return null;
 }

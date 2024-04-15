@@ -12,7 +12,7 @@ export default function calculateCurveRadius(
     lat2: number,
     lon2: number
   ): number {
-    const R = 6371e3;
+    const R = 6371e3; // Earth's radius in meters
     const φ1 = (lat1 * Math.PI) / 180;
     const φ2 = (lat2 * Math.PI) / 180;
     const Δφ = ((lat2 - lat1) * Math.PI) / 180;
@@ -25,7 +25,6 @@ export default function calculateCurveRadius(
     return R * c;
   }
 
-  // Conversion and distance calculation remains unchanged
   const a = haversineDistance(
     parseFloat(p1.lat),
     parseFloat(p1.lon),
@@ -48,13 +47,17 @@ export default function calculateCurveRadius(
   const s = (a + b + c) / 2; // Semiperimeter
   const area = Math.sqrt(s * (s - a) * (s - b) * (s - c));
 
-  let radius = (a * b * c) / (4 * area);
+  let radius = (a * b * c) / (4 * area); // Radius of circumscribed circle
 
-  if (area < 1e-10 || !isFinite(radius)) {
-  } else if (radius > 1000) {
-    radius = 1000; 
+  if (area === 0 || !isFinite(radius)) {
+    // Check if the area is zero or radius is not finite, replace with fallback value
+    radius = 1000;
+  } else {
+    // Cap the radius at 1000 if the calculated value exceeds this limit
+    radius = Math.min(radius, 1000);
   }
 
+  // Ensure the radius is rounded and positive
   radius = Math.abs(Math.round(radius));
 
   return radius;

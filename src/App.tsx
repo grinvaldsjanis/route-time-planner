@@ -1,5 +1,5 @@
 // App.tsx
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import "./App.css";
 import FileUploader from "./components/FileUploader/FileUploader";
 import MapView from "./components/MapView/MapView";
@@ -8,27 +8,26 @@ import parseGPX from "./utils/parseGPX";
 import React from "react";
 import ScaleStrip from "./components/ScaleStrip/ScaleStrip";
 import { useGlobalState } from "./context/GlobalContext";
+import TravelModeSelector from "./components/TravelModeSelector/TravelModesSelector";
+import calculateTravelTimes from "./utils/calculateTravelTimes";
+import travelModes from "./constants/travelModes";
 
 function App() {
   const [gpxData, setGpxData] = useState<any>(null);
   const [gpxDataKey, setGpxDataKey] = useState<number>(0);
-  const { dispatch } = useGlobalState();
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const { state, dispatch } = useGlobalState();
+  const [isParsing, setIsParsing] = useState<boolean>(false);
 
   const handleFileUploaded = async (fileContent: string) => {
-    setIsLoading(true); // Set loading to true at the start of file processing
-
-    const parsedGPXData = parseGPX(fileContent);
-    console.log("GPX Data:", parsedGPXData);
-  
+    setIsParsing(true);
+    const parsedGPXData = parseGPX(fileContent, state.travelMode as keyof typeof travelModes);
     localStorage.setItem("gpxData", JSON.stringify(parsedGPXData));
     dispatch({ type: "SET_GPX_DATA", payload: parsedGPXData });
-
     setGpxData(parsedGPXData);
-    setGpxDataKey(prevKey => prevKey + 1);
-
-    setIsLoading(false); // Set loading to false once processing is complete
+    setGpxDataKey((prevKey) => prevKey + 1);
+    setIsParsing(false);
   };
+
 
   useEffect(() => {
     const savedGpxData = localStorage.getItem("gpxData");
@@ -37,22 +36,34 @@ function App() {
     }
   }, []);
 
-  if (isLoading) {
-    return <div>Loading...</div>; // Display a loading indicator or message
+  useEffect(() => {
+    if (gpxData && state.travelMode) {
+      const updatedTrackParts = calculateTravelTimes(gpxData, state.travelMode as keyof typeof travelModes);
+      if (JSON.stringify(updatedTrackParts) !== JSON.stringify(gpxData.trackParts)) {
+        setGpxData({ ...gpxData, trackParts: updatedTrackParts });
+      }
+    }
+  }, [state.travelMode, gpxData]);
+
+  if (isParsing) {
+    return <div>Loading...</div>;
   }
 
   return (
     <div className="App">
       <FileUploader onFileUploaded={handleFileUploaded} />
-      {gpxData && (
+      {gpxData && !isParsing && (
         <div className="App-main-container">
-          <WaypointList waypoints={gpxData.waypoints} />
-          <div className="App-graph-container">
-            <MapView
+          <div className="App-sidebar">
+            <TravelModeSelector />
+            <WaypointList
+              trackParts={gpxData.trackParts}
               waypoints={gpxData.waypoints}
-              tracks={gpxData.tracks}
-              gpxDataKey={gpxDataKey}
             />
+          </div>
+
+          <div className="App-graph-container">
+            <MapView />
             <ScaleStrip tracks={gpxData.tracks} />
           </div>
         </div>

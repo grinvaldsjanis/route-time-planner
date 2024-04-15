@@ -1,0 +1,13 @@
+.time-info-wrapper {
+    display: flex;
+    flex-direction: column;
+   text-align: right;
+    height: 2rem;
+}
+
+.arrival-departure {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%
+}

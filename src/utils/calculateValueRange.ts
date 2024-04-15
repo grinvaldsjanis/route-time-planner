@@ -41,33 +41,33 @@ export function calculateValueRange(
   mode: string,
   defaultValue: number
 ): { minValue: number; maxValue: number } {
-  let minValue = Infinity; // Start with the highest possible number
-  let maxValue = -Infinity; // Start with the lowest possible number
+  let minValue = Infinity;
+  let maxValue = -Infinity;
 
   tracks.forEach((track) =>
     track.segments.forEach((segment) =>
       segment.points.forEach((point) => {
-        let sampleValue = defaultValue; // Default sample value
+        let sampleValue = defaultValue;
 
         switch (mode) {
-          case "curvature":
+          case "curve":
             sampleValue = point.curve ?? defaultValue;
+
             break;
-          case "elevation":
+          case "ele":
             sampleValue = point.ele ?? defaultValue;
             break;
           case "slope":
-            // Assuming point.slope exists, or you calculate it somehow
             sampleValue = point.slope ?? defaultValue;
             break;
           default:
-            // If mode is not recognized, use the default value
             sampleValue = defaultValue;
         }
 
-        // Update min and max values based on the sample value
         minValue = Math.min(minValue, sampleValue);
         maxValue = Math.max(maxValue, sampleValue);
+
+
       })
     )
   );

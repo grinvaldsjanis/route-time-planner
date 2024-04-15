@@ -1,0 +1,6 @@
+.stop-time-selector {
+  display: flex;
+  gap: 1rem;
+  justify-content: start;
+  align-items: center;
+}

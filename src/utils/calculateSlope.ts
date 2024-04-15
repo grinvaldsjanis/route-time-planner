@@ -27,14 +27,21 @@ function calculateSlope(p1: TrackPoint, p2: TrackPoint): number {
     parseFloat(p2.lon)
   );
 
+  if (distance === 0) {
+    // Prevent division by zero
+    return 0;
+  }
+
   const deltaElevation = (p2.ele ?? 0) - (p1.ele ?? 0);
 
   // Calculate slope in radians
   const slopeRadians = Math.asin(deltaElevation / distance);
 
-  // Optionally, convert slope to degrees or percentage
-  // const slopeDegrees = slopeRadians * (180 / Math.PI);
-  const slopePercentage = Math.tan(slopeRadians) * 100;
+  // Convert slope to percentage
+  let slopePercentage = Math.tan(slopeRadians) * 100;
+
+  // Round to 1 decimal place and handle NaN if asin() input was invalid
+  slopePercentage = isNaN(slopePercentage) ? 0 : parseFloat(slopePercentage.toFixed(1));
 
   return slopePercentage;
 }
