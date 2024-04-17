@@ -34,7 +34,12 @@ function App() {
   useEffect(() => {
     const savedGpxData = localStorage.getItem("gpxData");
     if (savedGpxData) {
-      setGpxData(JSON.parse(savedGpxData));
+      const loadedData = JSON.parse(savedGpxData);
+      const regeneratedTrackParts = calculateTravelTimes(
+        loadedData,
+        state.travelMode as keyof typeof travelModes
+      );
+      setGpxData({ ...loadedData, trackParts: regeneratedTrackParts });
     }
   }, []);
 
@@ -70,10 +75,12 @@ function App() {
         <div className="App-main-container">
           <div className="App-sidebar">
             <TravelModeSelector />
-            <WaypointList
-              trackParts={gpxData.trackParts}
-              waypoints={gpxData.waypoints}
-            />
+            {gpxData.waypoints && gpxData.trackParts && (
+              <WaypointList
+                trackParts={gpxData.trackParts}
+                waypoints={gpxData.waypoints}
+              />
+            )}
           </div>
 
           <div className="App-graph-container">

@@ -36,12 +36,17 @@ const WaypointList: React.FC<WaypointListProps> = ({
   );
 
   useEffect(() => {
+    if (!trackParts || trackParts.length === 0) {
+      console.warn("No track parts available");
+      return;
+    }
+
     const startJourneyTime = "08:00:00";
     let currentTime = startJourneyTime;
     const arrivalTimes: string[] = [];
     const departureTimes: string[] = [startJourneyTime]; // Start with initial departure time
     let totalMinutes = 0; // Initialize total minutes for the entire journey
-  
+
     waypoints.forEach((waypoint, index) => {
       if (index > 0) {
         // Calculate travel time to this waypoint
@@ -53,23 +58,23 @@ const WaypointList: React.FC<WaypointListProps> = ({
         arrivalTimes[index] = currentTime; // Arrival time at current waypoint
         totalMinutes += travelMinutes;
       }
-  
+
       // Stop time at current waypoint
       const stopMinutes = localStopTimes[index];
       currentTime = addTimes(currentTime, convertMinutesToHHMMSS(stopMinutes));
       totalMinutes += stopMinutes;
-  
+
       if (index < waypoints.length - 1) {
         departureTimes[index] = currentTime; // Set departure time for the next waypoint
       }
-  
+
       // console.log(`Waypoint ${index}: Arrival at ${arrivalTimes[index]}, Departure at ${departureTimes[index]}, Current Time ${currentTime}`);
     });
-  
+
     setTimes({ arrival: arrivalTimes, departure: departureTimes });
     setTotalJourneyTime(convertMinutesToHHMMSS(totalMinutes));
   }, [waypoints, trackParts, localStopTimes]);
-  
+
   const debouncedUpdateStopTime = useCallback(
     debounce((stopTime: number, index: number) => {
       dispatch({ type: "UPDATE_STOP_TIME", payload: { index, stopTime } });
@@ -80,29 +85,29 @@ const WaypointList: React.FC<WaypointListProps> = ({
   const handleStopTimeChange = (stopTime: number, index: number) => {
     const newStopTimes = [...localStopTimes];
     newStopTimes[index] = stopTime;
-    setLocalStopTimes(newStopTimes); 
+    setLocalStopTimes(newStopTimes);
     debouncedUpdateStopTime(stopTime, index);
   };
 
   return (
     <div className="list-container">
       <div className="waypoint-list-container">
-      <ul>
-        {waypoints.map((waypoint, index) => (
-          <WaypointItem
-            key={index}
-            index={index}
-            waypoint={waypoint}
-            times={times}
-            localStopTimes={localStopTimes}
-            handleStopTimeChange={handleStopTimeChange}
-            showStopTimeSelector={index > 0 && index < waypoints.length - 1}
-            trackPart={trackParts[index] ? trackParts[index] : undefined}
-          />
-        ))}
-      </ul>
+        <ul>
+          {waypoints.map((waypoint, index) => (
+            <WaypointItem
+              key={index}
+              index={index}
+              waypoint={waypoint}
+              times={times}
+              localStopTimes={localStopTimes}
+              handleStopTimeChange={handleStopTimeChange}
+              showStopTimeSelector={index > 0 && index < waypoints.length - 1}
+              trackPart={trackParts[index] ? trackParts[index] : undefined}
+            />
+          ))}
+        </ul>
       </div>
-     
+
       <div className="total-summation">
         <p>
           <strong>Distance:</strong> {totalDistance.toFixed(2)} km
