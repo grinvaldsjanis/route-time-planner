@@ -1,0 +1,77 @@
+.file-uploader {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  font-size: 16px;
+  justify-content: flex-end;
+  /* background-color: rgb(207, 207, 207); */
+}
+
+.inputfile {
+	width: 0.1px;
+	height: 0.1px;
+	opacity: 0;
+	overflow: hidden;
+	position: absolute;
+	z-index: -1;
+}
+
+.inputfile + label {
+  font-size: 1.25em;
+  font-weight: 700;
+  color: white;
+  padding: 10px;
+  background-color: rgb(54, 217, 0);
+  display: flex;
+  border-radius: 7px;
+  gap: 7px;
+}
+
+.inputfile:focus + label,
+.inputfile + label:hover {
+  box-shadow: 0 0 10px 0 rgb(255, 255, 255) inset,
+  0 0 10px 4px rgb(255, 255, 255);
+}
+
+.inputfile:focus + label {
+	outline: 1px dotted #000;
+	outline: -webkit-focus-ring-color auto 5px;
+}
+
+.inputfile:focus + label {
+	outline: 1px dotted #000;
+	outline: -webkit-focus-ring-color auto 5px;
+}
+
+.inputfile + label {
+	cursor: pointer; /* "hand" cursor */
+}
+
+input[type="file"]::file-selector-button {
+  box-sizing: border-box;
+  appearance: none;
+  background-color: rgb(54, 217, 0);
+  border: none;
+  border-radius: 7px;
+  cursor: pointer;
+  display: flex;
+  align-self: center;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1;
+  margin: 10px;
+  padding: 7px 10px;
+  text-decoration: none;
+  text-align: center;
+  text-transform: uppercase;
+  font-family: inherit;
+  font-weight: 700;
+  color: #fff;
+  transition: all 150ms ease-in-out;
+}
+
+input[type="file"]::file-selector-button:hover {
+  box-shadow: 0 0 10px 0 rgb(255, 255, 255) inset,
+    0 0 10px 4px rgb(255, 255, 255);
+}

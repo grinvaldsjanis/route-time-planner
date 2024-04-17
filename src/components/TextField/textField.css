@@ -1,0 +1,78 @@
+.wrapper {
+    position: relative;
+    --color-text-primary: rgba(0, 0, 0, 0.87);
+    --color-text-secondary: rgba(0, 0, 0, 0.6);
+    --color-border-default: gray;
+    --color-border-focused: #009FE3;
+    --color-assistive-text: rgba(0, 0, 0, 0.54);
+    --color-text-primary: rgba(0, 0, 0, 0.87);
+    --color-text-secondary: rgba(0, 0, 0, 0.6);
+    --color-background-field: rgba(255, 255, 255, 0);
+    --color-background-label-focus:  rgba(255, 255, 255, 1);
+    --color-error:  rgb(255, 51, 51);
+  }
+  
+
+.textField {
+  position: relative;
+  margin-bottom: 0;
+  padding-bottom: 0;
+  transition: background-color 0.3s ease;
+}
+
+.textField.error .input {
+    border-color:var(--color-error);
+  }
+
+.label {
+  position: absolute;
+  font-size: 1rem;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: var(--color-background-field);
+  color: var(--color-text-secondary);
+  padding: 0 0.3rem;
+  margin: 0 0.5rem;
+  transition: 0.1s ease-out;
+  transform-origin: left top;
+  pointer-events: none;
+}
+
+.input {
+  font-size: 1rem;
+  outline: none;
+  border: 1px solid var(--color-border-default);
+  border-radius: 5px;
+  padding: 1rem 0.7rem;
+  color: var(--color-text-primary);
+  transition: 0.1s ease-out;
+  width: 100%;
+  margin: 0;
+  transition: border-color 0.3s ease;
+}
+
+.input:focus,
+.input:not(:placeholder-shown) {
+  border-color: var(--color-border-focused);
+}
+
+.input:focus + .label,
+.input:not(:placeholder-shown) + .label {
+  color: var(--color-border-focused);
+  top: 0;
+  background-color: var(--color-background-label-focus);
+  transform: translateY(-50%) scale(0.9); /* Move and shrink label */
+}
+
+.assistiveText {
+    margin-top: 4px;
+    margin-left: 14px;
+    font-size: 12px;
+    color: var(--color-assistive-text);
+    transition: color 0.3s ease;
+  }
+
+  .assistiveText.error {
+    color: var(--color-error); /* Directly target the error class on assistiveText */
+  }

@@ -1,0 +1,30 @@
+/* EditableText.css */
+.editable-text-container {
+    width: 100%;
+    cursor: pointer;
+    display: inline-block;
+    line-height: 20px;
+    padding: 4px 4px;
+    border: 1px solid transparent;
+    min-width: 50px;
+  }
+  
+  .editable-text-span {
+    display: inline-block;
+    padding: 3.5px;
+    vertical-align: middle;
+  }
+  
+  .editable-text-input {
+    border: 1px solid #ccc;
+    padding: 0;
+    font-size: inherit;
+    color: inherit;
+    font-family: inherit;
+    line-height: 20px;
+    outline: none;
+    width: 100%;
+    box-sizing: border-box;
+    vertical-align: middle;
+  }
+  

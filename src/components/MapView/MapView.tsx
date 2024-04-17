@@ -50,7 +50,7 @@ interface ValueRanges {
 }
 
 const MapView: React.FC = () => {
-  const { state } = useGlobalState();
+  const { state, dispatch } = useGlobalState();
   const { gpxData, mapCenter, mapZoom, mapMode, dataVersion } = state;
 
   // Use a mapping object to convert human-readable layer names to key names
@@ -66,25 +66,36 @@ const MapView: React.FC = () => {
   );
 
   useEffect(() => {
-    // Ensure activeLayer is updated correctly when mapMode changes
     setActiveLayer(layerMap[mapMode] || "ele");
   }, [mapMode]);
 
   const handleMapMove = useCallback((center: LatLngTuple, zoom: number) => {
+    dispatch({ type: 'SET_MAP_ZOOM', payload: zoom });
+    dispatch({ type: 'SET_MAP_CENTER', payload: center });
     console.log("Map moved to:", center, "Zoom level:", zoom);
-  }, []);
+  }, [dispatch]);
 
   const handleLayerChange = (layer: string) => {
     setActiveLayer(layerMap[layer] || "ele");
   };
 
   const LayerToggles = () => (
-    <div style={{ position: "absolute", top: 10, right: 10, zIndex: 1000 }}>
+    <div style={{ 
+      position: "absolute", 
+      top: 10, 
+      right: 10, 
+      zIndex: 1000,
+      display: "flex",
+      flexDirection: "column",    
+      alignContent: "normal",
+      justifyContent: "start",
+    }}>
       <button onClick={() => handleLayerChange("elevation")}>Elevation</button>
       <button onClick={() => handleLayerChange("curvature")}>Curvature</button>
       <button onClick={() => handleLayerChange("slope")}>Slope</button>
     </div>
   );
+  
 
   const renderTracks = useMemo(() => {
     if (!gpxData?.tracks) return null;
@@ -142,10 +153,10 @@ const MapView: React.FC = () => {
       scrollWheelZoom={true}
       className="map-container"
     >
-      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+      <TileLayer url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png" />
       <LayerToggles />
       {renderTracks}
-      {gpxData?.waypoints.map((point, idx) => (
+      {mapZoom >= 11 && gpxData?.waypoints.map((point, idx) => (
         <Marker
           key={idx}
           position={[parseFloat(point.lat), parseFloat(point.lon)]}

@@ -11,6 +11,7 @@ import { useGlobalState } from "./context/GlobalContext";
 import TravelModeSelector from "./components/TravelModeSelector/TravelModesSelector";
 import calculateTravelTimes from "./utils/calculateTravelTimes";
 import travelModes from "./constants/travelModes";
+import logo from "./logo.png";
 
 function App() {
   const [gpxData, setGpxData] = useState<any>(null);
@@ -20,14 +21,15 @@ function App() {
 
   const handleFileUploaded = async (fileContent: string) => {
     setIsParsing(true);
-    const parsedGPXData = parseGPX(fileContent, state.travelMode as keyof typeof travelModes);
-    localStorage.setItem("gpxData", JSON.stringify(parsedGPXData));
+    const parsedGPXData = parseGPX(
+      fileContent,
+      state.travelMode as keyof typeof travelModes
+    );
     dispatch({ type: "SET_GPX_DATA", payload: parsedGPXData });
     setGpxData(parsedGPXData);
     setGpxDataKey((prevKey) => prevKey + 1);
     setIsParsing(false);
   };
-
 
   useEffect(() => {
     const savedGpxData = localStorage.getItem("gpxData");
@@ -38,8 +40,13 @@ function App() {
 
   useEffect(() => {
     if (gpxData && state.travelMode) {
-      const updatedTrackParts = calculateTravelTimes(gpxData, state.travelMode as keyof typeof travelModes);
-      if (JSON.stringify(updatedTrackParts) !== JSON.stringify(gpxData.trackParts)) {
+      const updatedTrackParts = calculateTravelTimes(
+        gpxData,
+        state.travelMode as keyof typeof travelModes
+      );
+      if (
+        JSON.stringify(updatedTrackParts) !== JSON.stringify(gpxData.trackParts)
+      ) {
         setGpxData({ ...gpxData, trackParts: updatedTrackParts });
       }
     }
@@ -51,7 +58,14 @@ function App() {
 
   return (
     <div className="App">
-      <FileUploader onFileUploaded={handleFileUploaded} />
+      <div className="App-header">
+        <div className="App-logo">
+          <h4>GPX Time Planner</h4>
+        </div>
+
+        <FileUploader onFileUploaded={handleFileUploaded} />
+      </div>
+
       {gpxData && !isParsing && (
         <div className="App-main-container">
           <div className="App-sidebar">

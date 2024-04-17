@@ -63,7 +63,7 @@ const WaypointList: React.FC<WaypointListProps> = ({
         departureTimes[index] = currentTime; // Set departure time for the next waypoint
       }
   
-      console.log(`Waypoint ${index}: Arrival at ${arrivalTimes[index]}, Departure at ${departureTimes[index]}, Current Time ${currentTime}`);
+      // console.log(`Waypoint ${index}: Arrival at ${arrivalTimes[index]}, Departure at ${departureTimes[index]}, Current Time ${currentTime}`);
     });
   
     setTimes({ arrival: arrivalTimes, departure: departureTimes });
@@ -80,12 +80,13 @@ const WaypointList: React.FC<WaypointListProps> = ({
   const handleStopTimeChange = (stopTime: number, index: number) => {
     const newStopTimes = [...localStopTimes];
     newStopTimes[index] = stopTime;
-    setLocalStopTimes(newStopTimes); // Update local state immediately
-    debouncedUpdateStopTime(stopTime, index); // Debounce heavy operations
+    setLocalStopTimes(newStopTimes); 
+    debouncedUpdateStopTime(stopTime, index);
   };
 
   return (
-    <div className="waypoint-list-container">
+    <div className="list-container">
+      <div className="waypoint-list-container">
       <ul>
         {waypoints.map((waypoint, index) => (
           <WaypointItem
@@ -100,6 +101,8 @@ const WaypointList: React.FC<WaypointListProps> = ({
           />
         ))}
       </ul>
+      </div>
+     
       <div className="total-summation">
         <p>
           <strong>Distance:</strong> {totalDistance.toFixed(2)} km

@@ -21,12 +21,13 @@ export const initialState: GlobalState = {
   mapZoom: JSON.parse(localStorage.getItem("mapZoom") || "13"),
   travelMode: localStorage.getItem("travelMode") || "Casual Walking",
   dataVersion: 0,
-  stopTimes: undefined
+  stopTimes: undefined,
 };
 
 export const reducer = (state: GlobalState, action: Action): GlobalState => {
   switch (action.type) {
     case "SET_GPX_DATA":
+      localStorage.setItem("gpxData", JSON.stringify(action.payload));
       return {
         ...state,
         gpxData: action.payload,
@@ -44,14 +45,16 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
       return { ...state, travelMode: action.payload };
     case "UPDATE_STOP_TIME":
       if (!state.gpxData || !state.gpxData.waypoints) return state;
-
       const updatedWaypoints = state.gpxData.waypoints.map((waypoint, idx) => {
         if (idx === action.payload.index) {
           return { ...waypoint, stopTime: action.payload.stopTime };
         }
         return waypoint;
       });
-
+      localStorage.setItem(
+        "gpxData",
+        JSON.stringify({ ...state.gpxData, waypoints: updatedWaypoints })
+      );
       return {
         ...state,
         gpxData: {

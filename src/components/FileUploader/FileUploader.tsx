@@ -1,5 +1,6 @@
-import React from 'react';
-import './FileUploader.css';
+import React from "react";
+import "./FileUploader.css";
+import { FaUpload } from "react-icons/fa6";
 
 interface FileUploaderProps {
   onFileUploaded: (fileContent: string) => void;
@@ -20,7 +21,15 @@ const FileUploader: React.FC<FileUploaderProps> = ({ onFileUploaded }) => {
 
   return (
     <div className="file-uploader">
-      <input type="file" onChange={handleFileChange} />
+      <input
+        className="inputfile"
+        type="file"
+        id="file"
+        name="gpx_uploads"
+        accept=".gpx"
+        onChange={handleFileChange}
+      />
+      <label htmlFor="file"><FaUpload /><strong>Upload GPX</strong></label>
     </div>
   );
 };

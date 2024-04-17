@@ -1,47 +1,79 @@
+.list-item {
+  display: flex;
+  flex-direction: column;
+}
 
-  .waypoint-list-item {
-    border-bottom: 1px solid #eee;
-  }
-  
-  .item-content-container {
-    display: flex;
-    padding: 10px 15px;
-    gap: 10px;
-    display: flex;
-    flex-direction: column;
-    align-items: start;
-    justify-content: space-between;
-  }
-  
-  .item-top-row {
-    font-size: 20px;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 10px;
-  }
-  
-  .item-order-number {
-    text-align: right;
-    max-width: 25px;
-  }
-  
-  .track-part-container {
-    display: flex;
-    justify-content: space-between;
-    flex-direction: row;
-    gap: 10px;
-    padding: 10px;
-    background-color: rgb(156, 212, 230);
-  }
+.waypoint-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
 
-  .waypoint-time-container {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-    flex-direction: row;
-  }
-  
-  .item-name {
-    text-align: left;
-  }
+.waypoint-info-container {
+  width: 100%;
+  display: flex;
+  padding: 10px 15px;
+  margin-right: 1rem;
+  gap: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  justify-content: space-between;
+  background-color: rgb(241, 241, 241);
+  border-radius: 7px;
+}
+
+.item-top-row {
+  height: 40px;
+  width: 100%;
+  font-size: 20px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+
+.item-order-number {
+  color: rgb(194, 194, 194);
+  font-size: 24px;
+  margin: 0.5rem;
+  width: 2.5rem;
+  text-align: right;
+  max-width: 25px;
+}
+
+.waypoint-time-container {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  flex-direction: row;
+}
+
+.item-name {
+  width: 100%;
+  text-align: left;
+}
+
+.track-part-container {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  padding: 10px;
+  align-items: center;
+}
+
+.track-part-info {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  justify-content: space-between;
+  padding: 10px;
+}
+.track-part-icon {
+  color: rgb(194, 194, 194);
+  font-size: 20px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  padding: 5px;
+}

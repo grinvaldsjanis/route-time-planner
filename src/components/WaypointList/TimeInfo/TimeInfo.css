@@ -6,8 +6,9 @@
 }
 
 .arrival-departure {
+    font-size: 12px;
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 5px;
     width: 100%
 }

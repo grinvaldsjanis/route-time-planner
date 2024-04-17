@@ -7,20 +7,24 @@
 }
 
 .App-logo {
-  height: 40vmin;
-  pointer-events: none;
+  background-image: url(./logo.png);
+  background-repeat: no-repeat, repeat;
+  background-position: left center;
+  padding-left: 70px;
 }
 
 .App-header {
-  background-color: #282c34;
-  height: 200px;
+  background-color: #ffffff;
+  height: 70px;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   font-size: calc(10px + 2vmin);
-  color: white;
+  color: rgb(65, 65, 65);
+  padding: 1rem;
 }
+
 
 .App-link {
   color: #61dafb;
@@ -33,6 +37,7 @@
 }
 
 .App-sidebar {
+  height: 100%;
   display: flex;
   flex-direction: column;
 }

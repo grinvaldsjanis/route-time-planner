@@ -1,6 +1,7 @@
 import React, { useState, useEffect, ChangeEvent } from 'react';
 import travelModes from '../../constants/travelModes';
 import { useGlobalState } from '../../context/GlobalContext';
+import "./TravelModeSelector.css";
 
 type ModeKey = keyof typeof travelModes;
 
@@ -32,19 +33,17 @@ const TravelModeSelector: React.FC = () => {
   }, [selectedMode]);
 
   return (
-    <div>
+    <div className="travel-mode-selector">
       <select value={selectedMode} onChange={handleSelectChange}>
         {Object.keys(travelModes).map((mode) => (
           <option key={mode} value={mode}>{mode}</option>
         ))}
       </select>
-      <div>
-        <strong>Description:</strong>
+      <div className="description">
         <ul>
           <li>Max Speed: {travelModes[selectedMode].maxSpeed} km/h</li>
           <li>Handling Factor: {travelModes[selectedMode].handlingFactor}</li>
           <li>Power Factor: {travelModes[selectedMode].powerFactor}</li>
-          <li>Terrain: {travelModes[selectedMode].terrain}</li>
         </ul>
       </div>
     </div>

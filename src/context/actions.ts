@@ -8,6 +8,15 @@ export const SET_MAP_MODE = "SET_MAP_MODE";
 export const INCREMENT_DATA_VERSION = "INCREMENT_DATA_VERSION";
 export const SET_TRAVEL_MODE = "SET_TRAVEL_MODE";
 export const UPDATE_STOP_TIME = "UPDATE_STOP_TIME";
+export const SET_WAYPOINT_NAME = "SET_WAYPOINT_NAME"
+
+export interface SetWaypointName {
+  type: typeof SET_WAYPOINT_NAME;
+  payload: {
+    index: number;
+    name: string;
+  };
+}
 
 export interface IncrementDataVersionAction {
   type: typeof INCREMENT_DATA_VERSION;
@@ -43,7 +52,8 @@ export type Action =
   | SetMapZoomAction
   | IncrementDataVersionAction
   | UpdateStopTimeAction
-  | SetTravelModeAction;
+  | SetTravelModeAction
+  | SetWaypointName;
 
 export const setGPXData = (data: GPXData): SetGPXDataAction => ({
   type: SET_GPX_DATA,
