@@ -34,14 +34,18 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
         dataVersion: state.dataVersion + 1,
       };
     case "SET_MAP_MODE":
+      localStorage.setItem("mapMode", action.payload); // Persist map mode
       return { ...state, mapMode: action.payload };
     case "SET_MAP_CENTER":
+      localStorage.setItem("mapCenter", JSON.stringify(action.payload)); // Persist map center
       return { ...state, mapCenter: action.payload };
     case "SET_MAP_ZOOM":
+      localStorage.setItem("mapZoom", JSON.stringify(action.payload)); // Persist map zoom
       return { ...state, mapZoom: action.payload };
     case "INCREMENT_DATA_VERSION":
       return { ...state, dataVersion: state.dataVersion + 1 };
     case "SET_TRAVEL_MODE":
+      localStorage.setItem("travelMode", action.payload); // Persist travel mode
       return { ...state, travelMode: action.payload };
     case "UPDATE_STOP_TIME":
       if (!state.gpxData || !state.gpxData.waypoints) return state;

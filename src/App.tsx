@@ -1,5 +1,5 @@
 // App.tsx
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
 import FileUploader from "./components/FileUploader/FileUploader";
 import MapView from "./components/MapView/MapView";
@@ -9,13 +9,10 @@ import React from "react";
 import ScaleStrip from "./components/ScaleStrip/ScaleStrip";
 import { useGlobalState } from "./context/GlobalContext";
 import TravelModeSelector from "./components/TravelModeSelector/TravelModesSelector";
-import calculateTravelTimes from "./utils/calculateTravelTimes";
 import travelModes from "./constants/travelModes";
-import logo from "./logo.png";
+import calculateAverageCoordinate from "./utils/calculateAverageCoordinate";
 
 function App() {
-  const [gpxData, setGpxData] = useState<any>(null);
-  const [gpxDataKey, setGpxDataKey] = useState<number>(0);
   const { state, dispatch } = useGlobalState();
   const [isParsing, setIsParsing] = useState<boolean>(false);
 
@@ -25,37 +22,29 @@ function App() {
       fileContent,
       state.travelMode as keyof typeof travelModes
     );
+  
+    // Convert waypoints to Coordinate array
+    const coordinates = parsedGPXData.waypoints.map(wp => ({
+      lat: parseFloat(wp.lat),
+      lon: parseFloat(wp.lon)
+    }));
+  
+    const averageCoord = calculateAverageCoordinate(coordinates);
+    if (averageCoord) {
+      // Dispatch the new center to global state
+      dispatch({ type: "SET_MAP_CENTER", payload: [averageCoord.lat, averageCoord.lon] });
+    }
+  
     dispatch({ type: "SET_GPX_DATA", payload: parsedGPXData });
-    setGpxData(parsedGPXData);
-    setGpxDataKey((prevKey) => prevKey + 1);
     setIsParsing(false);
   };
 
   useEffect(() => {
     const savedGpxData = localStorage.getItem("gpxData");
     if (savedGpxData) {
-      const loadedData = JSON.parse(savedGpxData);
-      const regeneratedTrackParts = calculateTravelTimes(
-        loadedData,
-        state.travelMode as keyof typeof travelModes
-      );
-      setGpxData({ ...loadedData, trackParts: regeneratedTrackParts });
+      dispatch({ type: "SET_GPX_DATA", payload: JSON.parse(savedGpxData) });
     }
-  }, []);
-
-  useEffect(() => {
-    if (gpxData && state.travelMode) {
-      const updatedTrackParts = calculateTravelTimes(
-        gpxData,
-        state.travelMode as keyof typeof travelModes
-      );
-      if (
-        JSON.stringify(updatedTrackParts) !== JSON.stringify(gpxData.trackParts)
-      ) {
-        setGpxData({ ...gpxData, trackParts: updatedTrackParts });
-      }
-    }
-  }, [state.travelMode, gpxData]);
+  }, [dispatch]);
 
   if (isParsing) {
     return <div>Loading...</div>;
@@ -71,21 +60,21 @@ function App() {
         <FileUploader onFileUploaded={handleFileUploaded} />
       </div>
 
-      {gpxData && !isParsing && (
+      {state.gpxData && !isParsing && (
         <div className="App-main-container">
           <div className="App-sidebar">
             <TravelModeSelector />
-            {gpxData.waypoints && gpxData.trackParts && (
+            {state.gpxData.waypoints && state.gpxData.trackParts && (
               <WaypointList
-                trackParts={gpxData.trackParts}
-                waypoints={gpxData.waypoints}
+                trackParts={state.gpxData.trackParts}
+                waypoints={state.gpxData.waypoints}
               />
             )}
           </div>
 
           <div className="App-graph-container">
             <MapView />
-            <ScaleStrip tracks={gpxData.tracks} />
+            <ScaleStrip tracks={state.gpxData.tracks} />
           </div>
         </div>
       )}
