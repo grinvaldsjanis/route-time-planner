@@ -1,5 +1,5 @@
 // App.tsx
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./App.css";
 import FileUploader from "./components/FileUploader/FileUploader";
 import MapView from "./components/MapView/MapView";
@@ -16,19 +16,23 @@ import calculateTravelTimes from "./utils/calculateTravelTimes";
 function App() {
   const { state, dispatch } = useGlobalState();
   const [isParsing, setIsParsing] = useState<boolean>(false);
+  const currentTravelMode = useRef<TravelMode>(state.travelMode);
+
+  useEffect(() => {
+    currentTravelMode.current = state.travelMode;
+  }, [state.travelMode]);
 
   const handleFileUploaded = async (fileContent: string) => {
     setIsParsing(true);
     const parsedGPXData = parseGPX(
       fileContent,
-      state.travelMode as keyof typeof travelModes
+      currentTravelMode.current as keyof typeof travelModes
     );
 
     const updatedTrackParts = calculateTravelTimes(
       parsedGPXData,
-      state.travelMode as TravelMode // Type assertion here
+      currentTravelMode.current // Use the current travel mode from the ref
     );
-
     const updatedGPXData = { ...parsedGPXData, trackParts: updatedTrackParts };
 
     dispatch({ type: "SET_GPX_DATA", payload: updatedGPXData });
