@@ -23,7 +23,7 @@ const calculateTrackParts = (
         parseFloat(points[i + 1].lon)
       );
     }
-    return totalDistance / 1000;  // Convert to kilometers
+    return totalDistance / 1000;
   };
 
   const mode = travelModes[modeKey];

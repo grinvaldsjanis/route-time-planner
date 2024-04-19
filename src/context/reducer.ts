@@ -2,7 +2,8 @@
 import { Action } from "./actions";
 import { GPXData, Waypoint } from "../utils/parseGPX";
 import { LatLngTuple } from "leaflet";
-
+import { TravelMode } from "../constants/travelModes";
+import calculateTravelTimes from "../utils/calculateTravelTimes";
 export interface GlobalState {
   stopTimes: unknown;
   gpxData: GPXData | null;
@@ -10,7 +11,7 @@ export interface GlobalState {
   mapCenter: LatLngTuple;
   mapZoom: number;
   dataVersion: number;
-  travelMode: string;
+  travelMode: TravelMode; 
   waypoints?: Waypoint[];
 }
 
@@ -19,7 +20,7 @@ export const initialState: GlobalState = {
   mapMode: "elevation", // Default value or load from localStorage
   mapCenter: JSON.parse(localStorage.getItem("mapCenter") || '["0", "0"]'),
   mapZoom: JSON.parse(localStorage.getItem("mapZoom") || "13"),
-  travelMode: localStorage.getItem("travelMode") || "Casual Walking",
+  travelMode: "Casual Walking" as TravelMode,
   dataVersion: 0,
   stopTimes: undefined,
 };
@@ -45,8 +46,20 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
     case "INCREMENT_DATA_VERSION":
       return { ...state, dataVersion: state.dataVersion + 1 };
     case "SET_TRAVEL_MODE":
-      localStorage.setItem("travelMode", action.payload); // Persist travel mode
-      return { ...state, travelMode: action.payload };
+      case "SET_TRAVEL_MODE":
+        if (state.gpxData) {
+          // Recalculate travel times with the new travel mode
+          const updatedTrackParts = calculateTravelTimes(state.gpxData, action.payload);
+          const updatedGPXData = {...state.gpxData, trackParts: updatedTrackParts};
+          localStorage.setItem("travelMode", action.payload); // Persist new travel mode
+          localStorage.setItem("gpxData", JSON.stringify(updatedGPXData)); // Persist updated GPX data
+          return {
+            ...state,
+            travelMode: action.payload,
+            gpxData: updatedGPXData,
+          };
+        }
+        return { ...state, travelMode: action.payload };
     case "UPDATE_STOP_TIME":
       if (!state.gpxData || !state.gpxData.waypoints) return state;
       const updatedWaypoints = state.gpxData.waypoints.map((waypoint, idx) => {

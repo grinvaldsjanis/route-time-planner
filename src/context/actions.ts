@@ -1,7 +1,6 @@
-// src/context/actions.ts
-
 import { LatLngTuple } from "leaflet";
 import { GPXData } from "../utils/parseGPX";
+import { TravelMode } from "../constants/travelModes"; // Ensure this import is correct
 
 export const SET_GPX_DATA = "SET_GPX_DATA";
 export const SET_MAP_MODE = "SET_MAP_MODE";
@@ -34,7 +33,7 @@ export interface SetMapModeAction {
 
 export interface SetTravelModeAction {
   type: typeof SET_TRAVEL_MODE;
-  payload: string;
+  payload: TravelMode;
 }
 
 export interface UpdateStopTimeAction {
@@ -65,7 +64,7 @@ export const setMapMode = (mode: string): SetMapModeAction => ({
   payload: mode,
 });
 
-export const setTravelMode = (mode: string): SetTravelModeAction => ({
+export const setTravelMode = (mode: TravelMode): SetTravelModeAction => ({
   type: SET_TRAVEL_MODE,
   payload: mode,
 });

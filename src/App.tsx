@@ -9,8 +9,9 @@ import React from "react";
 import ScaleStrip from "./components/ScaleStrip/ScaleStrip";
 import { useGlobalState } from "./context/GlobalContext";
 import TravelModeSelector from "./components/TravelModeSelector/TravelModesSelector";
-import travelModes from "./constants/travelModes";
+import travelModes, { TravelMode } from "./constants/travelModes";
 import calculateAverageCoordinate from "./utils/calculateAverageCoordinate";
+import calculateTravelTimes from "./utils/calculateTravelTimes";
 
 function App() {
   const { state, dispatch } = useGlobalState();
@@ -22,20 +23,29 @@ function App() {
       fileContent,
       state.travelMode as keyof typeof travelModes
     );
-  
-    // Convert waypoints to Coordinate array
-    const coordinates = parsedGPXData.waypoints.map(wp => ({
+
+    const updatedTrackParts = calculateTravelTimes(
+      parsedGPXData,
+      state.travelMode as TravelMode // Type assertion here
+    );
+
+    const updatedGPXData = { ...parsedGPXData, trackParts: updatedTrackParts };
+
+    dispatch({ type: "SET_GPX_DATA", payload: updatedGPXData });
+
+    const coordinates = parsedGPXData.waypoints.map((wp) => ({
       lat: parseFloat(wp.lat),
-      lon: parseFloat(wp.lon)
+      lon: parseFloat(wp.lon),
     }));
-  
+
     const averageCoord = calculateAverageCoordinate(coordinates);
     if (averageCoord) {
-      // Dispatch the new center to global state
-      dispatch({ type: "SET_MAP_CENTER", payload: [averageCoord.lat, averageCoord.lon] });
+      dispatch({
+        type: "SET_MAP_CENTER",
+        payload: [averageCoord.lat, averageCoord.lon],
+      });
     }
-  
-    dispatch({ type: "SET_GPX_DATA", payload: parsedGPXData });
+
     setIsParsing(false);
   };
 
