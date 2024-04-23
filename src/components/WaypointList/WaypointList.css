@@ -11,8 +11,8 @@
   flex-direction: column;
   flex-grow: 1;
   overflow-y: hidden;
-  max-height: calc(100% - 180px);
-  border: 1px solid blue;
+  max-height: calc(100% - 200px);
+  /* border: 1px solid blue; */
   /* background-color: rgb(188, 143, 181); */
 }
 
@@ -26,7 +26,12 @@
 }
 
 .total-summation {
-  height: 180px;
-  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: 200px;
+  padding: 20px;
+  box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.2);
+
   /* background-color: aqua; */
 }
