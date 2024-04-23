@@ -69,33 +69,37 @@ const MapView: React.FC = () => {
     setActiveLayer(layerMap[mapMode] || "ele");
   }, [mapMode]);
 
-  const handleMapMove = useCallback((center: LatLngTuple, zoom: number) => {
-    dispatch({ type: 'SET_MAP_ZOOM', payload: zoom });
-    dispatch({ type: 'SET_MAP_CENTER', payload: center });
-    console.log("Map moved to:", center, "Zoom level:", zoom);
-  }, [dispatch]);
+  const handleMapMove = useCallback(
+    (center: LatLngTuple, zoom: number) => {
+      dispatch({ type: "SET_MAP_ZOOM", payload: zoom });
+      dispatch({ type: "SET_MAP_CENTER", payload: center });
+      console.log("Map moved to:", center, "Zoom level:", zoom);
+    },
+    [dispatch]
+  );
 
   const handleLayerChange = (layer: string) => {
     setActiveLayer(layerMap[layer] || "ele");
   };
 
   const LayerToggles = () => (
-    <div style={{ 
-      position: "absolute", 
-      top: 10, 
-      right: 10, 
-      zIndex: 1000,
-      display: "flex",
-      flexDirection: "column",    
-      alignContent: "normal",
-      justifyContent: "start",
-    }}>
+    <div
+      style={{
+        position: "absolute",
+        top: 10,
+        right: 10,
+        zIndex: 1000,
+        display: "flex",
+        flexDirection: "column",
+        alignContent: "normal",
+        justifyContent: "start",
+      }}
+    >
       <button onClick={() => handleLayerChange("elevation")}>Elevation</button>
       <button onClick={() => handleLayerChange("curvature")}>Curvature</button>
       <button onClick={() => handleLayerChange("slope")}>Slope</button>
     </div>
   );
-  
 
   const renderTracks = useMemo(() => {
     if (!gpxData?.tracks) return null;
@@ -111,7 +115,8 @@ const MapView: React.FC = () => {
       <LayerGroup key={trackIdx}>
         {track.segments.flatMap((segment, segmentIdx) => {
           const outlinePositions = segment.points.map(
-            point => [parseFloat(point.lat), parseFloat(point.lon)] as LatLngTuple
+            (point) =>
+              [parseFloat(point.lat), parseFloat(point.lon)] as LatLngTuple
           );
 
           return [
@@ -125,20 +130,36 @@ const MapView: React.FC = () => {
             />,
             ...segment.points.slice(1).map((point, pointIdx) => {
               const prevPoint = segment.points[pointIdx];
-              const startPos: LatLngTuple = [parseFloat(prevPoint.lat), parseFloat(prevPoint.lon)];
-              const endPos: LatLngTuple = [parseFloat(point.lat), parseFloat(point.lon)];
+              const startPos: LatLngTuple = [
+                parseFloat(prevPoint.lat),
+                parseFloat(prevPoint.lon),
+              ];
+              const endPos: LatLngTuple = [
+                parseFloat(point.lat),
+                parseFloat(point.lon),
+              ];
 
-              const value = getValueForMode(point, prevPoint, activeLayer as ModeKeys);
-              const color = getColorForValue(value, valueRanges[activeLayer].minValue, valueRanges[activeLayer].maxValue);
+              const value = getValueForMode(
+                point,
+                prevPoint,
+                activeLayer as ModeKeys
+              );
+              const color = getColorForValue(
+                value,
+                valueRanges[activeLayer].minValue,
+                valueRanges[activeLayer].maxValue
+              );
 
               // Render the colored polyline for the segment
-              return <Polyline
-                key={`${trackIdx}-${segmentIdx}-${pointIdx}-${activeLayer}`}
-                positions={[startPos, endPos]}
-                color={color}
-                weight={4}
-              />;
-            })
+              return (
+                <Polyline
+                  key={`${trackIdx}-${segmentIdx}-${pointIdx}-${activeLayer}`}
+                  positions={[startPos, endPos]}
+                  color={color}
+                  weight={4}
+                />
+              );
+            }),
           ];
         })}
       </LayerGroup>
@@ -146,27 +167,30 @@ const MapView: React.FC = () => {
   }, [gpxData?.tracks, activeLayer]);
 
   return (
-    <MapContainer
-      key={`map-${dataVersion}`}
-      center={mapCenter}
-      zoom={mapZoom}
-      scrollWheelZoom={true}
-      className="map-container"
-    >
-      <TileLayer url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png" />
-      <LayerToggles />
-      {renderTracks}
-      {mapZoom >= 11 && gpxData?.waypoints.map((point, idx) => (
-        <Marker
-          key={idx}
-          position={[parseFloat(point.lat), parseFloat(point.lon)]}
-          icon={createMarkerIcon(point.type || "default", idx + 1)}
-        >
-          <Popup>{point.name || `Waypoint ${idx + 1}`}</Popup>
-        </Marker>
-      ))}
-      <MapEvents onMapMove={handleMapMove} />
-    </MapContainer>
+    <div className="map">
+      <MapContainer
+        key={`map-${dataVersion}`}
+        center={mapCenter}
+        zoom={mapZoom}
+        scrollWheelZoom={true}
+        className="map-container"
+      >
+        <TileLayer url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png" />
+        <LayerToggles />
+        {renderTracks}
+        {mapZoom >= 11 &&
+          gpxData?.waypoints.map((point, idx) => (
+            <Marker
+              key={idx}
+              position={[parseFloat(point.lat), parseFloat(point.lon)]}
+              icon={createMarkerIcon(point.type || "default", idx + 1)}
+            >
+              <Popup>{point.name || `Waypoint ${idx + 1}`}</Popup>
+            </Marker>
+          ))}
+        <MapEvents onMapMove={handleMapMove} />
+      </MapContainer>
+    </div>
   );
 };
 

@@ -90,8 +90,8 @@ const WaypointList: React.FC<WaypointListProps> = ({
   };
 
   return (
-    <div className="list-container">
-      <div className="waypoint-list-container">
+    <div className="outer-list-container">
+      <div className="inner-list-container">
         <ul>
           {waypoints.map((waypoint, index) => (
             <WaypointItem
@@ -107,7 +107,6 @@ const WaypointList: React.FC<WaypointListProps> = ({
           ))}
         </ul>
       </div>
-
       <div className="total-summation">
         <p>
           <strong>Distance:</strong> {totalDistance.toFixed(2)} km

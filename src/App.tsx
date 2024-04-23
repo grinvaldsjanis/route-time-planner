@@ -66,13 +66,12 @@ function App() {
 
   return (
     <div className="App">
-      <div className="App-header">
+      <header className="App-header">
         <div className="App-logo">
           <h4>GPX Time Planner</h4>
         </div>
-
         <FileUploader onFileUploaded={handleFileUploaded} />
-      </div>
+      </header>
 
       {state.gpxData && !isParsing && (
         <div className="App-main-container">
@@ -85,13 +84,15 @@ function App() {
               />
             )}
           </div>
-
           <div className="App-graph-container">
             <MapView />
             <ScaleStrip tracks={state.gpxData.tracks} />
           </div>
         </div>
       )}
+      <footer className="footer">
+        Gamma verssion. 2024. By Janis Grinvalds
+      </footer>
     </div>
   );
 }

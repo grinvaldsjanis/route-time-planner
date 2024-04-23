@@ -1,29 +1,32 @@
-.list-container {
-  height: 70%;
-  width: 500px;
+.outer-list-container {
   display: flex;
   flex-direction: column;
+  flex-grow: 1;
+  max-height: calc(100vh - 150px);
+  /* background-color: darkseagreen; */
 }
 
-
-.waypoint-list-container {
-  height: auto;
+.inner-list-container {
   display: flex;
   flex-direction: column;
-  justify-content: start;
+  flex-grow: 1;
   overflow-y: hidden;
+  max-height: calc(100% - 180px);
+  border: 1px solid blue;
+  /* background-color: rgb(188, 143, 181); */
 }
 
-.waypoint-list-container ul {
-  list-style-type: none;
-  padding-top: 20px;
-  padding-bottom: 40px;
-  overflow-y: scroll;
-  border-bottom: 5px solid #eee;
-  margin-top: 1rem;
+.inner-list-container ul {
+  flex-grow: 1;
+  overflow-y: scroll; /* Enables scroll on overflow */
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  /* background: rgb(159, 40, 40); */
 }
 
 .total-summation {
-  height: 100px;
+  height: 180px;
   padding: 10px;
+  /* background-color: aqua; */
 }
