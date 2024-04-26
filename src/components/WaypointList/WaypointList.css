@@ -20,7 +20,7 @@
   flex-grow: 1;
   overflow-y: scroll; /* Enables scroll on overflow */
   margin: 0;
-  padding: 0;
+  padding: 20px 0;
   list-style: none;
   /* background: rgb(159, 40, 40); */
 }

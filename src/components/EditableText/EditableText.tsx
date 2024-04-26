@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import "./EditableText.css"; // Assuming styles are defined here
 
 interface EditableTextProps {
@@ -10,6 +10,11 @@ const EditableText: React.FC<EditableTextProps> = ({ text, onTextChange }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [value, setValue] = useState(text);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Effect to update local state when props change
+  useEffect(() => {
+    setValue(text);
+  }, [text]);
 
   const handleFocus = () => {
     setIsEditing(true);
@@ -40,7 +45,7 @@ const EditableText: React.FC<EditableTextProps> = ({ text, onTextChange }) => {
           autoFocus
         />
       ) : (
-        <span className="editable-text-span">{text}</span>
+        <span className="editable-text-span">{value}</span>
       )}
     </div>
   );

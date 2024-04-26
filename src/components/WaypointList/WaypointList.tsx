@@ -1,108 +1,98 @@
 import React, { useCallback, useEffect, useState } from "react";
 import "./WaypointList.css";
-import { Waypoint, TrackPart } from "../../utils/parseGPX";
-import formatTime from "../../utils/formatTime";
 import { useGlobalState } from "../../context/GlobalContext";
+import formatTime from "../../utils/formatTime";
 import { addTimes, convertMinutesToHHMMSS } from "../../utils/addTimes";
 import WaypointItem from "./WaypointItem/WaypointItem";
 import { debounce } from "lodash";
 
-interface WaypointListProps {
-  waypoints: Waypoint[];
-  trackParts: TrackPart[];
-}
-
-const WaypointList: React.FC<WaypointListProps> = ({
-  waypoints,
-  trackParts,
-}) => {
+const WaypointList: React.FC = () => {
   const { state, dispatch } = useGlobalState();
   const [totalJourneyTime, setTotalJourneyTime] = useState<string>("");
   const [times, setTimes] = useState<{
     arrival: string[];
     departure: string[];
   }>({ arrival: [], departure: [] });
-  const [localStopTimes, setLocalStopTimes] = useState<number[]>(
-    waypoints.map((w) => w.stopTime || 0)
-  );
-
-  const totalDistance = trackParts.reduce(
-    (acc, part) => acc + part.distance,
-    0
-  );
-  const totalTravelTime = trackParts.reduce(
-    (acc, part) => acc + part.travelTime,
-    0
-  );
+  const [localStopTimes, setLocalStopTimes] = useState<number[]>([]);
 
   useEffect(() => {
-    if (!trackParts || trackParts.length === 0) {
-      console.warn("No track parts available");
+    if (state.gpxData?.waypoints) {
+      setLocalStopTimes(state.gpxData.waypoints.map((w) => w.stopTime || 0));
+    }
+  }, [state.gpxData]);
+
+  const totalDistance =
+    state.gpxData?.trackParts?.reduce((acc, part) => acc + part.distance, 0) ||
+    0;
+  const totalTravelTime =
+    state.gpxData?.trackParts?.reduce(
+      (acc, part) => acc + part.travelTime,
+      0
+    ) || 0;
+
+  useEffect(() => {
+    if (!state.gpxData?.trackParts || !state.gpxData?.waypoints) {
+      console.warn("No track parts or waypoints available");
       return;
     }
 
     const startJourneyTime = "08:00:00";
     let currentTime = startJourneyTime;
     const arrivalTimes: string[] = [];
-    const departureTimes: string[] = [startJourneyTime]; // Start with initial departure time
-    let totalMinutes = 0; // Initialize total minutes for the entire journey
+    const departureTimes: string[] = [startJourneyTime];
+    let totalMinutes = 0;
 
-    waypoints.forEach((waypoint, index) => {
-      if (index > 0) {
-        // Calculate travel time to this waypoint
-        const travelMinutes = trackParts[index - 1].travelTime / 60;
+    state.gpxData.waypoints.forEach((waypoint, index) => {
+      if (index > 0 && state.gpxData?.trackParts) {
+        const travelMinutes =
+          state.gpxData.trackParts[index - 1].travelTime / 60;
         currentTime = addTimes(
           currentTime,
           convertMinutesToHHMMSS(travelMinutes)
         );
-        arrivalTimes[index] = currentTime; // Arrival time at current waypoint
+        arrivalTimes[index] = currentTime;
         totalMinutes += travelMinutes;
       }
 
-      // Stop time at current waypoint
       const stopMinutes = localStopTimes[index];
       currentTime = addTimes(currentTime, convertMinutesToHHMMSS(stopMinutes));
       totalMinutes += stopMinutes;
 
-      if (index < waypoints.length - 1) {
-        departureTimes[index] = currentTime; // Set departure time for the next waypoint
+      if (index < (state.gpxData?.waypoints?.length ?? 0) - 1) {
+        departureTimes[index] = currentTime;
       }
-
-      // console.log(`Waypoint ${index}: Arrival at ${arrivalTimes[index]}, Departure at ${departureTimes[index]}, Current Time ${currentTime}`);
     });
 
     setTimes({ arrival: arrivalTimes, departure: departureTimes });
     setTotalJourneyTime(convertMinutesToHHMMSS(totalMinutes));
-  }, [waypoints, trackParts, localStopTimes]);
+  }, [state.gpxData, localStopTimes]);
 
-  const debouncedUpdateStopTime = useCallback(
-    debounce((stopTime: number, index: number) => {
-      dispatch({ type: "UPDATE_STOP_TIME", payload: { index, stopTime } });
-    }, 300),
-    [dispatch]
-  );
-
-  const handleStopTimeChange = (stopTime: number, index: number) => {
+  // Debounce function created outside of useCallback
+  const handleStopTimeChange = debounce((stopTime: number, index: number) => {
+    dispatch({ type: "UPDATE_STOP_TIME", payload: { index, stopTime } });
     const newStopTimes = [...localStopTimes];
     newStopTimes[index] = stopTime;
     setLocalStopTimes(newStopTimes);
-    debouncedUpdateStopTime(stopTime, index);
-  };
+  }, 300);
 
   return (
     <div className="outer-list-container">
       <div className="inner-list-container">
         <ul>
-          {waypoints.map((waypoint, index) => (
+          {state.gpxData?.waypoints.map((waypoint, index) => (
             <WaypointItem
               key={index}
               index={index}
               waypoint={waypoint}
               times={times}
               localStopTimes={localStopTimes}
-              handleStopTimeChange={handleStopTimeChange}
-              showStopTimeSelector={index > 0 && index < waypoints.length - 1}
-              trackPart={trackParts[index] ? trackParts[index] : undefined}
+              handleStopTimeChange={(stopTime) =>
+                handleStopTimeChange(stopTime, index)
+              }
+              showStopTimeSelector={
+                index > 0 && index < (state.gpxData?.waypoints?.length ?? 0) - 1
+              }
+              trackPart={state.gpxData?.trackParts?.[index]}
             />
           ))}
         </ul>
