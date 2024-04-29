@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { debounce } from "lodash";
 import "./StopTimeSelector.css";
 
@@ -17,6 +17,11 @@ const StopTimeSelector: React.FC<StopTimeSelectorProps> = ({
 
   // Local state to manage slider position for responsiveness
   const [sliderValue, setSliderValue] = useState(localStopTimes[index]);
+
+  // Update local state when localStopTimes change
+  useEffect(() => {
+    setSliderValue(localStopTimes[index]);
+  }, [localStopTimes, index]); // Ensure the slider value updates with the prop changes
 
   // Debounce the external change handler
   const debouncedHandleStopTimeChange = useCallback(
