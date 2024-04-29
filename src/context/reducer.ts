@@ -56,14 +56,14 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
       localStorage.removeItem("dataVersion");
       localStorage.removeItem("stopTimes");
       localStorage.removeItem("mapCenter");
+      localStorage.removeItem("travelMode");
 
       return {
-        ...state,
-        gpxData: null,
-        dataVersion: 0,
-        stopTimes: undefined,
-        mapCenter: [0, 0],
+        ...initialState, // Reset to initial state to clear all derived data
+        mapMode: state.mapMode, // Preserve map mode if it should not be reset
+        travelMode: state.travelMode, // Preserve travel mode if it should not be reset
       };
+
     case "SET_GPX_DATA":
       const updatedTrackParts = calculateTravelTimes(
         action.payload,
