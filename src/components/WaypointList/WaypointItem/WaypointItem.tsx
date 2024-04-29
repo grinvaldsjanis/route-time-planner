@@ -43,16 +43,9 @@ const WaypointItem: React.FC<WaypointItemProps> = ({
     setEditableName(storedWaypointName);
   }, [index, waypoint.name]);
 
-  const handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newName = event.target.value;
-    setEditableName(newName);
-    localStorage.setItem(`waypointName_${index}`, newName);
-    dispatch({ type: "SET_WAYPOINT_NAME", payload: { index, name: newName } });
-  };
-
   const stopTime = localStopTimes[index];
   const containerStyle = {
-    backgroundColor: stopTime > 0 ? 'rgb(214, 245, 161)' : 'rgb(241, 241, 241)',
+    backgroundColor: stopTime > 0 ? "rgb(214, 245, 161)" : "rgb(241, 241, 241)",
   };
 
   return (

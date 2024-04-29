@@ -1,7 +1,7 @@
 import { Action } from "./actions";
 import { GPXData, Waypoint } from "../utils/parseGPX";
 import { LatLngTuple } from "leaflet";
-import { TravelMode } from "../constants/travelModes";
+import travelModes, { TravelMode } from "../constants/travelModes";
 import calculateTravelTimes from "../utils/calculateTravelTimes";
 import calculateAverageCoordinate from "../utils/calculateAverageCoordinate";
 
@@ -16,13 +16,31 @@ export interface GlobalState {
   waypoints?: Waypoint[];
 }
 
+const setLocalStorage = (key: string, value: any): void => {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch (error) {
+    console.error(`Error setting ${key} in localStorage:`, error);
+  }
+};
+
+const getLocalStorage = <T>(key: string, defaultValue: T): T => {
+  try {
+    const item = localStorage.getItem(key);
+    return item ? JSON.parse(item) : defaultValue;
+  } catch (error) {
+    console.error(`Error getting ${key} from localStorage:`, error);
+    return defaultValue;
+  }
+};
+
 export const initialState: GlobalState = {
-  gpxData: JSON.parse(localStorage.getItem("gpxData") || "null"),
-  mapMode: "elevation",
-  mapCenter: JSON.parse(localStorage.getItem("mapCenter") || '["0", "0"]'),
-  mapZoom: JSON.parse(localStorage.getItem("mapZoom") || "13"),
-  travelMode: "Casual Walking" as TravelMode,
-  dataVersion: 0,
+  gpxData: getLocalStorage("gpxData", null),
+  mapMode: getLocalStorage("mapMode", "elevation"),
+  mapCenter: getLocalStorage("mapCenter", [0, 0]),
+  mapZoom: getLocalStorage("mapZoom", 13),
+  travelMode: getLocalStorage("travelMode", "Casual Walking"),
+  dataVersion: getLocalStorage("dataVersion", 0),
   stopTimes: undefined,
 };
 
@@ -32,6 +50,19 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
       return {
         ...state,
         ...action.payload,
+      };
+    case "CLEAR_PREVIOUS_DATA":
+      localStorage.removeItem("gpxData");
+      localStorage.removeItem("dataVersion");
+      localStorage.removeItem("stopTimes");
+      localStorage.removeItem("mapCenter");
+
+      return {
+        ...state,
+        gpxData: null,
+        dataVersion: 0,
+        stopTimes: undefined,
+        mapCenter: [0, 0],
       };
     case "SET_GPX_DATA":
       const updatedTrackParts = calculateTravelTimes(
@@ -43,59 +74,66 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
         trackParts: updatedTrackParts,
       };
 
-      // Calculate the new map center
-      const coordinates = updatedGPXData.waypoints.map((wp) => ({
-        lat: parseFloat(wp.lat),
-        lon: parseFloat(wp.lon),
-      }));
-      const averageCoord = calculateAverageCoordinate(coordinates);
+      const averageCoord = calculateAverageCoordinate(
+        updatedGPXData.waypoints.map((wp) => ({
+          lat: parseFloat(wp.lat),
+          lon: parseFloat(wp.lon),
+        }))
+      );
 
-      // Increment the data version
-      const newDataVersion = state.dataVersion + 1;
-
+      setLocalStorage("gpxData", updatedGPXData);
+      setLocalStorage("dataVersion", 0);
       if (averageCoord) {
-        localStorage.setItem("gpxData", JSON.stringify(updatedGPXData));
-        localStorage.setItem(
-          "mapCenter",
-          JSON.stringify([averageCoord.lat, averageCoord.lon])
-        );
-        localStorage.setItem("dataVersion", JSON.stringify(newDataVersion));
-
-        return {
-          ...state,
-          gpxData: updatedGPXData,
-          mapCenter: [averageCoord.lat, averageCoord.lon],
-          dataVersion: newDataVersion,
-        };
-      } else {
-        // Handle the case where no average coordinate could be calculated
-        console.error("Failed to calculate average coordinates for waypoints.");
-        localStorage.setItem("gpxData", JSON.stringify(updatedGPXData));
-        localStorage.setItem("dataVersion", JSON.stringify(newDataVersion));
-
-        return {
-          ...state,
-          gpxData: updatedGPXData,
-          dataVersion: newDataVersion,
-        };
+        setLocalStorage("mapCenter", [averageCoord.lat, averageCoord.lon]);
       }
 
+      return {
+        ...state,
+        gpxData: updatedGPXData,
+        mapCenter: averageCoord
+          ? [averageCoord.lat, averageCoord.lon]
+          : state.mapCenter,
+        dataVersion: 0,
+        stopTimes: undefined,
+      };
     case "SET_MAP_MODE":
       localStorage.setItem("mapMode", action.payload);
       return { ...state, mapMode: action.payload };
+
     case "SET_MAP_CENTER":
       localStorage.setItem("mapCenter", JSON.stringify(action.payload));
       return { ...state, mapCenter: action.payload };
+
     case "SET_MAP_ZOOM":
       localStorage.setItem("mapZoom", JSON.stringify(action.payload));
       return { ...state, mapZoom: action.payload };
+    case "SET_TRAVEL_MODE":
+      if (typeof action.payload === "string" && action.payload in travelModes) {
+        if (state.gpxData) {
+          const updatedTrackParts = calculateTravelTimes(
+            state.gpxData,
+            action.payload as TravelMode
+          );
+          const updatedGPXData = {
+            ...state.gpxData,
+            trackParts: updatedTrackParts,
+          };
+          localStorage.setItem("travelMode", JSON.stringify(action.payload));
+          localStorage.setItem("gpxData", JSON.stringify(updatedGPXData));
+          return {
+            ...state,
+            travelMode: action.payload as TravelMode,
+            gpxData: updatedGPXData,
+          };
+        }
+        localStorage.setItem("travelMode", JSON.stringify(action.payload));
+        return { ...state, travelMode: action.payload as TravelMode };
+      }
+      return state;
     case "INCREMENT_DATA_VERSION":
       const updatedDataVersion = state.dataVersion + 1;
-      localStorage.setItem("dataVersion", JSON.stringify(updatedDataVersion));
+      setLocalStorage("dataVersion", updatedDataVersion);
       return { ...state, dataVersion: updatedDataVersion };
-    case "SET_TRAVEL_MODE":
-      localStorage.setItem("travelMode", JSON.stringify(action.payload));
-      return { ...state, travelMode: action.payload };
     case "UPDATE_STOP_TIME":
       if (!state.gpxData || !state.gpxData.waypoints) return state;
       const updatedWaypoints = state.gpxData.waypoints.map((waypoint, idx) => {
@@ -104,18 +142,17 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
         }
         return waypoint;
       });
-      localStorage.setItem(
-        "gpxData",
-        JSON.stringify({ ...state.gpxData, waypoints: updatedWaypoints })
-      );
+      const updatedGPXDataWithStops = {
+        ...state.gpxData,
+        waypoints: updatedWaypoints,
+      };
+      setLocalStorage("gpxData", updatedGPXDataWithStops);
       return {
         ...state,
-        gpxData: {
-          ...state.gpxData,
-          waypoints: updatedWaypoints,
-        },
+        gpxData: updatedGPXDataWithStops,
       };
+
     default:
-      return state;
+      return state; // Explicitly handle the default case to satisfy TypeScript
   }
 };

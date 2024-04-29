@@ -10,7 +10,7 @@ const stateConfig: StateConfig = {
   mapCenter: { key: "mapCenter", defaultValue: [0, 0] },
   travelMode: { key: "travelMode", defaultValue: "Casual Walking" },
   mapZoom: { key: "mapZoom", defaultValue: 13 },
-  gpxData: { key: "gpxData", defaultValue: null }, // Assuming JSON format or similar handling
+  gpxData: { key: "gpxData", defaultValue: null },
   dataVersion: { key: "dataVersion", defaultValue: 0 },
   stopTimes: { key: "stopTimes", defaultValue: undefined },
 };

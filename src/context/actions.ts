@@ -8,8 +8,9 @@ export const SET_MAP_MODE = "SET_MAP_MODE";
 export const INCREMENT_DATA_VERSION = "INCREMENT_DATA_VERSION";
 export const SET_TRAVEL_MODE = "SET_TRAVEL_MODE";
 export const UPDATE_STOP_TIME = "UPDATE_STOP_TIME";
-export const SET_WAYPOINT_NAME = "SET_WAYPOINT_NAME"
-export const INITIALIZE_STATE = "INITIALIZE_STATE"; 
+export const SET_WAYPOINT_NAME = "SET_WAYPOINT_NAME";
+export const INITIALIZE_STATE = "INITIALIZE_STATE";
+export const CLEAR_PREVIOUS_DATA = "CLEAR_PREVIOUS_DATA";
 
 export interface InitializeStateAction {
   type: typeof INITIALIZE_STATE;
@@ -26,6 +27,10 @@ export interface SetWaypointName {
 
 export interface IncrementDataVersionAction {
   type: typeof INCREMENT_DATA_VERSION;
+}
+
+export interface ClearPreviousDataAction {
+  type: typeof CLEAR_PREVIOUS_DATA;
 }
 
 export interface SetGPXDataAction {
@@ -60,7 +65,8 @@ export type Action =
   | UpdateStopTimeAction
   | SetTravelModeAction
   | SetWaypointName
-  | InitializeStateAction;
+  | InitializeStateAction
+  | ClearPreviousDataAction;
 
 export const setGPXData = (data: GPXData): SetGPXDataAction => ({
   type: SET_GPX_DATA,
@@ -91,7 +97,10 @@ export const incrementDataVersion = (): IncrementDataVersionAction => ({
   type: INCREMENT_DATA_VERSION,
 });
 
-export const updateStopTime = (index: number, stopTime: number): UpdateStopTimeAction => ({
+export const updateStopTime = (
+  index: number,
+  stopTime: number
+): UpdateStopTimeAction => ({
   type: UPDATE_STOP_TIME,
   payload: { index, stopTime },
 });

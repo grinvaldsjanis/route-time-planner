@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./WaypointList.css";
 import { useGlobalState } from "../../context/GlobalContext";
 import formatTime from "../../utils/formatTime";
@@ -17,9 +17,16 @@ const WaypointList: React.FC = () => {
 
   useEffect(() => {
     if (state.gpxData?.waypoints) {
+      state.gpxData.waypoints.forEach((waypoint, index) => {
+        localStorage.removeItem(`waypointName_${index}`);
+        localStorage.setItem(
+          `waypointName_${index}`,
+          waypoint.name || `Waypoint ${index + 1}`
+        );
+      });
       setLocalStopTimes(state.gpxData.waypoints.map((w) => w.stopTime || 0));
     }
-  }, [state.gpxData]);
+  }, [state.gpxData?.waypoints]);
 
   const totalDistance =
     state.gpxData?.trackParts?.reduce((acc, part) => acc + part.distance, 0) ||
@@ -67,7 +74,6 @@ const WaypointList: React.FC = () => {
     setTotalJourneyTime(convertMinutesToHHMMSS(totalMinutes));
   }, [state.gpxData, localStopTimes]);
 
-  // Debounce function created outside of useCallback
   const handleStopTimeChange = debounce((stopTime: number, index: number) => {
     dispatch({ type: "UPDATE_STOP_TIME", payload: { index, stopTime } });
     const newStopTimes = [...localStopTimes];
@@ -81,7 +87,7 @@ const WaypointList: React.FC = () => {
         <ul>
           {state.gpxData?.waypoints.map((waypoint, index) => (
             <WaypointItem
-              key={index}
+              key={`${waypoint.name}-${index}`}
               index={index}
               waypoint={waypoint}
               times={times}

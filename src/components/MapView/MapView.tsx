@@ -53,37 +53,44 @@ const MapView: React.FC = () => {
   const { state, dispatch } = useGlobalState();
   const { gpxData, mapCenter, mapZoom, mapMode, dataVersion } = state;
 
-  // Use a mapping object to convert human-readable layer names to key names
-  const layerMap: { [key: string]: keyof ValueRanges } = {
-    elevation: "ele",
-    curvature: "curve",
+  const [valueRanges, setValueRanges] = useState<ValueRanges>({
+    ele: { minValue: 0, maxValue: 100 },
+    curve: { minValue: 0, maxValue: 100 },
+    slope: { minValue: 0, maxValue: 100 },
+  });
+
+  const modeMap: { [key: string]: ModeKeys } = {
+    ele: "ele",
+    curve: "curve",
     slope: "slope",
   };
-
-  // Initialize activeLayer using the mapping to ensure it's always valid
-  const [activeLayer, setActiveLayer] = useState<keyof ValueRanges>(
-    layerMap[mapMode] || "ele"
-  );
-
-  useEffect(() => {
-    setActiveLayer(layerMap[mapMode] || "ele");
-  }, [mapMode]);
 
   const handleMapMove = useCallback(
     (center: LatLngTuple, zoom: number) => {
       dispatch({ type: "SET_MAP_ZOOM", payload: zoom });
       dispatch({ type: "SET_MAP_CENTER", payload: center });
-      console.log("Map moved to:", center, "Zoom level:", zoom);
+      // console.log("Map moved to:", center, "Zoom level:", zoom);
     },
     [dispatch]
   );
 
-  const handleLayerChange = (layer: string) => {
-    setActiveLayer(layerMap[layer] || "ele");
+  const handleModeChange = (modeKey: string) => {
+    const newMode = modeMap[modeKey];
+    console.log("Current mode:", mapMode, "Attempting to switch to:", newMode);
+    if (newMode && newMode !== mapMode) {
+      dispatch({ type: "SET_MAP_MODE", payload: newMode });
+      console.log("Mode after dispatch:", newMode);
+    }
   };
 
-  const LayerToggles = () => (
+  useEffect(() => {
+    console.log("mapMode updated:", mapMode);
+    setVersion((prev) => prev + 1); // Force re-render on mapMode change
+  }, [mapMode]);
+
+  const ModeToggles = () => (
     <div
+      className="map-buttons" // This class is used for scoping button styles
       style={{
         position: "absolute",
         top: 10,
@@ -95,24 +102,46 @@ const MapView: React.FC = () => {
         justifyContent: "start",
       }}
     >
-      <button onClick={() => handleLayerChange("elevation")}>Elevation</button>
-      <button onClick={() => handleLayerChange("curvature")}>Curvature</button>
-      <button onClick={() => handleLayerChange("slope")}>Slope</button>
+      <button
+        onClick={() => handleModeChange("ele")}
+        className={mapMode === "ele" ? "button-active" : ""}
+      >
+        Elevation
+      </button>
+      <button
+        onClick={() => handleModeChange("curve")}
+        className={mapMode === "curve" ? "button-active" : ""}
+      >
+        Curvature
+      </button>
+      <button
+        onClick={() => handleModeChange("slope")}
+        className={mapMode === "slope" ? "button-active" : ""}
+      >
+        Slope
+      </button>
     </div>
   );
+
+  const [version, setVersion] = useState(0);
+
+  useEffect(() => {
+    if (gpxData?.tracks) {
+      const newRanges = {
+        ele: calculateValueRange(gpxData.tracks, "ele", 0),
+        curve: calculateValueRange(gpxData.tracks, "curve", 1000),
+        slope: calculateValueRange(gpxData.tracks, "slope", 0),
+      };
+      setValueRanges(newRanges);
+      setVersion((v) => v + 1); // Ensure this is used to force update render keys
+    }
+  }, [gpxData, mapMode]);
 
   const renderTracks = useMemo(() => {
     if (!gpxData?.tracks) return null;
 
-    const tracks = gpxData.tracks;
-    const valueRanges = {
-      ele: calculateValueRange(tracks, "ele", 0),
-      curve: calculateValueRange(tracks, "curve", 1000),
-      slope: calculateValueRange(tracks, "slope", 0),
-    };
-
-    return tracks.map((track, trackIdx) => (
-      <LayerGroup key={trackIdx}>
+    return gpxData.tracks.map((track, trackIdx) => (
+      <LayerGroup key={`${trackIdx}-${version}`}>
         {track.segments.flatMap((segment, segmentIdx) => {
           const outlinePositions = segment.points.map(
             (point) =>
@@ -120,7 +149,6 @@ const MapView: React.FC = () => {
           );
 
           return [
-            // Render the outline polyline for the entire track segment
             <Polyline
               key={`${trackIdx}-${segmentIdx}-outline`}
               positions={outlinePositions}
@@ -139,21 +167,17 @@ const MapView: React.FC = () => {
                 parseFloat(point.lon),
               ];
 
-              const value = getValueForMode(
-                point,
-                prevPoint,
-                activeLayer as ModeKeys
-              );
+              const modeKey = modeMap[mapMode] || "ele"; // Safeguard to ensure valid mode
+              const value = getValueForMode(point, prevPoint, modeKey);
               const color = getColorForValue(
                 value,
-                valueRanges[activeLayer].minValue,
-                valueRanges[activeLayer].maxValue
+                valueRanges[modeKey].minValue,
+                valueRanges[modeKey].maxValue
               );
 
-              // Render the colored polyline for the segment
               return (
                 <Polyline
-                  key={`${trackIdx}-${segmentIdx}-${pointIdx}-${activeLayer}`}
+                  key={`${trackIdx}-${segmentIdx}-${pointIdx}-${modeKey}`}
                   positions={[startPos, endPos]}
                   color={color}
                   weight={4}
@@ -164,7 +188,7 @@ const MapView: React.FC = () => {
         })}
       </LayerGroup>
     ));
-  }, [gpxData?.tracks, activeLayer]);
+  }, [gpxData?.tracks, mapMode, valueRanges, version]);
 
   return (
     <div className="map">
@@ -176,7 +200,7 @@ const MapView: React.FC = () => {
         className="map-container"
       >
         <TileLayer url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png" />
-        <LayerToggles />
+        <ModeToggles />
         {renderTracks}
         {mapZoom >= 11 &&
           gpxData?.waypoints.map((point, idx) => (

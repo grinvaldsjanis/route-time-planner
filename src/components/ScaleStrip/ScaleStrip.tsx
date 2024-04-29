@@ -1,38 +1,53 @@
-import React from "react";
-import { Track } from "../../utils/parseGPX";
-import { calculateElevationRange } from "../../utils/calculateValueRange";
-import "./ScaleStrip.css";
+import React, { useEffect, useState } from "react";
+import { useGlobalState } from "../../context/GlobalContext";
+import { calculateValueRange } from "../../utils/calculateValueRange";
 import getColorForValue from "../../utils/getColorForValue";
+import "./ScaleStrip.css";
 
-interface ElevationScaleProps {
-  tracks: Track[];
-}
+const ScaleStrip: React.FC = () => {
+  const { state } = useGlobalState();
+  const { gpxData, mapMode } = state;
+  const tracks = gpxData?.tracks;
 
-const ElevationScale: React.FC<ElevationScaleProps> = ({ tracks }) => {
-  const { minElevation, maxElevation } = calculateElevationRange(tracks);
+  const [range, setRange] = useState({ minValue: 0, maxValue: 100 });
 
-  const generateElevationLabels = () => {
-    const steps = 9;
-    const stepValue = (maxElevation - minElevation) / steps;
-    const labels = [];
-    for (let i = 0; i <= steps; i++) {
-      const elevation = minElevation + stepValue * i;
-      labels.push({
-        value: Math.round(elevation),
-        color: getColorForValue(elevation, minElevation, maxElevation),
-      });
+  useEffect(() => {
+    if (!tracks || !mapMode) {
+      setRange({ minValue: 0, maxValue: 100 });
+      return;
     }
-    return labels;
+
+    const modeKey =
+      mapMode === "curve" ? "curve" : mapMode === "slope" ? "slope" : "ele";
+    const defaultValue = modeKey === "curve" ? 1000 : 0;
+    const { minValue, maxValue } = calculateValueRange(
+      tracks,
+      modeKey,
+      defaultValue
+    );
+
+    setRange({ minValue, maxValue });
+  }, [mapMode, tracks]); // Reacting to changes in mapMode and tracks
+
+  const generateLabels = () => {
+    const steps = 9;
+    const stepValue = (range.maxValue - range.minValue) / steps;
+    return Array.from({ length: steps + 1 }, (_, i) => {
+      const value = range.minValue + stepValue * i;
+      return {
+        value: Math.round(value),
+        color: getColorForValue(value, range.minValue, range.maxValue),
+      };
+    });
   };
 
-  const labels = generateElevationLabels();
-
-  // Construct the gradient string for CSS
+  const labels = generateLabels();
   const gradientStops = labels
     .map(
       (label) =>
         `${label.color} ${
-          ((label.value - minElevation) / (maxElevation - minElevation)) * 100
+          ((label.value - range.minValue) / (range.maxValue - range.minValue)) *
+          100
         }%`
     )
     .join(", ");
@@ -41,9 +56,9 @@ const ElevationScale: React.FC<ElevationScaleProps> = ({ tracks }) => {
   };
 
   return (
-    <div className="elevation-scale">
-      <div className="elevation-gradient" style={gradientStyle} />
-      <div className="elevation-labels">
+    <div className="scale-strip">
+      <div className="gradient-strip" style={gradientStyle} />
+      <div className="scale-labels">
         {labels.map((label, index) => (
           <span key={index}>{label.value}</span>
         ))}
@@ -52,4 +67,4 @@ const ElevationScale: React.FC<ElevationScaleProps> = ({ tracks }) => {
   );
 };
 
-export default ElevationScale;
+export default ScaleStrip;

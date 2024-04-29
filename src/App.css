@@ -33,9 +33,10 @@
 
 .App-main-container {
   display: flex;
+  display: flex;
   width: 100%;
   flex-direction: row;
-  height: 100%;
+  flex: 1;
 }
 
 .App-sidebar {
@@ -47,9 +48,8 @@
 }
 
 .App-graph-container {
-
   flex-direction: column;
-  flex:1;
+  flex: 1;
   height: 100%;
   /* background-color: blueviolet; */
 }
