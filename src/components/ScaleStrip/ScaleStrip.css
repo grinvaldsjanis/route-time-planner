@@ -4,13 +4,12 @@
   flex: 1;
   flex-direction: column;
   align-items: center;
-  margin-top: 10px; /* Added margin for better spacing, adjust as needed */
+  margin-top: 0px;
 }
 
 .gradient-strip {
   width: 100%;
   height: 10px;
-  background: linear-gradient(to right, blue, red);
   margin-bottom: 5px;
 }
 

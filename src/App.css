@@ -6,7 +6,6 @@
   position: fixed;
   top: 0;
   left: 0;
-  /* background-color: coral; */
 }
 
 .App-logo {
@@ -19,12 +18,10 @@
 .App-header {
   height: 70px;
   display: flex;
-  flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  font-size: calc(10px + 2vmin);
-  color: rgb(65, 65, 65);
   padding: 1rem;
+  font-size: calc(10px + 2vmin);
 }
 
 .App-link {
@@ -33,28 +30,42 @@
 
 .App-main-container {
   display: flex;
-  display: flex;
+  flex-direction: column; /* Stack vertically on small screens */
   width: 100%;
-  flex-direction: row;
-  flex: 1;
+  overflow: auto; /* Enables scrolling */
 }
 
 .App-sidebar {
-  height: 100%;
-  min-width: 500px;
-  display: flex;
-  flex-direction: column;
-  /* background-color: darkorange; */
+  width: 100%; /* Full width on small screens */
+  order: 1; /* Map appears first on small screens */
 }
 
 .App-graph-container {
-  flex-direction: column;
-  flex: 1;
+  flex-grow: 1;
   height: 100%;
-  /* background-color: blueviolet; */
 }
 
 .footer {
-  height: 50px;
-  /* background-color: bisque; */
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-top: 1px solid black;
+}
+
+/* Media Queries */
+@media (min-width: 768px) { /* Adjustments for tablets and desktops */
+  .App-main-container {
+    flex-direction: row; /* Side-by-side layout */
+  }
+
+  .App-sidebar {
+    width: 450px;
+    order: 0;
+  }
+
+  .App-graph-container {
+    flex-grow: 1;
+    height: calc(100vh - 200px); /* Adjust height based on header and footer */
+  }
 }

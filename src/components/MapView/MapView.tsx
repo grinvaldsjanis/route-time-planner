@@ -191,7 +191,7 @@ const MapView: React.FC = () => {
   }, [gpxData?.tracks, mapMode, valueRanges, version]);
 
   return (
-    <div className="map">
+    <div className="map-view">
       <MapContainer
         key={`map-${dataVersion}`}
         center={mapCenter}
