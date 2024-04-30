@@ -1,9 +1,7 @@
 .outer-list-container {
   display: flex;
   flex-direction: column;
-  flex-grow: 1;
 
-  /* background-color: darkseagreen; */
 }
 
 .inner-list-container {
@@ -39,6 +37,7 @@
 @media (min-width: 768px) {
   /* Adjustments for tablets and desktops */
   .outer-list-container {
+    width: 450px;
     height: calc(100vh - 220px);
 
     /* background-color: darkseagreen; */

@@ -36,8 +36,8 @@
 }
 
 .App-sidebar {
-  width: 100%; /* Full width on small screens */
-  order: 1; /* Map appears first on small screens */
+  width: 100%;
+  order: 1;
 }
 
 .App-graph-container {
@@ -54,7 +54,7 @@
 }
 
 /* Media Queries */
-@media (min-width: 768px) { /* Adjustments for tablets and desktops */
+@media (min-width: 1080px) { /* Adjustments for tablets and desktops */
   .App-main-container {
     flex-direction: row; /* Side-by-side layout */
   }
