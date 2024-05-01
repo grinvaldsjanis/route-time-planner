@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import formatTime from "../../../utils/formatTime";
 import StopTimeSelector from "../StopTimeSelector/StopTimeSelector";
 import TimeInfo from "../TimeInfo/TimeInfo";
-import { useGlobalState } from "../../../context/GlobalContext"; // Assuming you have a global context
+import { useGlobalState } from "../../../context/GlobalContext";
 import "./WaypointItem.css";
 import { TrackPart, Waypoint } from "../../../utils/parseGPX";
 import { FaArrowsUpDown } from "react-icons/fa6";
@@ -43,16 +43,27 @@ const WaypointItem: React.FC<WaypointItemProps> = ({
     setEditableName(storedWaypointName);
   }, [index, waypoint.name]);
 
-  const stopTime = localStopTimes[index];
-  const containerStyle = {
-    backgroundColor: stopTime > 0 ? "rgb(214, 245, 161)" : "rgb(241, 241, 241)",
-  };
+  // Encapsulating the stop time handling logic to ensure that it is only updated as needed
+  const handleChangeStopTime = useCallback(
+    (newStopTime: number, idx: number) => {
+      handleStopTimeChange(newStopTime, idx);
+    },
+    [handleStopTimeChange]
+  );
 
   return (
-    <li className="list-item">
+    <li className="list-item" key={`waypoint-${index}`}>
       <div className="waypoint-container">
         <div className="item-order-number">{index + 1}</div>
-        <div className="waypoint-info-container" style={containerStyle}>
+        <div
+          className="waypoint-info-container"
+          style={{
+            backgroundColor:
+              localStopTimes[index] > 0
+                ? "rgb(214, 245, 161)"
+                : "rgb(241, 241, 241)",
+          }}
+        >
           <div className="item-top-row">
             <div className="item-name">
               <EditableText
@@ -70,18 +81,24 @@ const WaypointItem: React.FC<WaypointItemProps> = ({
           </div>
           <div className="waypoint-time-container">
             {showStopTimeSelector && (
-              <StopTimeSelector
-                index={index}
-                localStopTimes={localStopTimes}
-                handleStopTimeChange={handleStopTimeChange}
-              />
+              <div className="stoptime-wrapper">
+                <StopTimeSelector
+                  key={`stop-selector-${index}-${localStopTimes[index]}`}
+                  index={index}
+                  localStopTimes={localStopTimes}
+                  handleStopTimeChange={handleChangeStopTime}
+                />
+              </div>
             )}
+            <div className="timeinfo-wrapper">
             <TimeInfo
+              key={`time-info-${index}-${localStopTimes[index]}`}
               index={index}
               times={times}
               waypoint={{ ...waypoint, name: editableName }}
               localStopTimes={localStopTimes}
             />
+            </div>
           </div>
         </div>
       </div>

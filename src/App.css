@@ -30,9 +30,9 @@
 
 .App-main-container {
   display: flex;
-  flex-direction: column; /* Stack vertically on small screens */
+  flex-direction: column;
   width: 100%;
-  overflow: auto; /* Enables scrolling */
+  overflow-y: auto;
 }
 
 .App-sidebar {
@@ -47,6 +47,7 @@
 
 .footer {
   height: 70px;
+  padding: 5px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -54,13 +55,13 @@
 }
 
 /* Media Queries */
-@media (min-width: 1080px) { /* Adjustments for tablets and desktops */
+@media (min-width: 768px) { /* Adjustments for tablets and desktops */
   .App-main-container {
-    flex-direction: row; /* Side-by-side layout */
+    flex-direction: row;
   }
 
   .App-sidebar {
-    width: 450px;
+    max-width: 450px;
     order: 0;
   }
 

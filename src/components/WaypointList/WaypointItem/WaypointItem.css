@@ -1,6 +1,7 @@
 .list-item {
   display: flex;
   flex-direction: column;
+  width: 100%;
 }
 
 .waypoint-container {
@@ -56,6 +57,7 @@
 
 .track-part-container {
   display: flex;
+  width: 100%;
   flex-direction: row;
   gap: 10px;
   padding: 10px;
@@ -67,7 +69,7 @@
   flex-direction: row;
   width: 100%;
   justify-content: space-between;
-  padding: 10px;
+  padding-right: 40px;
 }
 .track-part-icon {
   color: rgb(194, 194, 194);
@@ -76,4 +78,18 @@
   flex-direction: row;
   justify-content: space-between;
   padding: 5px;
+}
+
+.stoptime-wrapper {
+  width: 100%;
+  flex-grow: 1;
+}
+
+.timeinfo-wrapper {
+  display: flex;
+  gap: 10px;
+  flex-direction: column;
+  text-align: right;
+  height: 2rem;
+  width: 150px;
 }

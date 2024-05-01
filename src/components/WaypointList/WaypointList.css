@@ -37,7 +37,7 @@
 @media (min-width: 768px) {
   /* Adjustments for tablets and desktops */
   .outer-list-container {
-    width: 450px;
+    max-width: 450px;
     height: calc(100vh - 220px);
 
     /* background-color: darkseagreen; */

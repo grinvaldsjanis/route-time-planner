@@ -38,7 +38,7 @@ const StopTimeSelector: React.FC<StopTimeSelectorProps> = ({
   };
 
   return (
-    <div className="stop-time-wrapper">
+
       <div className="stop-time-selector">
         <input
           type="range"
@@ -53,9 +53,9 @@ const StopTimeSelector: React.FC<StopTimeSelectorProps> = ({
             <option key={idx} value={idx}>{time} min</option>
           ))}
         </datalist>
-        <div className="value">{sliderValue} min</div>
+        <div className="selected-value">{sliderValue} min</div>
       </div>
-    </div>
+
   );
 };
 
