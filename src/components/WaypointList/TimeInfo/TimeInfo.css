@@ -1,6 +1,6 @@
 
 .arrival-departure {
-  font-size: 12px;
+  font-size: 1rem;
   display: flex;
   gap: 5px;
   flex-direction: column;

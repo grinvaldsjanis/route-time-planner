@@ -4,11 +4,15 @@
 }
 
 #time_wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
   width: fit-content;
   margin-right: 30px;
   position: relative;
-  top: 40px;
-  transform: scale(1.4);
+  top: 10px;
+  font-size: 1.4rem;;
 }
 
 #time_input {
@@ -19,14 +23,15 @@
 }
 
 input {
-  width: 50px;
-  height: 50px;
+  width: 70px;
+  height: 70px;
   border: none;
   box-sizing: border-box;
   padding: auto 15px;
   text-align: center;
   color: #132c14;
   background: none;
+
 }
 
 label {
@@ -37,13 +42,13 @@ label {
 }
 
 .label {
-  font-size: 0.55rem;
+  font-size: 0.9rem;
   position: absolute;
-  top: 4.5px;
+  top: 0px;
 }
 
 .label.lbl-hrs {
-  left: 15px;
+  left: 16px;
 }
 
 .label.lbl-min {
@@ -70,7 +75,9 @@ input[type="number"] {
 #time_input,
 input {
   border-radius: 8px;
-  font-size: 1.5rem;
+  font-size: 2rem;
+  position: relative;
+  top: 0px;
 }
 
 input:focus {
