@@ -43,7 +43,7 @@ const WaypointList: React.FC = () => {
       return;
     }
 
-    const startJourneyTime = "08:00:00";
+    const startJourneyTime = state.startTime || "08:00:00";
     let currentTime = startJourneyTime;
     const arrivalTimes: string[] = [];
     const departureTimes: string[] = [startJourneyTime];
@@ -72,7 +72,7 @@ const WaypointList: React.FC = () => {
 
     setTimes({ arrival: arrivalTimes, departure: departureTimes });
     setTotalJourneyTime(convertMinutesToHHMMSS(totalMinutes));
-  }, [state.gpxData, localStopTimes]);
+  }, [state.gpxData, localStopTimes, state.startTime]);
 
   const handleStopTimeChange = debounce((stopTime: number, index: number) => {
     dispatch({ type: "UPDATE_STOP_TIME", payload: { index, stopTime } });

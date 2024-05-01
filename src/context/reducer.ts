@@ -14,6 +14,7 @@ export interface GlobalState {
   dataVersion: number;
   travelMode: TravelMode;
   waypoints?: Waypoint[];
+  startTime: string;
 }
 
 const setLocalStorage = (key: string, value: any): void => {
@@ -41,6 +42,7 @@ export const initialState: GlobalState = {
   mapZoom: getLocalStorage("mapZoom", 13),
   travelMode: getLocalStorage("travelMode", "Casual Walking"),
   dataVersion: getLocalStorage("dataVersion", 0),
+  startTime: getLocalStorage("startTime", "08:00:00"),
   stopTimes: undefined,
 };
 
@@ -55,8 +57,6 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
       localStorage.removeItem("gpxData");
       localStorage.removeItem("dataVersion");
       localStorage.removeItem("stopTimes");
-      localStorage.removeItem("mapCenter");
-      localStorage.removeItem("travelMode");
 
       return {
         ...initialState, // Reset to initial state to clear all derived data
@@ -134,6 +134,10 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
       const updatedDataVersion = state.dataVersion + 1;
       setLocalStorage("dataVersion", updatedDataVersion);
       return { ...state, dataVersion: updatedDataVersion };
+    case "SET_START_TIME":
+      localStorage.setItem("startTime", action.payload);
+      return { ...state, startTime: action.payload };
+
     case "UPDATE_STOP_TIME":
       if (!state.gpxData || !state.gpxData.waypoints) return state;
       const updatedWaypoints = state.gpxData.waypoints.map((waypoint, idx) => {
