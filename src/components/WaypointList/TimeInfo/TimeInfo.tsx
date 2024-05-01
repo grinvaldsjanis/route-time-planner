@@ -1,6 +1,7 @@
 import React from "react";
 import { Waypoint } from "../../../utils/parseGPX";
 import "./TimeInfo.css";
+import formatTimeToHHMM from "../../../utils/formatTimeToHHMM";
 
 interface TimeInfoProps {
   index: number;
@@ -19,19 +20,21 @@ const TimeInfo: React.FC<TimeInfoProps> = ({
 }) => {
   return (
     <>
-      {index === 0 && <p>Departure: {times.departure[index]}</p>}
+      {index === 0 && <p>Departure: {formatTimeToHHMM(times.departure[index])}</p>}
       {index === localStopTimes.length - 1 && (
-        <p>Arrival: {times.arrival[index]}</p>
+        <p>Arrival: {formatTimeToHHMM(times.arrival[index])}</p>
       )}
       {localStopTimes[index] > 0 && (
         <div className="arrival-departure">
-          <p>Arrival: {times.arrival[index]}</p>
-          <p>Departure: {times.departure[index]}</p>
+          <p>Arrival: {formatTimeToHHMM(times.arrival[index])}</p>
+          <p>Departure: {formatTimeToHHMM(times.departure[index])}</p>
         </div>
       )}
       {index > 0 &&
         index < localStopTimes.length - 1 &&
-        localStopTimes[index] === 0 && <p>Pass: {times.arrival[index]}</p>}
+        localStopTimes[index] === 0 && (
+          <p>Pass: {formatTimeToHHMM(times.arrival[index])}</p>
+        )}
     </>
   );
 };

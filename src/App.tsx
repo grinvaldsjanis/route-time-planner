@@ -39,7 +39,7 @@ function App() {
         </div>
       )}
       <footer className="footer">
-        Under development by Janis Grinvalds.{" "}
+        Under development by Janis Grinvalds. {" "}
         <a
           href="https://chat.whatsapp.com/F7y1m1NBcEg0YiUwzV7S9R"
           target="_blank"
@@ -47,7 +47,6 @@ function App() {
         >
           Whatsapp group for issues/features
         </a>
-        .
       </footer>
     </div>
   );

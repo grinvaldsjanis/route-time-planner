@@ -5,6 +5,7 @@ import formatTime from "../../utils/formatTime";
 import { addTimes, convertMinutesToHHMMSS } from "../../utils/addTimes";
 import WaypointItem from "./WaypointItem/WaypointItem";
 import { debounce } from "lodash";
+import formatTimeToHHMM from "../../utils/formatTimeToHHMM";
 
 const WaypointList: React.FC = () => {
   const { state, dispatch } = useGlobalState();
@@ -14,6 +15,7 @@ const WaypointList: React.FC = () => {
     departure: string[];
   }>({ arrival: [], departure: [] });
   const [localStopTimes, setLocalStopTimes] = useState<number[]>([]);
+  const [finalArrivalTime, setFinalArrivalTime] = useState("");
 
   useEffect(() => {
     if (state.gpxData?.waypoints) {
@@ -72,6 +74,7 @@ const WaypointList: React.FC = () => {
 
     setTimes({ arrival: arrivalTimes, departure: departureTimes });
     setTotalJourneyTime(convertMinutesToHHMMSS(totalMinutes));
+    setFinalArrivalTime(arrivalTimes[arrivalTimes.length - 1]);
   }, [state.gpxData, localStopTimes, state.startTime]);
 
   const handleStopTimeChange = debounce((stopTime: number, index: number) => {
@@ -103,16 +106,22 @@ const WaypointList: React.FC = () => {
           ))}
         </ul>
       </div>
-      <div className="total-summation">
-        <p>
-          <strong>Distance:</strong> {totalDistance.toFixed(2)} km
-        </p>
-        <p>
-          <strong>Road Time:</strong> {formatTime(totalTravelTime)}
-        </p>
-        <p>
-          <strong>Journey Time:</strong> {totalJourneyTime}
-        </p>
+      <div className="resulting-info">
+        <div className="total-summation">
+          <p>
+            <strong>Distance:</strong> {totalDistance.toFixed(2)} km
+          </p>
+          <p>
+            <strong>Road Time:</strong> {formatTime(totalTravelTime)}
+          </p>
+          <p>
+            <strong>Journey Time:</strong> {totalJourneyTime}
+          </p>
+        </div>
+        <div className="arrival-time">
+          <p>Arrival time</p>
+          <div className="arrival-time-numbers">{formatTimeToHHMM(finalArrivalTime)}</div>
+        </div>
       </div>
     </div>
   );

@@ -52,7 +52,6 @@ interface ValueRanges {
 const MapView: React.FC = () => {
   const { state, dispatch } = useGlobalState();
   const { gpxData, mapCenter, mapZoom, mapMode, dataVersion } = state;
-
   const [valueRanges, setValueRanges] = useState<ValueRanges>({
     ele: { minValue: 0, maxValue: 100 },
     curve: { minValue: 0, maxValue: 100 },
