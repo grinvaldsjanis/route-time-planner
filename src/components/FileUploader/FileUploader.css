@@ -1,24 +1,26 @@
 .file-uploader {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 10px;
   align-items: center;
-  font-size: 16px;
+
   justify-content: flex-end;
+  flex-wrap: nowrap;
   /* background-color: rgb(207, 207, 207); */
 }
 
 .inputfile {
-	width: 0.1px;
-	height: 0.1px;
-	opacity: 0;
-	overflow: hidden;
-	position: absolute;
-	z-index: -1;
+  width: 0.1px;
+  height: 0.1px;
+  opacity: 0;
+  overflow: hidden;
+  position: absolute;
+  z-index: -1;
 }
 
 .inputfile + label {
-  font-size: 1.25em;
+  flex-direction: row;
+  font-size: 1em;
   font-weight: 700;
   color: white;
   padding: 10px;
@@ -31,21 +33,21 @@
 .inputfile:focus + label,
 .inputfile + label:hover {
   box-shadow: 0 0 10px 0 rgb(255, 255, 255) inset,
-  0 0 10px 4px rgb(255, 255, 255);
+    0 0 10px 4px rgb(255, 255, 255);
 }
 
 .inputfile:focus + label {
-	outline: 1px dotted #000;
-	outline: -webkit-focus-ring-color auto 5px;
+  outline: 1px dotted #000;
+  outline: -webkit-focus-ring-color auto 5px;
 }
 
 .inputfile:focus + label {
-	outline: 1px dotted #000;
-	outline: -webkit-focus-ring-color auto 5px;
+  outline: 1px dotted #000;
+  outline: -webkit-focus-ring-color auto 5px;
 }
 
 .inputfile + label {
-	cursor: pointer; /* "hand" cursor */
+  cursor: pointer; /* "hand" cursor */
 }
 
 input[type="file"]::file-selector-button {
