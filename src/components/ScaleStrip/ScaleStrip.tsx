@@ -27,7 +27,7 @@ const ScaleStrip: React.FC = () => {
     );
 
     setRange({ minValue, maxValue });
-  }, [mapMode, tracks]); // Reacting to changes in mapMode and tracks
+  }, [mapMode, tracks]);
 
   const generateLabels = () => {
     const steps = 9;
@@ -36,7 +36,7 @@ const ScaleStrip: React.FC = () => {
       const value = range.minValue + stepValue * i;
       return {
         value: Math.round(value),
-        color: getColorForValue(value, range.minValue, range.maxValue),
+        color: getColorForValue(value, range.minValue, range.maxValue, mapMode === "curve" ),
       };
     });
   };

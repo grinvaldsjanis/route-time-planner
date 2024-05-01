@@ -84,12 +84,12 @@ const MapView: React.FC = () => {
 
   useEffect(() => {
     console.log("mapMode updated:", mapMode);
-    setVersion((prev) => prev + 1); // Force re-render on mapMode change
+    setVersion((prev) => prev + 1);
   }, [mapMode]);
 
   const ModeToggles = () => (
     <div
-      className="map-buttons" // This class is used for scoping button styles
+      className="map-buttons"
       style={{
         position: "absolute",
         top: 10,
@@ -132,7 +132,7 @@ const MapView: React.FC = () => {
         slope: calculateValueRange(gpxData.tracks, "slope", 0),
       };
       setValueRanges(newRanges);
-      setVersion((v) => v + 1); // Ensure this is used to force update render keys
+      setVersion((v) => v + 1);
     }
   }, [gpxData, mapMode]);
 
@@ -166,12 +166,13 @@ const MapView: React.FC = () => {
                 parseFloat(point.lon),
               ];
 
-              const modeKey = modeMap[mapMode] || "ele"; // Safeguard to ensure valid mode
+              const modeKey = modeMap[mapMode] || "ele";
               const value = getValueForMode(point, prevPoint, modeKey);
               const color = getColorForValue(
                 value,
                 valueRanges[modeKey].minValue,
-                valueRanges[modeKey].maxValue
+                valueRanges[modeKey].maxValue,
+                mapMode === "curve"
               );
 
               return (
