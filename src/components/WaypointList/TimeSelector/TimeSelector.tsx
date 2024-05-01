@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useGlobalState } from "../../../context/GlobalContext";
 import { setStartTime } from "../../../context/actions";
 import "./TimeSelector.css";
@@ -6,39 +6,41 @@ import "./TimeSelector.css";
 const TimeSelector: React.FC = () => {
   const { state, dispatch } = useGlobalState();
 
-  const [hours, setHours] = useState(() => state.startTime?.split(':')[0].padStart(2, '0') || '08');
-  const [minutes, setMinutes] = useState(() => state.startTime?.split(':')[1].padStart(2, '0') || '00');
+  const [hours, setHours] = useState(
+    () => state.startTime?.split(":")[0] || "08"
+  );
+  const [minutes, setMinutes] = useState(
+    () => state.startTime?.split(":")[1] || "00"
+  );
 
-  const validateTime = (value: string, max: number): boolean => {
-    const num = parseInt(value);
-    return !isNaN(num) && num >= 0 && num <= max;
+  const validateAndFormat = (value: string, max: number): string => {
+    let num = parseInt(value, 10);
+    if (isNaN(num) || num < 0) num = 0;
+    if (num > max) num = max;
+    return num.toString().padStart(2, "0");
+  };
+
+  const updateStartTime = (currentHours: string, currentMinutes: string) => {
+    if (currentHours.length === 2 && currentMinutes.length === 2) {
+      dispatch(setStartTime(`${currentHours}:${currentMinutes}:00`));
+    }
   };
 
   const handleHoursChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = event.target.value;
-    if (validateTime(value, 23)) {
-      setHours(value);
-      if (minutes !== '') {
-        // Append seconds here
-        dispatch(setStartTime(`${value.padStart(2, '0')}:${minutes.padStart(2, '0')}:00`));
-      }
-    }
+    let value = validateAndFormat(event.target.value, 23);
+    setHours(value);
+    updateStartTime(value, minutes);
   };
 
   const handleMinutesChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = event.target.value;
-    if (validateTime(value, 59)) {
-      setMinutes(value);
-      if (hours !== '') {
-        // Append seconds here
-        dispatch(setStartTime(`${hours.padStart(2, '0')}:${value.padStart(2, '0')}:00`));
-      }
-    }
+    let value = validateAndFormat(event.target.value, 59);
+    setMinutes(value);
+    updateStartTime(hours, value);
   };
 
   return (
     <div id="time_wrapper">
-        <p>Departure time</p>
+      <p>Departure time</p>
       <div id="time_input">
         <label htmlFor="hours">
           <input
@@ -47,6 +49,7 @@ const TimeSelector: React.FC = () => {
             value={hours}
             onChange={handleHoursChange}
             placeholder="HH"
+            maxLength={2}
             min="0"
             max="23"
           />
@@ -60,6 +63,7 @@ const TimeSelector: React.FC = () => {
             value={minutes}
             onChange={handleMinutesChange}
             placeholder="MM"
+            maxLength={2}
             min="0"
             max="59"
           />
