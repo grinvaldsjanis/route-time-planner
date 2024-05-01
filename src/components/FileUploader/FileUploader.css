@@ -20,7 +20,7 @@
 
 .inputfile + label {
   flex-direction: row;
-  font-size: 1em;
+  font-size: 0.8em;
   font-weight: 700;
   color: white;
   padding: 10px;

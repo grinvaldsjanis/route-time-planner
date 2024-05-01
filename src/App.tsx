@@ -8,6 +8,7 @@ import ScaleStrip from "./components/ScaleStrip/ScaleStrip";
 import { useGlobalState } from "./context/GlobalContext";
 import TravelModeSelector from "./components/TravelModeSelector/TravelModesSelector";
 import { initializeState } from "./utils/initializeState"; // Ensure this is correctly imported
+import GPXDownloadButton from "./components/GPXDownloadButton/GPXDownloadButton";
 
 function App() {
   const { state, dispatch } = useGlobalState();
@@ -24,7 +25,10 @@ function App() {
         <div className="App-logo">
           <h4>GPX Time Planner</h4>
         </div>
-        <FileUploader />
+        <div className="file-buttons">
+          <FileUploader />
+          <GPXDownloadButton />
+        </div>
       </header>
       {state.gpxData && (
         <div className="App-main-container">
@@ -39,7 +43,7 @@ function App() {
         </div>
       )}
       <footer className="footer">
-        Under development by Janis Grinvalds. {" "}
+        Under development by Janis Grinvalds.{" "}
         <a
           href="https://chat.whatsapp.com/F7y1m1NBcEg0YiUwzV7S9R"
           target="_blank"

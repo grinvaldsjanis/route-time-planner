@@ -23,7 +23,7 @@
   align-items: center;
 }
 
-input {
+#time_input input {
   width: 70px;
   height: 70px;
   border: none;
@@ -60,39 +60,39 @@ label {
 }
 
 /* Chrome, Safari, Edge, Opera */
-input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button {
+#time_input input::-webkit-outer-spin-button,
+#time_input input::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
 
 /* Firefox */
-input[type="number"] {
+#time_input input[type="number"] {
   -moz-appearance: textfield;
   appearance: textfield;
 }
 
 #time_input,
-input {
+#time_input input {
   border-radius: 8px;
   font-size: 2rem;
   position: relative;
   top: 0px;
 }
 
-input:focus {
+#time_input input:focus {
   outline: 3px solid var(--active);
 }
 
-input:focus + .label {
+#time_input input:focus + .label {
   color: var(--active);
 }
 
-input.invalid:focus {
+#time_input input.invalid:focus {
   outline: 3px solid red;
 }
 
-input.invalid:focus + .label {
+#time_input input.invalid:focus + .label {
   color: red;
 }
 

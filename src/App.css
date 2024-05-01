@@ -24,6 +24,12 @@
   font-size: calc(10px + 2vmin);
 }
 
+.file-buttons {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+}
+
 .App-link {
   color: #61dafb;
 }
