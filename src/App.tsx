@@ -39,7 +39,15 @@ function App() {
         </div>
       )}
       <footer className="footer">
-        Gamma version. 2024. By Janis Grinvalds
+        Under development by Janis Grinvalds.{" "}
+        <a
+          href="https://chat.whatsapp.com/F7y1m1NBcEg0YiUwzV7S9R"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Whatsapp group for issues/features
+        </a>
+        .
       </footer>
     </div>
   );
