@@ -64,6 +64,7 @@
 @media (min-width: 768px) { /* Adjustments for tablets and desktops */
   .App-main-container {
     flex-direction: row;
+    overflow-y:hidden;
   }
 
   .App-sidebar {
