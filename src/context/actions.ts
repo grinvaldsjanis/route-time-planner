@@ -12,10 +12,16 @@ export const UPDATE_STOP_TIME = "UPDATE_STOP_TIME";
 export const SET_WAYPOINT_NAME = "SET_WAYPOINT_NAME";
 export const INITIALIZE_STATE = "INITIALIZE_STATE";
 export const CLEAR_PREVIOUS_DATA = "CLEAR_PREVIOUS_DATA";
+export const SET_FOCUSED_WAYPOINT = "SET_FOCUSED_WAYPOINT";
 
 export interface InitializeStateAction {
   type: typeof INITIALIZE_STATE;
   payload: GlobalState;
+}
+
+export interface SetFocusedWaypointAction {
+  type: typeof SET_FOCUSED_WAYPOINT;
+  payload: number | null;
 }
 
 export interface SetWaypointName {
@@ -73,7 +79,8 @@ export type Action =
   | SetWaypointName
   | InitializeStateAction
   | SetStartTimeAction
-  | ClearPreviousDataAction;
+  | ClearPreviousDataAction
+  | SetFocusedWaypointAction;
 
 export const setGPXData = (data: GPXData): SetGPXDataAction => ({
   type: SET_GPX_DATA,
@@ -93,6 +100,11 @@ export const setTravelMode = (mode: TravelMode): SetTravelModeAction => ({
 export const setStartTime = (time: string): SetStartTimeAction => ({
   type: SET_START_TIME,
   payload: time
+});
+
+export const setFocusedWaypoint = (index: number | null): SetFocusedWaypointAction => ({
+  type: SET_FOCUSED_WAYPOINT,
+  payload: index,
 });
 
 

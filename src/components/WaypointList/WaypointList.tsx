@@ -76,7 +76,7 @@ const WaypointList: React.FC = () => {
     setTotalJourneyTime(convertMinutesToHHMMSS(totalMinutes));
     setFinalArrivalTime(arrivalTimes[arrivalTimes.length - 1]);
   }, [state.gpxData, localStopTimes, state.startTime]);
-
+  
   const handleStopTimeChange = debounce((stopTime: number, index: number) => {
     dispatch({ type: "UPDATE_STOP_TIME", payload: { index, stopTime } });
     const newStopTimes = [...localStopTimes];

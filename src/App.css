@@ -63,17 +63,21 @@
 /* Media Queries */
 @media (min-width: 768px) { /* Adjustments for tablets and desktops */
   .App-main-container {
+    display: flex;
     flex-direction: row;
-    overflow-y:hidden;
+    overflow-y: hidden;
+    position: relative;
+    z-index: 1;
   }
 
   .App-sidebar {
+    min-height: 100vh;
     max-width: 450px;
     order: 0;
   }
 
   .App-graph-container {
-    flex-grow: 1;
-    height: calc(100vh - 200px); /* Adjust height based on header and footer */
+    height: calc(100vh - 200px);
+    position: relative; 
   }
 }

@@ -30,7 +30,7 @@ const WaypointItem: React.FC<WaypointItemProps> = ({
   localStopTimes,
   trackPart,
 }) => {
-  const { dispatch } = useGlobalState();
+  const { state, dispatch } = useGlobalState();
   const [editableName, setEditableName] = useState<string>(
     waypoint.name || `Point ${index + 1}`
   );
@@ -43,7 +43,22 @@ const WaypointItem: React.FC<WaypointItemProps> = ({
     setEditableName(storedWaypointName);
   }, [index, waypoint.name]);
 
-  // Encapsulating the stop time handling logic to ensure that it is only updated as needed
+  useEffect(() => {
+    if (state.focusedWaypointIndex === index) {
+      const element = document.getElementById(`waypoint-info-${index}`);
+      element?.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+        inline: "start",
+      });
+      element?.classList.add("highlighted");
+
+      return () => {
+        element?.classList.remove("highlighted");
+      };
+    }
+  }, [state.focusedWaypointIndex, index]);
+
   const handleChangeStopTime = useCallback(
     (newStopTime: number, idx: number) => {
       handleStopTimeChange(newStopTime, idx);
@@ -52,11 +67,16 @@ const WaypointItem: React.FC<WaypointItemProps> = ({
   );
 
   return (
-    <li className="list-item" key={`waypoint-${index}`}>
+    <li
+      className="list-item"
+      id={`waypoint-${index}`}
+      key={`waypoint-${index}`}
+    >
       <div className="waypoint-container">
         <div className="item-order-number">{index + 1}</div>
         <div
           className="waypoint-info-container"
+          id={`waypoint-info-${index}`}
           style={{
             backgroundColor:
               localStopTimes[index] > 0
@@ -91,18 +111,17 @@ const WaypointItem: React.FC<WaypointItemProps> = ({
               </div>
             )}
             <div className="timeinfo-wrapper">
-            <TimeInfo
-              key={`time-info-${index}-${localStopTimes[index]}`}
-              index={index}
-              times={times}
-              waypoint={{ ...waypoint, name: editableName }}
-              localStopTimes={localStopTimes}
-            />
+              <TimeInfo
+                key={`time-info-${index}-${localStopTimes[index]}`}
+                index={index}
+                times={times}
+                waypoint={{ ...waypoint, name: editableName }}
+                localStopTimes={localStopTimes}
+              />
             </div>
           </div>
         </div>
       </div>
-
       {trackPart && (
         <div className="track-part-container">
           <div className="track-part-icon">

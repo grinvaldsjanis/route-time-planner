@@ -7,6 +7,7 @@ import {
   Popup,
   LayerGroup,
   useMapEvents,
+  Tooltip,
 } from "react-leaflet";
 import type { LatLngTuple } from "leaflet";
 import "./MapView.css";
@@ -15,6 +16,7 @@ import { createMarkerIcon } from "../../utils/markerStyles";
 import { calculateValueRange } from "../../utils/calculateValueRange";
 import getColorForValue from "../../utils/getColorForValue";
 import { useGlobalState } from "../../context/GlobalContext";
+import { setFocusedWaypoint } from "../../context/actions";
 
 type ModeKeys = "ele" | "curve" | "slope";
 
@@ -208,8 +210,13 @@ const MapView: React.FC = () => {
               key={idx}
               position={[parseFloat(point.lat), parseFloat(point.lon)]}
               icon={createMarkerIcon(point.type || "default", idx + 1)}
+              eventHandlers={{
+                click: () => {
+                  dispatch(setFocusedWaypoint(idx));
+                },
+              }}
             >
-              <Popup>{point.name || `Waypoint ${idx + 1}`}</Popup>
+              <Tooltip sticky>{point.name || `Waypoint ${idx + 1}`}</Tooltip>
             </Marker>
           ))}
         <MapEvents onMapMove={handleMapMove} />

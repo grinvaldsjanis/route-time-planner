@@ -15,6 +15,7 @@ export interface GlobalState {
   travelMode: TravelMode;
   waypoints?: Waypoint[];
   startTime: string;
+  focusedWaypointIndex: number | null;
 }
 
 const setLocalStorage = (key: string, value: any): void => {
@@ -44,6 +45,7 @@ export const initialState: GlobalState = {
   dataVersion: getLocalStorage("dataVersion", 0),
   startTime: getLocalStorage("startTime", "08:00:00"),
   stopTimes: undefined,
+  focusedWaypointIndex: null,
 };
 
 export const reducer = (state: GlobalState, action: Action): GlobalState => {
@@ -172,7 +174,12 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
         ...state,
         gpxData: { ...state.gpxData, waypoints: updatedWaypoints },
       };
-    }
+    };
+    case "SET_FOCUSED_WAYPOINT":
+  return {
+    ...state,
+    focusedWaypointIndex: action.payload,
+  };
     // Add other cases as necessary
     default:
       return state;
