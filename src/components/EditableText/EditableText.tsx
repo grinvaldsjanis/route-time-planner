@@ -11,7 +11,6 @@ const EditableText: React.FC<EditableTextProps> = ({ text, onTextChange }) => {
   const [value, setValue] = useState(text);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Effect to update local state when props change
   useEffect(() => {
     setValue(text);
   }, [text]);

@@ -39,7 +39,6 @@ export interface Waypoint {
   stopTime?: number;
 }
 
-
 export interface TrackPoint {
   lat: string;
   lon: string;

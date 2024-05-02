@@ -7,19 +7,18 @@ export default function createGPX(gpxData: GPXData, startTime: string) {
   const xmlDoc = document.implementation.createDocument(null, "gpx", null);
   const gpx = xmlDoc.documentElement;
   gpx.setAttribute("xmlns", "http://www.topografix.com/GPX/1/1");
-  gpx.setAttribute("creator", "GPX Time Planner");
+  gpx.setAttribute("creator", "YourApp");
   gpx.setAttribute("version", "1.1");
 
   let currentTime = startTime;
 
-  // Calculate times
   const times = gpxData.waypoints.map((waypoint, index) => {
     if (index > 0) {
-      const travelTime = gpxData.trackParts[index - 1].travelTime; // Ensure trackParts aligns with waypoints by index
+      const travelTime = gpxData.trackParts[index - 1].travelTime;
       currentTime = addTimes(
         currentTime,
         convertMinutesToHHMMSS(travelTime / 60)
-      ); // Assuming travelTime is in seconds
+      );
     }
 
     let arrivalTime = currentTime;
@@ -36,7 +35,6 @@ export default function createGPX(gpxData: GPXData, startTime: string) {
     return { arrivalTime, departureTime };
   });
 
-  // Append waypoints with calculated times
   gpxData.waypoints.forEach((waypoint, index) => {
     const wpt = xmlDoc.createElement("wpt");
     wpt.setAttribute("lat", waypoint.lat);
@@ -44,19 +42,19 @@ export default function createGPX(gpxData: GPXData, startTime: string) {
 
     let waypointName = waypoint.name || `Waypoint ${index + 1}`;
 
+    // Check for first waypoint to add departure time
     if (index === 0) {
-      // Start time for the first waypoint
-      waypointName += ` (${formatTimeToHHMM(startTime)})`;
-    } else if (index === gpxData.waypoints.length - 1) {
-      // Arrival time for the last waypoint
-      const { arrivalTime } = times[index];
-      waypointName += `(${formatTimeToHHMM(arrivalTime)})`;
-    } else if (waypoint.stopTime && waypoint.stopTime > 0) {
-      // Stop times for waypoints in between
-      const { arrivalTime, departureTime } = times[index];
-      waypointName += `(${formatTimeToHHMM(arrivalTime)} - ${formatTimeToHHMM(
-        departureTime
-      )})`;
+      waypointName += ` (${formatTimeToHHMM(times[index].departureTime)})`;
+    }
+    // For waypoints with stop time and other than first
+    else if (waypoint.stopTime && waypoint.stopTime > 0) {
+      waypointName += ` (${formatTimeToHHMM(
+        times[index].arrivalTime
+      )} - ${formatTimeToHHMM(times[index].departureTime)})`;
+    }
+    // Check for last waypoint to add arrival time
+    if (index === gpxData.waypoints.length - 1) {
+      waypointName += ` (${formatTimeToHHMM(times[index].arrivalTime)})`;
     }
 
     const name = xmlDoc.createElement("name");
@@ -72,7 +70,6 @@ export default function createGPX(gpxData: GPXData, startTime: string) {
     gpx.appendChild(wpt);
   });
 
-  // Append tracks
   gpxData.tracks.forEach((track) => {
     const trk = xmlDoc.createElement("trk");
     if (track.name) {

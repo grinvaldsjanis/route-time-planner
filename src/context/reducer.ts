@@ -59,9 +59,9 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
       localStorage.removeItem("stopTimes");
 
       return {
-        ...initialState, // Reset to initial state to clear all derived data
-        mapMode: state.mapMode, // Preserve map mode if it should not be reset
-        travelMode: state.travelMode, // Preserve travel mode if it should not be reset
+        ...initialState,
+        mapMode: state.mapMode,
+        travelMode: state.travelMode,
       };
 
     case "SET_GPX_DATA":
@@ -155,8 +155,26 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
         ...state,
         gpxData: updatedGPXDataWithStops,
       };
+    case "SET_WAYPOINT_NAME": {
+      if (!state.gpxData) {
+        console.error("No GPX data available to update waypoint name.");
+        return state;
+      }
 
+      const updatedWaypoints = state.gpxData.waypoints.map((waypoint, idx) => {
+        if (idx === action.payload.index) {
+          return { ...waypoint, name: action.payload.name };
+        }
+        return waypoint;
+      });
+
+      return {
+        ...state,
+        gpxData: { ...state.gpxData, waypoints: updatedWaypoints },
+      };
+    }
+    // Add other cases as necessary
     default:
-      return state; // Explicitly handle the default case to satisfy TypeScript
+      return state;
   }
 };
