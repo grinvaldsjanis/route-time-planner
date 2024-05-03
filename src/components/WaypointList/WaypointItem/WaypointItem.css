@@ -22,11 +22,13 @@
   justify-content: space-between;
   /* background-color: rgb(241, 241, 241); */
   border-radius: 7px;
+  border: 1px solid transparent;
+  transition: border 0.5s ease;
 }
 
 .highlighted {
-  background-color: #ffe680 !important;
-  transition: background-color 0.3s ease;
+  border: 1px solid rgb(131, 186, 35);
+  transition: border 0.5s ease;
 }
 
 .item-top-row {

@@ -4,7 +4,6 @@ import {
   TileLayer,
   Polyline,
   Marker,
-  Popup,
   LayerGroup,
   useMapEvents,
   Tooltip,
