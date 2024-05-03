@@ -72,7 +72,7 @@
 
   .App-sidebar {
     min-height: 100vh;
-    max-width: 450px;
+    width: 450px;
     order: 0;
   }
 

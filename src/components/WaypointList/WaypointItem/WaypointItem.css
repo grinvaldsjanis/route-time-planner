@@ -1,7 +1,8 @@
 .list-item {
   display: flex;
   flex-direction: column;
-  width: 100%;
+  /* background-color: blanchedalmond; */
+
 }
 
 .waypoint-container {
@@ -11,16 +12,15 @@
 }
 
 .waypoint-info-container {
-  width: 100%;
+  flex-grow: 1;
   display: flex;
   padding: 10px 15px;
-  margin-right: 1rem;
+ margin-right: 15px;
   gap: 10px;
   display: flex;
   flex-direction: column;
   align-items: start;
   justify-content: space-between;
-  /* background-color: rgb(241, 241, 241); */
   border-radius: 7px;
   border: 1px solid transparent;
   transition: border 0.5s ease;
@@ -39,15 +39,17 @@
   flex-direction: row;
   align-items: center;
   gap: 10px;
+  /* background-color: blanchedalmond; */
+
 }
 
 .item-order-number {
   color: rgb(194, 194, 194);
   font-size: 24px;
-  margin: 0.5rem;
-  width: 2.5rem;
+  padding: 0.5rem;
+  width: 1.5rem;
   text-align: right;
-  max-width: 25px;
+
 }
 
 .waypoint-time-container {
@@ -64,10 +66,9 @@
 
 .track-part-container {
   display: flex;
-  width: 100%;
   flex-direction: row;
   gap: 10px;
-  padding: 10px;
+  padding: 10px 15px 10px 0;
   align-items: center;
 }
 
@@ -76,15 +77,15 @@
   flex-direction: row;
   width: 100%;
   justify-content: space-between;
-  padding-right: 40px;
 }
+
 .track-part-icon {
   color: rgb(194, 194, 194);
   font-size: 20px;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  padding: 5px;
+  padding-left: 10px;
 }
 
 .stoptime-wrapper {

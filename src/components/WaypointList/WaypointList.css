@@ -7,10 +7,9 @@
   display: flex;
   flex-direction: column;
   flex-grow: 1;
-  overflow-y: hidden;
+  /* overflow-y: hidden; */
   max-height: calc(100% - 200px);
   /* border: 1px solid blue; */
-  /* background-color: rgb(188, 143, 181); */
 }
 
 .inner-list-container ul {
@@ -50,15 +49,21 @@
 }
 
 .arrival-time-numbers {
-font-size: 24px;
+  font-size: 24px;
 }
 
 @media (min-width: 768px) {
   /* Adjustments for tablets and desktops */
   .outer-list-container {
-    max-width: 450px;
+    width: 100%;
     height: calc(100vh - 220px);
-
     /* background-color: darkseagreen; */
+  }
+
+  .inner-list-container {
+    display: flex;
+    flex-direction: column;
+    overflow-y: hidden;
+    width: 100%;
   }
 }

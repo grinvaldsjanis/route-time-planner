@@ -1,4 +1,3 @@
-// src/utils/MarkerStyles.js
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import startIcon from "../images/icons/flag-solid.svg";
