@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import "./EditableText.css"; // Assuming styles are defined here
+import "./EditableText.css";
 
 interface EditableTextProps {
   text: string;

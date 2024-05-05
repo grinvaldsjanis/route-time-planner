@@ -2,7 +2,6 @@
   display: flex;
   flex-direction: column;
   /* background-color: blanchedalmond; */
-
 }
 
 .waypoint-container {
@@ -15,8 +14,8 @@
   flex-grow: 1;
   display: flex;
   padding: 10px 15px;
- margin-right: 15px;
-  gap: 10px;
+  margin-right: 15px;
+  gap: 5px;
   display: flex;
   flex-direction: column;
   align-items: start;
@@ -40,7 +39,6 @@
   align-items: center;
   gap: 10px;
   /* background-color: blanchedalmond; */
-
 }
 
 .item-order-number {
@@ -49,12 +47,12 @@
   padding: 0.5rem;
   width: 1.5rem;
   text-align: right;
-
 }
 
 .waypoint-time-container {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   width: 100%;
   flex-direction: row;
 }
@@ -96,8 +94,10 @@
 .timeinfo-wrapper {
   display: flex;
   gap: 10px;
+  justify-content: space-around;
   flex-direction: column;
+  align-items: center;
   text-align: right;
   height: 2rem;
-  width: 150px;
+  width: 175px;
 }

@@ -37,7 +37,6 @@ export const createMarkerIcon = (type: string, index: number) => {
         iconAnchor: [2, 26],
       });
     default:
-      // Fallback for no specific type
       return L.divIcon({
         className: "custom-shaping-icon",
         html: `<div style="background-color: green; width: 8px; height: 8px; border-radius: 50%;"></div>`,

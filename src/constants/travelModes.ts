@@ -2,7 +2,7 @@ export type TravelMode = keyof typeof travelModes;
 
 const travelModes = {
     "Casual Walking": {
-      maxSpeed: 5,  // in km/h
+      maxSpeed: 5,
       handlingFactor: 1,
       powerFactor: 0.1,
       terrain: "flat",

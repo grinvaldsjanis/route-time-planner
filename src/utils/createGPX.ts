@@ -2,35 +2,44 @@ import formatTimeToHHMM from "./formatTimeToHHMM";
 import { GPXData } from "./parseGPX";
 import { minutesToSeconds, formatTimeFromSeconds } from "./timeUtils";
 
-export default function createGPX(gpxData: GPXData, startTime: string) {
+export default function createGPX(gpxData: GPXData, startTime: string, gpxName: string) {
   const serializer = new XMLSerializer();
   const xmlDoc = document.implementation.createDocument(null, "gpx", null);
   const gpx = xmlDoc.documentElement;
   gpx.setAttribute("xmlns", "http://www.topografix.com/GPX/1/1");
-  gpx.setAttribute("creator", "YourApp");
+  gpx.setAttribute("creator", "Route Time Planner");
   gpx.setAttribute("version", "1.1");
 
-  // Parse the start time into seconds
+  const metadata = xmlDoc.createElement("metadata");
+  const name = xmlDoc.createElement("name");
+  name.textContent = gpxName;
+  metadata.appendChild(name);
+
+  const link = xmlDoc.createElement("link");
+  link.setAttribute("href", "https://route-time-planner.vercel.app/");
+  const text = xmlDoc.createElement("text");
+  text.textContent = "Route Time Planner";
+  link.appendChild(text);
+  metadata.appendChild(link);
+
+  gpx.appendChild(metadata);
+
   const [startHour, startMinute] = startTime.split(":").map(Number);
   const startTimeSeconds = minutesToSeconds(startHour * 60 + startMinute);
 
-  // Initialize travel time starting from zero
   let currentSeconds = 0;
   const times = gpxData.waypoints.map((waypoint, index) => {
     let arrivalSeconds = currentSeconds;
     let departureSeconds = currentSeconds;
 
-    // Calculate travel time to the current waypoint, except for the first one
     if (index > 0) {
       const travelTime = gpxData.trackParts[index - 1].travelTime;
       arrivalSeconds = currentSeconds += travelTime;
     }
 
-    // Calculate departure time by adding the stop time, if any
     const stopTimeSeconds = minutesToSeconds(waypoint.stopTime || 0);
     departureSeconds = currentSeconds += stopTimeSeconds;
 
-    // Return the formatted times with the starting time offset
     return {
       arrivalTime: formatTimeFromSeconds(arrivalSeconds + startTimeSeconds),
       departureTime: formatTimeFromSeconds(departureSeconds + startTimeSeconds)
@@ -44,17 +53,14 @@ export default function createGPX(gpxData: GPXData, startTime: string) {
 
     let waypointName = waypoint.name || `Waypoint ${index + 1}`;
 
-    // Check for the first waypoint to add departure time
     if (index === 0) {
       waypointName += ` (${formatTimeToHHMM(times[index].departureTime)})`;
     }
-    // Add arrival and departure times for intermediate waypoints with stop time
     else if (waypoint.stopTime && waypoint.stopTime > 0) {
       waypointName += ` (${formatTimeToHHMM(
         times[index].arrivalTime
       )} - ${formatTimeToHHMM(times[index].departureTime)})`;
     }
-    // Add only arrival time for the final waypoint
     if (index === gpxData.waypoints.length - 1) {
       waypointName += ` (${formatTimeToHHMM(times[index].arrivalTime)})`;
     }

@@ -175,12 +175,21 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
         gpxData: { ...state.gpxData, waypoints: updatedWaypoints },
       };
     };
+    case "SET_GPX_NAME":
+      if (state.gpxData) {
+        const updatedGPXData = { ...state.gpxData, gpxName: action.payload };
+        setLocalStorage("gpxData", updatedGPXData);
+        return {
+          ...state,
+          gpxData: updatedGPXData,
+        };
+      }
+      return state;
     case "SET_FOCUSED_WAYPOINT":
-  return {
-    ...state,
-    focusedWaypointIndex: action.payload,
-  };
-    // Add other cases as necessary
+      return {
+        ...state,
+        focusedWaypointIndex: action.payload,
+      };
     default:
       return state;
   }

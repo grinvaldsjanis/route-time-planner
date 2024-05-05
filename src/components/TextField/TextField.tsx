@@ -10,7 +10,7 @@ interface TextFieldProps {
   leadingIcon?: React.ReactNode;
   trailingIcon?: React.ReactNode;
   assistiveText?: string;
-  errorText?: string; // Add this line
+  errorText?: string;
 }
 
 export default function TextField({

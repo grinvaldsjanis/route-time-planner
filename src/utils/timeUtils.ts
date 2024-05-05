@@ -48,7 +48,7 @@ export function addTimes(
 }
 
 export function convertMinutesToHHMMSS(minutes: number): string {
-  const totalSeconds = Math.round(minutes * 60); // Convert minutes to seconds and round to nearest second
+  const totalSeconds = Math.round(minutes * 60);
   const hours = Math.floor(totalSeconds / 3600);
   const remainingSeconds = totalSeconds % 3600;
   const mins = Math.floor(remainingSeconds / 60);

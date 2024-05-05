@@ -7,7 +7,7 @@ const haversineDistance = (
   lat2: number,
   lon2: number
 ): number => {
-  const R = 6371e3; // Earth's radius in meters
+  const R = 6371e3;
   const φ1 = toRadians(lat1);
   const φ2 = toRadians(lat2);
   const Δφ = toRadians(lat2 - lat1);

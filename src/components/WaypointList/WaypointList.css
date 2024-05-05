@@ -56,8 +56,7 @@
   /* Adjustments for tablets and desktops */
   .outer-list-container {
     width: 100%;
-    height: calc(100vh - 220px);
-    /* background-color: darkseagreen; */
+    height: calc(100vh - 260px);
   }
 
   .inner-list-container {

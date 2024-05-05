@@ -69,17 +69,14 @@ const MapView: React.FC = () => {
     (center: LatLngTuple, zoom: number) => {
       dispatch({ type: "SET_MAP_ZOOM", payload: zoom });
       dispatch({ type: "SET_MAP_CENTER", payload: center });
-      // console.log("Map moved to:", center, "Zoom level:", zoom);
     },
     [dispatch]
   );
 
   const handleModeChange = (modeKey: string) => {
     const newMode = modeMap[modeKey];
-    console.log("Current mode:", mapMode, "Attempting to switch to:", newMode);
     if (newMode && newMode !== mapMode) {
       dispatch({ type: "SET_MAP_MODE", payload: newMode });
-      console.log("Mode after dispatch:", newMode);
     }
   };
 

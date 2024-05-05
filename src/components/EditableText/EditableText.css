@@ -1,4 +1,3 @@
-/* EditableText.css */
 .editable-text-container {
     width: 100%;
     cursor: pointer;
@@ -7,6 +6,7 @@
     padding: 4px 4px;
     border: 1px solid transparent;
     min-width: 50px;
+    font-size: 20px;
   }
   
   .editable-text-span {
@@ -27,4 +27,3 @@
     box-sizing: border-box;
     vertical-align: middle;
   }
-  

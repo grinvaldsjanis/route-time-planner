@@ -95,8 +95,8 @@ export function preprocessTrackSegments(
 }
 
 function calculateDistance(p1: TrackPoint, p2: TrackPoint): number {
-  const R = 6371e3; // Earth's radius in meters
-  const lat1 = parseFloat(p1.lat) * Math.PI / 180; // Convert degrees to radians
+  const R = 6371e3;
+  const lat1 = parseFloat(p1.lat) * Math.PI / 180;
   const lat2 = parseFloat(p2.lat) * Math.PI / 180;
   const deltaLat = (parseFloat(p2.lat) - parseFloat(p1.lat)) * Math.PI / 180;
   const deltaLon = (parseFloat(p2.lon) - parseFloat(p1.lon)) * Math.PI / 180;
@@ -106,6 +106,6 @@ function calculateDistance(p1: TrackPoint, p2: TrackPoint): number {
             Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-  return R * c; // Distance in meters
+  return R * c;
 }
 

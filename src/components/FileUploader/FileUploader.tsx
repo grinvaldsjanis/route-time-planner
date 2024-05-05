@@ -1,12 +1,12 @@
 import React from "react";
 import "./FileUploader.css";
 import { FaUpload } from "react-icons/fa6";
-import { useGlobalState } from "../../context/GlobalContext"; // Import the global state hook
-import parseGPX from "../../utils/parseGPX"; // Import the GPX parsing utility
+import { useGlobalState } from "../../context/GlobalContext";
+import parseGPX from "../../utils/parseGPX";
 import travelModes from "../../constants/travelModes";
 
 const FileUploader: React.FC = () => {
-  const { state, dispatch } = useGlobalState(); // Use the global state
+  const { state, dispatch } = useGlobalState();
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -15,8 +15,8 @@ const FileUploader: React.FC = () => {
       reader.onload = async (e: ProgressEvent<FileReader>) => {
         const text = e.target?.result as string;
         dispatch({ type: "CLEAR_PREVIOUS_DATA" });
-        const parsedGPXData = parseGPX(text, state.travelMode as keyof typeof travelModes); // Use the current travel mode
-        dispatch({ type: "SET_GPX_DATA", payload: parsedGPXData }); // Dispatch the parsed data to the global state
+        const parsedGPXData = parseGPX(text, state.travelMode as keyof typeof travelModes);
+        dispatch({ type: "SET_GPX_DATA", payload: parsedGPXData });
       };
       reader.readAsText(file);
     }

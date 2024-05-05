@@ -19,11 +19,10 @@ const calculateTravelTime = (
             trackIndex,
             segmentIndex
           );
-          return; // Continue to the next iteration or handle this case appropriately
+          return;
         }
         const segment = tracks[trackIndex].segments[segmentIndex];
 
-        // Ensure the loop goes only up to the second to last point
         for (let i = startIndex; i < endIndex; i++) {
           const pointA = segment.points[i];
           const pointB = segment.points[i + 1];
@@ -34,23 +33,18 @@ const calculateTravelTime = (
             parseFloat(pointB.lon)
           );
 
-          // Curve factor calculation
           const curveFactor = Math.log10((pointB.curve ?? 1000) / 10 + 1) / 3;
 
-          // Slope impact adjustment within reasonable limits
           const slopeImpact = (pointB.slope ?? 0) / 100;
           const slopeAdjustmentFactor = Math.exp(
             -mode.powerFactor * slopeImpact
           );
-          // Calculate effective speed ensuring it's within a realistic range
           let effectiveSpeed =
             mode.maxSpeed *
             (1 - mode.handlingFactor * curveFactor) *
             slopeAdjustmentFactor;
 
-          // console.log("CurveRadius: ", pointA.curve, " Slope: ", pointA.slope, " EffSpeed: ", effectiveSpeed )
-
-          const time = (distance / 1000 / effectiveSpeed) * 3600; // Convert to seconds
+          const time = (distance / 1000 / effectiveSpeed) * 3600;
           totalTime += time;
         }
       }

@@ -19,7 +19,6 @@ const WaypointList: React.FC = () => {
   const [localStopTimes, setLocalStopTimes] = useState<number[]>([]);
   const [finalArrivalTime, setFinalArrivalTime] = useState("");
 
-  // Initialize local stop times and store waypoint names
   useEffect(() => {
     if (state.gpxData?.waypoints) {
       state.gpxData.waypoints.forEach((waypoint, index) => {
@@ -53,28 +52,22 @@ const WaypointList: React.FC = () => {
     const departureSeconds: number[] = [];
     let totalJourneySeconds = 0;
 
-    // Iterate through waypoints and calculate their times
     gpxData.waypoints.forEach((waypoint, index) => {
-      // Add arrival time for waypoints after the first
       if (index > 0) {
         currentSeconds += gpxData.trackParts[index - 1].travelTime;
       }
-      arrivalSeconds.push(currentSeconds); // Add current arrival time
+      arrivalSeconds.push(currentSeconds);
 
-      // Calculate the departure time for the current waypoint
       const stopTimeSeconds = minutesToSeconds(localStopTimes[index] || 0);
       const departureTime = currentSeconds + stopTimeSeconds;
-      departureSeconds.push(departureTime); // Store the departure time
+      departureSeconds.push(departureTime);
 
-      // Update the current time to the departure time
       currentSeconds = departureTime;
     });
 
-    // Add start time offset to all calculated times
     const [startHour, startMinute] = state.startTime.split(":").map(Number);
     const startTimeSeconds = minutesToSeconds(startHour * 60 + startMinute);
 
-    // Format the arrival and departure times with the starting time offset
     const formattedArrivals = arrivalSeconds.map((sec) =>
       formatTimeFromSeconds(sec + startTimeSeconds)
     );
@@ -82,10 +75,8 @@ const WaypointList: React.FC = () => {
       formatTimeFromSeconds(sec + startTimeSeconds)
     );
 
-    // Calculate the total journey time
     totalJourneySeconds = currentSeconds;
 
-    // Update component state with accurate times
     setTimes({ arrival: formattedArrivals, departure: formattedDepartures });
     setFinalArrivalTime(formattedArrivals[formattedArrivals.length - 1]);
     setTotalJourneyTime(formatTimeFromSeconds(totalJourneySeconds));

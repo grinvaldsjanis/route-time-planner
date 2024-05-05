@@ -1,4 +1,3 @@
-// App.tsx
 import { useEffect } from "react";
 import "./App.css";
 import FileUploader from "./components/FileUploader/FileUploader";
@@ -7,15 +6,14 @@ import WaypointList from "./components/WaypointList/WaypointList";
 import ScaleStrip from "./components/ScaleStrip/ScaleStrip";
 import { useGlobalState } from "./context/GlobalContext";
 import TravelModeSelector from "./components/TravelModeSelector/TravelModesSelector";
-import { initializeState } from "./utils/initializeState"; // Ensure this is correctly imported
+import { initializeState } from "./utils/initializeState";
 import GPXDownloadButton from "./components/GPXDownloadButton/GPXDownloadButton";
 
 function App() {
   const { state, dispatch } = useGlobalState();
 
   useEffect(() => {
-    // Initialize app state from stored values or defaults
-    const initialState = initializeState(); // Assuming initializeState returns the correct structure
+    const initialState = initializeState();
     dispatch({ type: "INITIALIZE_STATE", payload: initialState });
   }, [dispatch]);
 

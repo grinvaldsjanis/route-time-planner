@@ -1,6 +1,6 @@
 import { LatLngTuple } from "leaflet";
 import { GPXData } from "../utils/parseGPX";
-import { TravelMode } from "../constants/travelModes"; // Ensure this import is correct
+import { TravelMode } from "../constants/travelModes";
 import { GlobalState } from "./reducer";
 
 export const SET_GPX_DATA = "SET_GPX_DATA";
@@ -13,6 +13,12 @@ export const SET_WAYPOINT_NAME = "SET_WAYPOINT_NAME";
 export const INITIALIZE_STATE = "INITIALIZE_STATE";
 export const CLEAR_PREVIOUS_DATA = "CLEAR_PREVIOUS_DATA";
 export const SET_FOCUSED_WAYPOINT = "SET_FOCUSED_WAYPOINT";
+export const SET_GPX_NAME = "SET_GPX_NAME";
+
+export interface SetGPXNameAction {
+  type: typeof SET_GPX_NAME;
+  payload: string;
+}
 
 export interface InitializeStateAction {
   type: typeof INITIALIZE_STATE;
@@ -80,7 +86,8 @@ export type Action =
   | InitializeStateAction
   | SetStartTimeAction
   | ClearPreviousDataAction
-  | SetFocusedWaypointAction;
+  | SetFocusedWaypointAction
+  | SetGPXNameAction;
 
 export const setGPXData = (data: GPXData): SetGPXDataAction => ({
   type: SET_GPX_DATA,
@@ -107,7 +114,10 @@ export const setFocusedWaypoint = (index: number | null): SetFocusedWaypointActi
   payload: index,
 });
 
-
+export const setGPXName = (name: string): SetGPXNameAction => ({
+  type: SET_GPX_NAME,
+  payload: name,
+});
 interface SetMapCenterAction {
   type: "SET_MAP_CENTER";
   payload: LatLngTuple;

@@ -11,7 +11,7 @@ export interface TrackPointRef {
 }
 
 export interface GPXData {
-  metadataName: string | null;
+  gpxName: string | null;
   waypoints: Waypoint[];
   tracks: Track[];
   trackParts: TrackPart[];
@@ -79,7 +79,7 @@ export default function parseGPX(gpxContent: string, modeKey: string): GPXData {
   const parser = new DOMParser();
   const xmlDoc = parser.parseFromString(gpxContent, "application/xml");
 
-  const metadataName = xmlDoc.getElementsByTagName("metadata")[0]?.getElementsByTagName("name")[0]?.textContent || null;
+  const gpxName = xmlDoc.getElementsByTagName("metadata")[0]?.getElementsByTagName("name")[0]?.textContent || null;
   const waypoints = xmlDoc.getElementsByTagName("wpt");
   const tracks = xmlDoc.getElementsByTagName("trk");
 
@@ -97,19 +97,15 @@ export default function parseGPX(gpxContent: string, modeKey: string): GPXData {
       const trkpts = seg.getElementsByTagName("trkpt");
       let points: TrackPoint[] = [];
 
-      // Parse points
       for (let k = 0; k < trkpts.length; k++) {
         const pt = parseWaypoint(trkpts[k], true) as TrackPoint;
         if (pt) points.push(pt);
       }
 
-      // Preprocess the segment points to add interpolated points
       let preprocessedSegment = preprocessTrackSegments([{ points }])[0];
 
-      // Calculate curvature for all points, including interpolated ones
       for (let k = 0; k < preprocessedSegment.points.length; k++) {
         if (k > 0 && k < preprocessedSegment.points.length - 1) {
-          // Calculate curvature using three consecutive points
           const prevPt = preprocessedSegment.points[k - 1];
           const currentPt = preprocessedSegment.points[k];
           const nextPt = preprocessedSegment.points[k + 1];
@@ -162,7 +158,7 @@ export default function parseGPX(gpxContent: string, modeKey: string): GPXData {
   }
 
   return {
-    metadataName,
+    gpxName,
     waypoints: parsedWaypoints,
     tracks: parsedTracks,
     trackParts: calculateTrackParts(

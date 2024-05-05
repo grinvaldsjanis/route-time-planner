@@ -1,4 +1,3 @@
-// src/context/GlobalContext.tsx
 import React, { createContext, useContext, useReducer, ReactNode } from "react";
 import { reducer, initialState, GlobalState } from "./reducer";
 import { Action } from "./actions";

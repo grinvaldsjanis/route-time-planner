@@ -100,16 +100,17 @@ const WaypointItem: React.FC<WaypointItemProps> = ({
             </div>
           </div>
           <div className="waypoint-time-container">
-            {showStopTimeSelector && (
-              <div className="stoptime-wrapper">
+            <div className="stoptime-wrapper">
+              {showStopTimeSelector && (
                 <StopTimeSelector
                   key={`stop-selector-${index}-${localStopTimes[index]}`}
                   index={index}
                   localStopTimes={localStopTimes}
                   handleStopTimeChange={handleChangeStopTime}
                 />
-              </div>
-            )}
+              )}
+            </div>
+
             <div className="timeinfo-wrapper">
               <TimeInfo
                 key={`time-info-${index}-${localStopTimes[index]}`}
