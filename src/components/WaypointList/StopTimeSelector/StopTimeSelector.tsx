@@ -16,6 +16,7 @@ const StopTimeSelector: React.FC<StopTimeSelectorProps> = ({
   const stopTimes = [0, 5, 10, 20, 30, 45, 60, 75, 90, 120, 150, 180];
 
   const [sliderValue, setSliderValue] = useState(localStopTimes[index]);
+  const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
     setSliderValue(localStopTimes[index]);
@@ -24,42 +25,53 @@ const StopTimeSelector: React.FC<StopTimeSelectorProps> = ({
   const debouncedHandleStopTimeChange = useCallback(
     debounce((value, idx) => {
       handleStopTimeChange(value, idx);
-    }, 300), []
+    }, 300), [handleStopTimeChange]
   );
 
   const handleSliderChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = stopTimes[parseInt(event.target.value)];
     setSliderValue(value);
+    setIsDragging(true); // Mark as dragging to avoid immediate update
   };
 
-  // Commit the final value change when the user stops dragging
+  // Function to commit the final change when dragging stops
   const handleSliderCommit = () => {
-    const selectedIndex = stopTimes.findIndex((time) => time === sliderValue);
-    debouncedHandleStopTimeChange(sliderValue, index);
+    if (isDragging) {
+      debouncedHandleStopTimeChange(sliderValue, index);
+      setIsDragging(false);
+    }
   };
 
+  // Add a global listener for mouseup and touchend events to ensure
+  // slider changes are committed even if released outside the component
+  useEffect(() => {
+    const handleGlobalMouseUp = () => handleSliderCommit();
+    document.addEventListener("mouseup", handleGlobalMouseUp);
+    document.addEventListener("touchend", handleGlobalMouseUp);
+
+    return () => {
+      document.removeEventListener("mouseup", handleGlobalMouseUp);
+      document.removeEventListener("touchend", handleGlobalMouseUp);
+    };
+  }, [handleSliderCommit]);
 
   return (
-
-      <div className="stop-time-selector">
-        <input
+    <div className="stop-time-selector">
+      <input
         type="range"
         min="0"
         max={stopTimes.length - 1}
         value={stopTimes.findIndex((time) => time === sliderValue)}
         onChange={handleSliderChange}
-        onMouseUp={handleSliderCommit}
-        onTouchEnd={handleSliderCommit}
         list="stop-times"
       />
-        <datalist id="stop-times">
-          {stopTimes.map((time, idx) => (
-            <option key={idx} value={idx}>{time} min</option>
-          ))}
-        </datalist>
-        <div className="selected-value">{sliderValue} min</div>
-      </div>
-
+      <datalist id="stop-times">
+        {stopTimes.map((time, idx) => (
+          <option key={idx} value={idx}>{time} min</option>
+        ))}
+      </datalist>
+      <div className="selected-value">{sliderValue} min</div>
+    </div>
   );
 };
 

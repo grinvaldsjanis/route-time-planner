@@ -11,6 +11,7 @@ export interface TrackPointRef {
 }
 
 export interface GPXData {
+  metadataName: string | null;
   waypoints: Waypoint[];
   tracks: Track[];
   trackParts: TrackPart[];
@@ -78,6 +79,7 @@ export default function parseGPX(gpxContent: string, modeKey: string): GPXData {
   const parser = new DOMParser();
   const xmlDoc = parser.parseFromString(gpxContent, "application/xml");
 
+  const metadataName = xmlDoc.getElementsByTagName("metadata")[0]?.getElementsByTagName("name")[0]?.textContent || null;
   const waypoints = xmlDoc.getElementsByTagName("wpt");
   const tracks = xmlDoc.getElementsByTagName("trk");
 
@@ -160,6 +162,7 @@ export default function parseGPX(gpxContent: string, modeKey: string): GPXData {
   }
 
   return {
+    metadataName,
     waypoints: parsedWaypoints,
     tracks: parsedTracks,
     trackParts: calculateTrackParts(
