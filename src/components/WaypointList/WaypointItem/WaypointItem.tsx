@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from "react";
-import formatTime from "../../../utils/formatTime";
 import StopTimeSelector from "../StopTimeSelector/StopTimeSelector";
 import TimeInfo from "../TimeInfo/TimeInfo";
 import { useGlobalState } from "../../../context/GlobalContext";
@@ -7,6 +6,7 @@ import "./WaypointItem.css";
 import { TrackPart, Waypoint } from "../../../utils/parseGPX";
 import { FaArrowsUpDown } from "react-icons/fa6";
 import EditableText from "../../EditableText/EditableText";
+import { formatTimeFromSeconds } from "../../../utils/timeUtils";
 
 interface WaypointItemProps {
   waypoint: Waypoint;
@@ -128,8 +128,8 @@ const WaypointItem: React.FC<WaypointItemProps> = ({
             <FaArrowsUpDown />
           </div>
           <div className="track-part-info">
-            <p>Distance: {trackPart.distance.toFixed(2)} km</p>
-            <p>Duration: {formatTime(trackPart.travelTime)}</p>
+            <p>Distance: {trackPart.distance.toFixed(1)} km</p>
+            <p>Duration: {formatTimeFromSeconds(trackPart.travelTime)}</p>
           </div>
         </div>
       )}

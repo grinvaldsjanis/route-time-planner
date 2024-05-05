@@ -1,6 +1,6 @@
-import { addTimes, convertMinutesToHHMMSS } from "./addTimes";
 import formatTimeToHHMM from "./formatTimeToHHMM";
-import { GPXData, Waypoint, TrackPart } from "./parseGPX";
+import { GPXData } from "./parseGPX";
+import { minutesToSeconds, formatTimeFromSeconds } from "./timeUtils";
 
 export default function createGPX(gpxData: GPXData, startTime: string) {
   const serializer = new XMLSerializer();
@@ -10,29 +10,31 @@ export default function createGPX(gpxData: GPXData, startTime: string) {
   gpx.setAttribute("creator", "YourApp");
   gpx.setAttribute("version", "1.1");
 
-  let currentTime = startTime;
+  // Parse the start time into seconds
+  const [startHour, startMinute] = startTime.split(":").map(Number);
+  const startTimeSeconds = minutesToSeconds(startHour * 60 + startMinute);
 
+  // Initialize travel time starting from zero
+  let currentSeconds = 0;
   const times = gpxData.waypoints.map((waypoint, index) => {
+    let arrivalSeconds = currentSeconds;
+    let departureSeconds = currentSeconds;
+
+    // Calculate travel time to the current waypoint, except for the first one
     if (index > 0) {
       const travelTime = gpxData.trackParts[index - 1].travelTime;
-      currentTime = addTimes(
-        currentTime,
-        convertMinutesToHHMMSS(travelTime / 60)
-      );
+      arrivalSeconds = currentSeconds += travelTime;
     }
 
-    let arrivalTime = currentTime;
-    let departureTime = currentTime;
+    // Calculate departure time by adding the stop time, if any
+    const stopTimeSeconds = minutesToSeconds(waypoint.stopTime || 0);
+    departureSeconds = currentSeconds += stopTimeSeconds;
 
-    if (waypoint.stopTime && waypoint.stopTime > 0) {
-      departureTime = addTimes(
-        currentTime,
-        convertMinutesToHHMMSS(waypoint.stopTime)
-      );
-      currentTime = departureTime;
-    }
-
-    return { arrivalTime, departureTime };
+    // Return the formatted times with the starting time offset
+    return {
+      arrivalTime: formatTimeFromSeconds(arrivalSeconds + startTimeSeconds),
+      departureTime: formatTimeFromSeconds(departureSeconds + startTimeSeconds)
+    };
   });
 
   gpxData.waypoints.forEach((waypoint, index) => {
@@ -42,17 +44,17 @@ export default function createGPX(gpxData: GPXData, startTime: string) {
 
     let waypointName = waypoint.name || `Waypoint ${index + 1}`;
 
-    // Check for first waypoint to add departure time
+    // Check for the first waypoint to add departure time
     if (index === 0) {
       waypointName += ` (${formatTimeToHHMM(times[index].departureTime)})`;
     }
-    // For waypoints with stop time and other than first
+    // Add arrival and departure times for intermediate waypoints with stop time
     else if (waypoint.stopTime && waypoint.stopTime > 0) {
       waypointName += ` (${formatTimeToHHMM(
         times[index].arrivalTime
       )} - ${formatTimeToHHMM(times[index].departureTime)})`;
     }
-    // Check for last waypoint to add arrival time
+    // Add only arrival time for the final waypoint
     if (index === gpxData.waypoints.length - 1) {
       waypointName += ` (${formatTimeToHHMM(times[index].arrivalTime)})`;
     }

@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from "react";
 import "./WaypointList.css";
 import { useGlobalState } from "../../context/GlobalContext";
-import formatTime from "../../utils/formatTime";
-import { addTimes, convertMinutesToHHMMSS } from "../../utils/addTimes";
 import WaypointItem from "./WaypointItem/WaypointItem";
 import { debounce } from "lodash";
+import { formatTimeFromSeconds, minutesToSeconds } from "../../utils/timeUtils";
 import formatTimeToHHMM from "../../utils/formatTimeToHHMM";
 
 const WaypointList: React.FC = () => {
@@ -13,14 +12,17 @@ const WaypointList: React.FC = () => {
   const [times, setTimes] = useState<{
     arrival: string[];
     departure: string[];
-  }>({ arrival: [], departure: [] });
+  }>({
+    arrival: [],
+    departure: [],
+  });
   const [localStopTimes, setLocalStopTimes] = useState<number[]>([]);
   const [finalArrivalTime, setFinalArrivalTime] = useState("");
 
+  // Initialize local stop times and store waypoint names
   useEffect(() => {
     if (state.gpxData?.waypoints) {
       state.gpxData.waypoints.forEach((waypoint, index) => {
-        localStorage.removeItem(`waypointName_${index}`);
         localStorage.setItem(
           `waypointName_${index}`,
           waypoint.name || `Waypoint ${index + 1}`
@@ -40,43 +42,55 @@ const WaypointList: React.FC = () => {
     ) || 0;
 
   useEffect(() => {
-    if (!state.gpxData?.trackParts || !state.gpxData?.waypoints) {
+    const gpxData = state.gpxData;
+    if (!gpxData || !gpxData.trackParts || !gpxData.waypoints) {
       console.warn("No track parts or waypoints available");
       return;
     }
 
-    const startJourneyTime = state.startTime || "08:00:00";
-    let currentTime = startJourneyTime;
-    const arrivalTimes: string[] = [];
-    const departureTimes: string[] = [startJourneyTime];
-    let totalMinutes = 0;
+    let currentSeconds = 0;
+    const arrivalSeconds: number[] = [];
+    const departureSeconds: number[] = [];
+    let totalJourneySeconds = 0;
 
-    state.gpxData.waypoints.forEach((waypoint, index) => {
-      if (index > 0 && state.gpxData?.trackParts) {
-        const travelMinutes =
-          state.gpxData.trackParts[index - 1].travelTime / 60;
-        currentTime = addTimes(
-          currentTime,
-          convertMinutesToHHMMSS(travelMinutes)
-        );
-        arrivalTimes[index] = currentTime;
-        totalMinutes += travelMinutes;
+    // Iterate through waypoints and calculate their times
+    gpxData.waypoints.forEach((waypoint, index) => {
+      // Add arrival time for waypoints after the first
+      if (index > 0) {
+        currentSeconds += gpxData.trackParts[index - 1].travelTime;
       }
+      arrivalSeconds.push(currentSeconds); // Add current arrival time
 
-      const stopMinutes = localStopTimes[index];
-      currentTime = addTimes(currentTime, convertMinutesToHHMMSS(stopMinutes));
-      totalMinutes += stopMinutes;
+      // Calculate the departure time for the current waypoint
+      const stopTimeSeconds = minutesToSeconds(localStopTimes[index] || 0);
+      const departureTime = currentSeconds + stopTimeSeconds;
+      departureSeconds.push(departureTime); // Store the departure time
 
-      if (index < (state.gpxData?.waypoints?.length ?? 0) - 1) {
-        departureTimes[index] = currentTime;
-      }
+      // Update the current time to the departure time
+      currentSeconds = departureTime;
     });
 
-    setTimes({ arrival: arrivalTimes, departure: departureTimes });
-    setTotalJourneyTime(convertMinutesToHHMMSS(totalMinutes));
-    setFinalArrivalTime(arrivalTimes[arrivalTimes.length - 1]);
+    // Add start time offset to all calculated times
+    const [startHour, startMinute] = state.startTime.split(":").map(Number);
+    const startTimeSeconds = minutesToSeconds(startHour * 60 + startMinute);
+
+    // Format the arrival and departure times with the starting time offset
+    const formattedArrivals = arrivalSeconds.map((sec) =>
+      formatTimeFromSeconds(sec + startTimeSeconds)
+    );
+    const formattedDepartures = departureSeconds.map((sec) =>
+      formatTimeFromSeconds(sec + startTimeSeconds)
+    );
+
+    // Calculate the total journey time
+    totalJourneySeconds = currentSeconds;
+
+    // Update component state with accurate times
+    setTimes({ arrival: formattedArrivals, departure: formattedDepartures });
+    setFinalArrivalTime(formattedArrivals[formattedArrivals.length - 1]);
+    setTotalJourneyTime(formatTimeFromSeconds(totalJourneySeconds));
   }, [state.gpxData, localStopTimes, state.startTime]);
-  
+
   const handleStopTimeChange = debounce((stopTime: number, index: number) => {
     dispatch({ type: "UPDATE_STOP_TIME", payload: { index, stopTime } });
     const newStopTimes = [...localStopTimes];
@@ -112,7 +126,7 @@ const WaypointList: React.FC = () => {
             <strong>Distance:</strong> {totalDistance.toFixed(2)} km
           </p>
           <p>
-            <strong>Road Time:</strong> {formatTime(totalTravelTime)}
+            <strong>Road Time:</strong> {formatTimeFromSeconds(totalTravelTime)}
           </p>
           <p>
             <strong>Journey Time:</strong> {totalJourneyTime}
@@ -120,7 +134,9 @@ const WaypointList: React.FC = () => {
         </div>
         <div className="arrival-time">
           <p>Arrival time</p>
-          <div className="arrival-time-numbers">{formatTimeToHHMM(finalArrivalTime)}</div>
+          <div className="arrival-time-numbers">
+            {formatTimeToHHMM(finalArrivalTime)}
+          </div>
         </div>
       </div>
     </div>
