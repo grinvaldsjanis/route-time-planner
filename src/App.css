@@ -9,10 +9,10 @@
 }
 
 .App-logo {
-  background-image: url(./logo.png);
+
   background-repeat: no-repeat, repeat;
   background-position: left center;
-  padding-left: 70px;
+
 }
 
 .App-header {
@@ -21,17 +21,16 @@
   align-items: center;
   justify-content: space-between;
   padding: 1rem;
+  gap: 1rem;
   font-size: calc(10px + 2vmin);
 }
 
 .file-buttons {
   display: flex;
   flex-direction: row;
+  justify-content: end;
+  align-items: center;
   gap: 10px;
-}
-
-.App-link {
-  color: #61dafb;
 }
 
 .App-main-container {
@@ -79,5 +78,13 @@
   .App-graph-container {
     height: calc(100vh - 200px);
     position: relative; 
+  }
+
+  .App-logo {
+    background-image: url(./logo.png);
+    background-repeat: no-repeat, repeat;
+    background-position: left center;
+    padding-left: 70px;
+    visibility: visible;
   }
 }

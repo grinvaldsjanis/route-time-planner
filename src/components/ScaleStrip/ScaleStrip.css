@@ -18,3 +18,7 @@
   justify-content: space-between;
   width: 100%;
 }
+
+.scale-labels span {
+  padding: 0 5px;
+}

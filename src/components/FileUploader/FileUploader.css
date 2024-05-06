@@ -10,6 +10,8 @@
 }
 
 .inputfile {
+  display: flex;
+  align-items: center;
   width: 0.1px;
   height: 0.1px;
   opacity: 0;
@@ -20,6 +22,7 @@
 
 .inputfile + label {
   flex-direction: row;
+  align-items: center;
   font-size: 0.8em;
   font-weight: 700;
   color: white;
