@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import "./App.css";
 import FileUploader from "./components/FileUploader/FileUploader";
 import MapView from "./components/MapView/MapView";
@@ -6,16 +5,10 @@ import WaypointList from "./components/WaypointList/WaypointList";
 import ScaleStrip from "./components/ScaleStrip/ScaleStrip";
 import { useGlobalState } from "./context/GlobalContext";
 import TravelModeSelector from "./components/TravelModeSelector/TravelModesSelector";
-import { initializeState } from "./utils/initializeState";
 import GPXDownloadButton from "./components/GPXDownloadButton/GPXDownloadButton";
 
 function App() {
-  const { state, dispatch } = useGlobalState();
-
-  useEffect(() => {
-    const initialState = initializeState();
-    dispatch({ type: "INITIALIZE_STATE", payload: initialState });
-  }, [dispatch]);
+  const { state } = useGlobalState();
 
   return (
     <div className="App">

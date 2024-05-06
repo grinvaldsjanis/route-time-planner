@@ -1,70 +1,71 @@
-import React, { useState, useEffect, useCallback } from "react";
+// WaypointItem.tsx
+
+import React, { useState } from "react";
 import StopTimeSelector from "../StopTimeSelector/StopTimeSelector";
-import TimeInfo from "../TimeInfo/TimeInfo";
 import { useGlobalState } from "../../../context/GlobalContext";
 import "./WaypointItem.css";
-import { TrackPart, Waypoint } from "../../../utils/parseGPX";
 import { FaArrowsUpDown } from "react-icons/fa6";
 import EditableText from "../../EditableText/EditableText";
-import { formatTimeFromSeconds } from "../../../utils/timeUtils";
+import {
+  formatTimeFromSeconds,
+  minutesToSeconds,
+} from "../../../utils/timeUtils";
+import { debounce } from "lodash";
 
 interface WaypointItemProps {
-  waypoint: Waypoint;
   index: number;
-  times: {
-    arrival: string[];
-    departure: string[];
-  };
-  handleStopTimeChange: (stopTime: number, index: number) => void;
-  showStopTimeSelector: boolean;
-  localStopTimes: number[];
-  trackPart?: TrackPart;
 }
 
-const WaypointItem: React.FC<WaypointItemProps> = ({
-  waypoint,
-  index,
-  times,
-  handleStopTimeChange,
-  showStopTimeSelector,
-  localStopTimes,
-  trackPart,
-}) => {
+const WaypointItem: React.FC<WaypointItemProps> = ({ index }) => {
   const { state, dispatch } = useGlobalState();
+
+  const trackPart = state.gpxData?.trackParts?.[index];
+  const waypoint = state.gpxData?.waypoints[index];
   const [editableName, setEditableName] = useState<string>(
-    waypoint.name || `Point ${index + 1}`
+    waypoint?.name || `Point ${index + 1}`
   );
 
-  useEffect(() => {
-    const storedWaypointName =
-      localStorage.getItem(`waypointName_${index}`) ||
-      waypoint.name ||
-      `Point ${index + 1}`;
-    setEditableName(storedWaypointName);
-  }, [index, waypoint.name]);
+  const stopTime = waypoint?.stopTime ?? 0;
 
-  useEffect(() => {
-    if (state.focusedWaypointIndex === index) {
-      const element = document.getElementById(`waypoint-info-${index}`);
-      element?.scrollIntoView({
-        behavior: "smooth",
-        block: "nearest",
-        inline: "start",
-      });
-      element?.classList.add("highlighted");
+  const [startHour, startMinute] = state.startTime.split(":").map(Number);
+  const startTimeSeconds = minutesToSeconds(startHour * 60 + startMinute);
 
-      return () => {
-        element?.classList.remove("highlighted");
-      };
-    }
-  }, [state.focusedWaypointIndex, index]);
+  let arrivalTime = formatTimeFromSeconds(startTimeSeconds);
+  let departureTime = formatTimeFromSeconds(startTimeSeconds);
 
-  const handleChangeStopTime = useCallback(
-    (newStopTime: number, idx: number) => {
-      handleStopTimeChange(newStopTime, idx);
-    },
-    [handleStopTimeChange]
-  );
+  if (waypoint?.relativeTimes) {
+    arrivalTime = formatTimeFromSeconds(
+      waypoint.relativeTimes.arrivalSeconds + startTimeSeconds
+    );
+    departureTime = formatTimeFromSeconds(
+      waypoint.relativeTimes.departureSeconds + startTimeSeconds
+    );
+  }
+
+  let timeInfo;
+  if (waypoint?.type === "start") {
+    timeInfo = <p>Departure: {departureTime}</p>;
+  } else if (waypoint?.type === "destination") {
+    timeInfo = <p>Arrival: {arrivalTime}</p>;
+  } else {
+    timeInfo =
+      stopTime > 0 ? (
+        <div className="arrival-departure">
+          <p>Arrival: {arrivalTime}</p>
+          <p>Departure: {departureTime}</p>
+        </div>
+      ) : (
+        <p>Pass: {arrivalTime}</p>
+      );
+  }
+
+  const debouncedHandleStopTimeChange = debounce((stopTime: number) => {
+    dispatch({ type: "UPDATE_STOP_TIME", payload: { index, stopTime } });
+  }, 300);
+
+  const handleStopTimeChange = (stopTime: number) => {
+    debouncedHandleStopTimeChange(stopTime);
+  };
 
   return (
     <li
@@ -79,9 +80,7 @@ const WaypointItem: React.FC<WaypointItemProps> = ({
           id={`waypoint-info-${index}`}
           style={{
             backgroundColor:
-              localStopTimes[index] > 0
-                ? "rgb(214, 245, 161)"
-                : "rgb(241, 241, 241)",
+              stopTime > 0 ? "rgb(214, 245, 161)" : "rgb(241, 241, 241)",
           }}
         >
           <div className="item-top-row">
@@ -100,26 +99,14 @@ const WaypointItem: React.FC<WaypointItemProps> = ({
             </div>
           </div>
           <div className="waypoint-time-container">
-            <div className="stoptime-wrapper">
-              {showStopTimeSelector && (
-                <StopTimeSelector
-                  key={`stop-selector-${index}-${localStopTimes[index]}`}
-                  index={index}
-                  localStopTimes={localStopTimes}
-                  handleStopTimeChange={handleChangeStopTime}
-                />
-              )}
-            </div>
-
-            <div className="timeinfo-wrapper">
-              <TimeInfo
-                key={`time-info-${index}-${localStopTimes[index]}`}
-                index={index}
-                times={times}
-                waypoint={{ ...waypoint, name: editableName }}
-                localStopTimes={localStopTimes}
+            {waypoint?.type !== "start" && waypoint?.type !== "destination" && (
+              <StopTimeSelector
+                key={`stop-selector-${index}-${stopTime}`}
+                stopTime={stopTime}
+                handleStopTimeChange={handleStopTimeChange}
               />
-            </div>
+            )}
+            <div className="timeinfo-wrapper">{timeInfo}</div>
           </div>
         </div>
       </div>

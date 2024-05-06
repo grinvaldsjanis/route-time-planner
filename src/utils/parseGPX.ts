@@ -38,6 +38,7 @@ export interface Waypoint {
   sym: string | null;
   closestTrackpoint?: TrackPointRef;
   stopTime?: number;
+  relativeTimes?: { arrivalSeconds: number; departureSeconds: number }; // In seconds
 }
 
 export interface TrackPoint {
@@ -79,7 +80,9 @@ export default function parseGPX(gpxContent: string, modeKey: string): GPXData {
   const parser = new DOMParser();
   const xmlDoc = parser.parseFromString(gpxContent, "application/xml");
 
-  const gpxName = xmlDoc.getElementsByTagName("metadata")[0]?.getElementsByTagName("name")[0]?.textContent || null;
+  const gpxName =
+    xmlDoc.getElementsByTagName("metadata")[0]?.getElementsByTagName("name")[0]
+      ?.textContent || null;
   const waypoints = xmlDoc.getElementsByTagName("wpt");
   const tracks = xmlDoc.getElementsByTagName("trk");
 

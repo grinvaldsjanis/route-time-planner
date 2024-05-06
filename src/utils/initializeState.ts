@@ -21,13 +21,11 @@ export const initializeState = (): GlobalState => {
   });
 
   return {
-    stopTimes: initialState.stopTimes ?? undefined,
     gpxData: initialState.gpxData ?? null,
     mapMode: initialState.mapMode ?? 'elevation',
     mapCenter: initialState.mapCenter ?? [0, 0],
     mapZoom: initialState.mapZoom ?? 13,
     travelMode: initialState.travelMode ?? 'Casual Walking',
     dataVersion: initialState.dataVersion ?? 0,
-    waypoints: initialState.waypoints ?? undefined
   } as GlobalState;
 };

@@ -14,6 +14,8 @@ export const INITIALIZE_STATE = "INITIALIZE_STATE";
 export const CLEAR_PREVIOUS_DATA = "CLEAR_PREVIOUS_DATA";
 export const SET_FOCUSED_WAYPOINT = "SET_FOCUSED_WAYPOINT";
 export const SET_GPX_NAME = "SET_GPX_NAME";
+export const UPDATE_RELATIVE_TIMES = "UPDATE_RELATIVE_TIMES";
+export const CALCULATE_TOTALS = "CALCULATE_TOTALS";
 
 export interface SetGPXNameAction {
   type: typeof SET_GPX_NAME;
@@ -53,7 +55,7 @@ export interface SetGPXDataAction {
 
 export interface SetMapModeAction {
   type: typeof SET_MAP_MODE;
-  payload: string;
+  payload: "ele" | "curve" | "slope";
 }
 
 export interface SetTravelModeAction {
@@ -74,8 +76,24 @@ export interface UpdateStopTimeAction {
   };
 }
 
+export interface UpdateRelativeTimesAction {
+  type: typeof UPDATE_RELATIVE_TIMES;
+  payload: {
+    index: number;
+    relativeTimes: {
+      arrivalSeconds: number;
+      departureSeconds: number;
+    };
+  };
+}
+
+export interface CalculateTotalsAction {
+  type: typeof CALCULATE_TOTALS;
+}
+
 export type Action =
   | SetGPXDataAction
+  | UpdateRelativeTimesAction
   | SetMapModeAction
   | SetMapCenterAction
   | SetMapZoomAction
@@ -89,12 +107,24 @@ export type Action =
   | SetFocusedWaypointAction
   | SetGPXNameAction;
 
+export const calculateTotals = (): CalculateTotalsAction => ({
+  type: CALCULATE_TOTALS,
+});
+
 export const setGPXData = (data: GPXData): SetGPXDataAction => ({
   type: SET_GPX_DATA,
   payload: data,
 });
 
-export const setMapMode = (mode: string): SetMapModeAction => ({
+export const updateRelativeTimes = (
+  index: number,
+  relativeTimes: { arrivalSeconds: number; departureSeconds: number }
+): UpdateRelativeTimesAction => ({
+  type: UPDATE_RELATIVE_TIMES,
+  payload: { index, relativeTimes },
+});
+
+export const setMapMode = (mode: "ele" | "curve" | "slope"): SetMapModeAction => ({
   type: SET_MAP_MODE,
   payload: mode,
 });
@@ -106,10 +136,12 @@ export const setTravelMode = (mode: TravelMode): SetTravelModeAction => ({
 
 export const setStartTime = (time: string): SetStartTimeAction => ({
   type: SET_START_TIME,
-  payload: time
+  payload: time,
 });
 
-export const setFocusedWaypoint = (index: number | null): SetFocusedWaypointAction => ({
+export const setFocusedWaypoint = (
+  index: number | null
+): SetFocusedWaypointAction => ({
   type: SET_FOCUSED_WAYPOINT,
   payload: index,
 });

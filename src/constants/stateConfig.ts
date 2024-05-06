@@ -6,7 +6,7 @@ interface StateConfig {
 }
 
 const stateConfig: StateConfig = {
-  mapMode: { key: "mapMode", defaultValue: "standard" },
+  mapMode: { key: "mapMode", defaultValue: "ele" },
   mapCenter: { key: "mapCenter", defaultValue: [0, 0] },
   travelMode: { key: "travelMode", defaultValue: "Casual Walking" },
   mapZoom: { key: "mapZoom", defaultValue: 13 },

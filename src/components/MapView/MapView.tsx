@@ -16,6 +16,8 @@ import { calculateValueRange } from "../../utils/calculateValueRange";
 import getColorForValue from "../../utils/getColorForValue";
 import { useGlobalState } from "../../context/GlobalContext";
 import { setFocusedWaypoint } from "../../context/actions";
+import WaypointModal from "../WaypointModal/WaypointModal";
+import ModeToggles from "./ModeToggles/ModeToggles";
 
 type ModeKeys = "ele" | "curve" | "slope";
 
@@ -53,6 +55,10 @@ interface ValueRanges {
 const MapView: React.FC = () => {
   const { state, dispatch } = useGlobalState();
   const { gpxData, mapCenter, mapZoom, mapMode, dataVersion } = state;
+  const [selectedWaypointIndex, setSelectedWaypointIndex] = useState<
+    number | null
+  >(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [valueRanges, setValueRanges] = useState<ValueRanges>({
     ele: { minValue: 0, maxValue: 100 },
     curve: { minValue: 0, maxValue: 100 },
@@ -65,6 +71,8 @@ const MapView: React.FC = () => {
     slope: "slope",
   };
 
+  
+
   const handleMapMove = useCallback(
     (center: LatLngTuple, zoom: number) => {
       dispatch({ type: "SET_MAP_ZOOM", payload: zoom });
@@ -76,8 +84,20 @@ const MapView: React.FC = () => {
   const handleModeChange = (modeKey: string) => {
     const newMode = modeMap[modeKey];
     if (newMode && newMode !== mapMode) {
-      dispatch({ type: "SET_MAP_MODE", payload: newMode });
+      dispatch({ type: "SET_MAP_MODE", payload: newMode }); // Ensure newMode is correctly typed
     }
+  };
+  
+
+  const handleMarkerClick = (index: number) => {
+    setSelectedWaypointIndex(index);
+    dispatch(setFocusedWaypoint(index));
+    setIsModalOpen(true);
+  };
+
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setSelectedWaypointIndex(null);
   };
 
   useEffect(() => {
@@ -85,40 +105,7 @@ const MapView: React.FC = () => {
     setVersion((prev) => prev + 1);
   }, [mapMode]);
 
-  const ModeToggles = () => (
-    <div
-      className="map-buttons"
-      style={{
-        position: "absolute",
-        top: 10,
-        right: 10,
-        zIndex: 1000,
-        display: "flex",
-        flexDirection: "column",
-        alignContent: "normal",
-        justifyContent: "start",
-      }}
-    >
-      <button
-        onClick={() => handleModeChange("ele")}
-        className={mapMode === "ele" ? "button-active" : ""}
-      >
-        Elevation
-      </button>
-      <button
-        onClick={() => handleModeChange("curve")}
-        className={mapMode === "curve" ? "button-active" : ""}
-      >
-        Curvature
-      </button>
-      <button
-        onClick={() => handleModeChange("slope")}
-        className={mapMode === "slope" ? "button-active" : ""}
-      >
-        Slope
-      </button>
-    </div>
-  );
+  
 
   const [version, setVersion] = useState(0);
 
@@ -186,7 +173,7 @@ const MapView: React.FC = () => {
         })}
       </LayerGroup>
     ));
-  }, [gpxData?.tracks, mapMode, valueRanges, version]);
+  }, [gpxData?.tracks, mapMode, modeMap,  valueRanges, version]);
 
   return (
     <div className="map-view">
@@ -198,7 +185,7 @@ const MapView: React.FC = () => {
         className="map-container"
       >
         <TileLayer url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png" />
-        <ModeToggles />
+        <ModeToggles currentMode={mapMode} onModeChange={handleModeChange} />
         {renderTracks}
         {mapZoom >= 11 &&
           gpxData?.waypoints.map((point, idx) => (
@@ -206,17 +193,20 @@ const MapView: React.FC = () => {
               key={idx}
               position={[parseFloat(point.lat), parseFloat(point.lon)]}
               icon={createMarkerIcon(point.type || "default", idx + 1)}
-              eventHandlers={{
-                click: () => {
-                  dispatch(setFocusedWaypoint(idx));
-                },
-              }}
+              eventHandlers={{ click: () => handleMarkerClick(idx) }}
             >
               <Tooltip sticky>{point.name || `Waypoint ${idx + 1}`}</Tooltip>
             </Marker>
           ))}
         <MapEvents onMapMove={handleMapMove} />
       </MapContainer>
+      {selectedWaypointIndex !== null && gpxData && (
+        <WaypointModal
+          isOpen={isModalOpen}
+          waypointIndex={selectedWaypointIndex}
+          handleClose={handleModalClose}
+        />
+      )}
     </div>
   );
 };

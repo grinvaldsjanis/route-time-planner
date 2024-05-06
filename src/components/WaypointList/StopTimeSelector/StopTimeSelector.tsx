@@ -3,45 +3,43 @@ import { debounce } from "lodash";
 import "./StopTimeSelector.css";
 
 interface StopTimeSelectorProps {
-  index: number;
-  localStopTimes: number[];
-  handleStopTimeChange: (stopTime: number, index: number) => void;
+  stopTime: number | 0;
+  handleStopTimeChange: (stopTime: number) => void;
 }
 
 const StopTimeSelector: React.FC<StopTimeSelectorProps> = ({
-  index,
-  localStopTimes,
+  stopTime,
   handleStopTimeChange,
 }) => {
-  const stopTimes = [0, 5, 10, 20, 30, 45, 60, 75, 90, 120, 150, 180];
-
-  const [sliderValue, setSliderValue] = useState(localStopTimes[index]);
+  const timePresets = [0, 5, 10, 20, 30, 45, 60, 75, 90, 120, 150, 180];
+  const [sliderValue, setSliderValue] = useState(stopTime);
   const [isDragging, setIsDragging] = useState(false);
 
+  // Keep slider value synced with the initial stop time prop
   useEffect(() => {
-    setSliderValue(localStopTimes[index]);
-  }, [localStopTimes, index]);
+    setSliderValue(stopTime);
+  }, [stopTime]);
 
-  const debouncedHandleStopTimeChange = useCallback(
-    debounce((value, idx) => {
-      handleStopTimeChange(value, idx);
-    }, 300), [handleStopTimeChange]
-  );
+  // Use `useCallback` to memoize `handleSliderCommit`
+  const handleSliderCommit = useCallback(() => {
+    if (isDragging) {
+      const debouncedCommit = debounce((value: number) => {
+        handleStopTimeChange(value);
+      }, 300);
 
+      debouncedCommit(sliderValue);
+      setIsDragging(false);
+    }
+  }, [isDragging, sliderValue, handleStopTimeChange]);
+
+  // Handle slider change events
   const handleSliderChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = stopTimes[parseInt(event.target.value)];
+    const value = timePresets[parseInt(event.target.value)];
     setSliderValue(value);
     setIsDragging(true);
   };
 
-  
-  const handleSliderCommit = () => {
-    if (isDragging) {
-      debouncedHandleStopTimeChange(sliderValue, index);
-      setIsDragging(false);
-    }
-  };
-
+  // Set up global event listeners for mouse/touch end events
   useEffect(() => {
     const handleGlobalMouseUp = () => handleSliderCommit();
     document.addEventListener("mouseup", handleGlobalMouseUp);
@@ -58,13 +56,13 @@ const StopTimeSelector: React.FC<StopTimeSelectorProps> = ({
       <input
         type="range"
         min="0"
-        max={stopTimes.length - 1}
-        value={stopTimes.findIndex((time) => time === sliderValue)}
+        max={timePresets.length - 1}
+        value={timePresets.findIndex((time) => time === sliderValue)}
         onChange={handleSliderChange}
         list="stop-times"
       />
       <datalist id="stop-times">
-        {stopTimes.map((time, idx) => (
+        {timePresets.map((time, idx) => (
           <option key={idx} value={idx}>{time} min</option>
         ))}
       </datalist>
