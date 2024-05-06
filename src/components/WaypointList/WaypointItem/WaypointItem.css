@@ -1,7 +1,6 @@
 .list-item {
   display: flex;
   flex-direction: column;
-  /* background-color: blanchedalmond; */
 }
 
 .waypoint-container {
@@ -23,6 +22,7 @@
   border-radius: 7px;
   border: 1px solid transparent;
   transition: border 0.5s ease;
+  overflow-x: hidden;
 }
 
 .highlighted {
