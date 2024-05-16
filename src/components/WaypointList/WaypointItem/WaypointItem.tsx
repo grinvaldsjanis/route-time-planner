@@ -11,6 +11,7 @@ import {
   minutesToSeconds,
 } from "../../../utils/timeUtils";
 import { debounce } from "lodash";
+import { LatLngTuple } from "leaflet";
 
 interface WaypointItemProps {
   index: number;
@@ -67,11 +68,23 @@ const WaypointItem: React.FC<WaypointItemProps> = ({ index }) => {
     debouncedHandleStopTimeChange(stopTime);
   };
 
+  const handleSetMapCenter = () => {
+    if (waypoint) {
+      const newCenter = [
+        parseFloat(waypoint.lat),
+        parseFloat(waypoint.lon),
+      ] as LatLngTuple;
+      dispatch({ type: "SET_MAP_CENTER", payload: newCenter });
+      dispatch({ type: "SET_FOCUSED_WAYPOINT", payload: index });
+    }
+  };
+
   return (
     <li
       className="list-item"
       id={`waypoint-${index}`}
       key={`waypoint-${index}`}
+      onClick={handleSetMapCenter}
     >
       <div className="waypoint-container">
         <div className="item-order-number">{index + 1}</div>
@@ -84,19 +97,17 @@ const WaypointItem: React.FC<WaypointItemProps> = ({ index }) => {
           }}
         >
           <div className="item-top-row">
-            <div className="item-name">
-              <EditableText
-                text={editableName}
-                onTextChange={(newName) => {
-                  setEditableName(newName);
-                  localStorage.setItem(`waypointName_${index}`, newName);
-                  dispatch({
-                    type: "SET_WAYPOINT_NAME",
-                    payload: { index, name: newName },
-                  });
-                }}
-              />
-            </div>
+            <EditableText
+              text={editableName}
+              onTextChange={(newName) => {
+                setEditableName(newName);
+                localStorage.setItem(`waypointName_${index}`, newName);
+                dispatch({
+                  type: "SET_WAYPOINT_NAME",
+                  payload: { index, name: newName },
+                });
+              }}
+            />
           </div>
           <div className="waypoint-time-container">
             {waypoint?.type !== "start" && waypoint?.type !== "destination" && (

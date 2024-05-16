@@ -1,5 +1,5 @@
 import "./WaypointModal.css";
-import WaypointItem from "../WaypointList/WaypointItem/WaypointItem";
+import WaypointItem from "../../WaypointList/WaypointItem/WaypointItem";
 import { useRef, useEffect } from "react";
 
 interface WaypointModalProps {
@@ -17,7 +17,10 @@ const WaypointModal: React.FC<WaypointModalProps> = ({
 
   // Function to handle closing modal when clicking outside
   const handleClickOutside = (event: MouseEvent) => {
-    if (modalContentRef.current && !modalContentRef.current.contains(event.target as Node)) {
+    if (
+      modalContentRef.current &&
+      !modalContentRef.current.contains(event.target as Node)
+    ) {
       handleClose();
     }
   };

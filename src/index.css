@@ -146,14 +146,15 @@ strong,
 }
 
 button {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
   box-sizing: border-box;
   appearance: none;
   background-color: rgb(54, 217, 0);
   border: none;
   border-radius: 7px;
   cursor: pointer;
-  display: flex;
-  align-self: flex-end;
   font-size: 14px;
   font-weight: 400;
   line-height: 1;

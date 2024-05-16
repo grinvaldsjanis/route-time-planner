@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import "./EditableText.css";
-
+import { FaEdit } from "react-icons/fa";
 interface EditableTextProps {
   text: string;
   onTextChange: (newText: string) => void;
@@ -31,8 +31,20 @@ const EditableText: React.FC<EditableTextProps> = ({ text, onTextChange }) => {
     }
   };
 
+  const handleEditButtonClick = (event: React.MouseEvent) => {
+    event.stopPropagation(); // Prevent the container's click event
+    handleFocus(); // Trigger the editing mode
+  };
+
   return (
-    <div className="editable-text-container" onClick={handleFocus}>
+    <div className="editable-text-container">
+      <button
+        className="edit-button"
+        onClick={handleEditButtonClick}
+        aria-label="Edit"
+      >
+        <FaEdit />
+      </button>
       {isEditing ? (
         <input
           ref={inputRef}

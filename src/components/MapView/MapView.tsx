@@ -16,7 +16,7 @@ import { calculateValueRange } from "../../utils/calculateValueRange";
 import getColorForValue from "../../utils/getColorForValue";
 import { useGlobalState } from "../../context/GlobalContext";
 import { setFocusedWaypoint } from "../../context/actions";
-import WaypointModal from "../WaypointModal/WaypointModal";
+import WaypointModal from "./WaypointModal/WaypointModal";
 import ModeToggles from "./ModeToggles/ModeToggles";
 
 type ModeKeys = "ele" | "curve" | "slope";
@@ -53,6 +53,7 @@ interface ValueRanges {
 }
 
 const MapView: React.FC = () => {
+  
   const { state, dispatch } = useGlobalState();
   const { gpxData, mapCenter, mapZoom, mapMode, dataVersion } = state;
   const [selectedWaypointIndex, setSelectedWaypointIndex] = useState<
@@ -71,8 +72,6 @@ const MapView: React.FC = () => {
     slope: "slope",
   };
 
-  
-
   const handleMapMove = useCallback(
     (center: LatLngTuple, zoom: number) => {
       dispatch({ type: "SET_MAP_ZOOM", payload: zoom });
@@ -87,7 +86,6 @@ const MapView: React.FC = () => {
       dispatch({ type: "SET_MAP_MODE", payload: newMode }); // Ensure newMode is correctly typed
     }
   };
-  
 
   const handleMarkerClick = (index: number) => {
     setSelectedWaypointIndex(index);
@@ -105,8 +103,6 @@ const MapView: React.FC = () => {
     setVersion((prev) => prev + 1);
   }, [mapMode]);
 
-  
-
   const [version, setVersion] = useState(0);
 
   useEffect(() => {
@@ -120,6 +116,12 @@ const MapView: React.FC = () => {
       setVersion((v) => v + 1);
     }
   }, [gpxData, mapMode]);
+
+  useEffect(() => {
+    if (mapRef.current) {
+      mapRef.current.setView(mapCenter, mapZoom);
+    }
+  }, [mapCenter, mapZoom]);
 
   const renderTracks = useMemo(() => {
     if (!gpxData?.tracks) return null;
@@ -173,7 +175,7 @@ const MapView: React.FC = () => {
         })}
       </LayerGroup>
     ));
-  }, [gpxData?.tracks, mapMode, modeMap,  valueRanges, version]);
+  }, [gpxData?.tracks, mapMode, modeMap, valueRanges, version]);
 
   return (
     <div className="map-view">
