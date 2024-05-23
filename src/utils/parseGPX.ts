@@ -38,7 +38,7 @@ export interface Waypoint {
   sym: string | null;
   closestTrackpoint?: TrackPointRef;
   stopTime?: number;
-  relativeTimes?: { arrivalSeconds: number; departureSeconds: number }; // In seconds
+  relativeTimes?: { arrivalSeconds: number; departureSeconds: number };
 }
 
 export interface TrackPoint {
