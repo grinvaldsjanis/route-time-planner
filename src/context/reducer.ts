@@ -5,6 +5,7 @@ import travelModes, { TravelMode } from "../constants/travelModes";
 import calculateTravelTimes from "../utils/calculateTravelTimes";
 import calculateAverageCoordinate from "../utils/calculateAverageCoordinate";
 import calculateWaypointStatistics from "../utils/calculateWaypointStatistics";
+import calculateRelativeTimes from "../utils/calculateRelativeTimes";
 
 export interface GlobalState {
   gpxData: GPXData | null;
@@ -120,27 +121,9 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
         }))
       );
 
-      let cumulativeTime = 0;
-      const updatedWaypointsWithTimes = updatedGPXData.waypoints.map(
-        (waypoint, index) => {
-          const travelTime =
-            index > 0 ? updatedTrackParts[index - 1].travelTime : 0;
-          const stopTime = waypoint.stopTime ? waypoint.stopTime * 60 : 0;
-
-          cumulativeTime += travelTime; // Increment by travel time first
-          const arrivalSeconds = cumulativeTime;
-
-          const departureSeconds = arrivalSeconds + stopTime; // Add stop time to arrivalSeconds for departureSeconds
-          cumulativeTime = departureSeconds; // Update cumulativeTime to include stop time
-
-          return {
-            ...waypoint,
-            relativeTimes: {
-              arrivalSeconds,
-              departureSeconds,
-            },
-          };
-        }
+      const updatedWaypointsWithTimes = calculateRelativeTimes(
+        updatedGPXData.waypoints,
+        updatedTrackParts
       );
 
       const updatedGPXDataWithTimes = {
@@ -240,28 +223,9 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
           localStorage.setItem("travelMode", JSON.stringify(action.payload));
           localStorage.setItem("gpxData", JSON.stringify(updatedGPXData));
 
-          // Recalculate relative times
-          let cumulativeTime = 0;
-          const updatedWaypointsWithTimes = updatedGPXData.waypoints.map(
-            (waypoint, index) => {
-              const travelTime =
-                index > 0 ? updatedTrackParts[index - 1].travelTime : 0;
-              const stopTime = waypoint.stopTime ? waypoint.stopTime * 60 : 0;
-
-              cumulativeTime += travelTime; // Increment by travel time first
-              const arrivalSeconds = cumulativeTime;
-
-              const departureSeconds = arrivalSeconds + stopTime; // Add stop time to arrivalSeconds for departureSeconds
-              cumulativeTime = departureSeconds; // Update cumulativeTime to include stop time
-
-              return {
-                ...waypoint,
-                relativeTimes: {
-                  arrivalSeconds,
-                  departureSeconds,
-                },
-              };
-            }
+          const updatedWaypointsWithTimes = calculateRelativeTimes(
+            updatedGPXData.waypoints,
+            updatedTrackParts
           );
 
           const finalGPXDataWithTimes = {
@@ -274,7 +238,10 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
             totalTravelTime,
             totalJourneyTime,
             finalArrivalTime,
-          } = calculateWaypointStatistics(finalGPXDataWithTimes, state.startTime);
+          } = calculateWaypointStatistics(
+            finalGPXDataWithTimes,
+            state.startTime
+          );
 
           return {
             ...state,
@@ -330,27 +297,9 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
       } = calculateWaypointStatistics(updatedGPXDataWithStops, state.startTime);
 
       // Recalculate relative times
-      let cumulativeTime = 0;
-      const updatedWaypointsWithTimes = updatedGPXDataWithStops.waypoints.map(
-        (waypoint, index) => {
-          const travelTime =
-            index > 0 ? updatedGPXDataWithStops.trackParts[index - 1].travelTime : 0;
-          const stopTime = waypoint.stopTime ? waypoint.stopTime * 60 : 0;
-
-          cumulativeTime += travelTime; // Increment by travel time first
-          const arrivalSeconds = cumulativeTime;
-
-          const departureSeconds = arrivalSeconds + stopTime; // Add stop time to arrivalSeconds for departureSeconds
-          cumulativeTime = departureSeconds; // Update cumulativeTime to include stop time
-
-          return {
-            ...waypoint,
-            relativeTimes: {
-              arrivalSeconds,
-              departureSeconds,
-            },
-          };
-        }
+      const updatedWaypointsWithTimes = calculateRelativeTimes(
+        updatedGPXDataWithStops.waypoints,
+        updatedGPXDataWithStops.trackParts
       );
 
       const finalGPXDataWithTimes = {

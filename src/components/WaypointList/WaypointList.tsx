@@ -2,18 +2,30 @@ import React from "react";
 import "./WaypointList.css";
 import { useGlobalState } from "../../context/GlobalContext";
 import WaypointItem from "./WaypointItem/WaypointItem";
-import {  formatTimeFromSeconds } from "../../utils/timeUtils";
+import TrackPart from "./TrackPart/TrackPart"; // Import TrackPart component
+import { formatTimeFromSeconds } from "../../utils/timeUtils";
 import formatTimeToHHMM from "../../utils/formatTimeToHHMM";
 
 const WaypointList: React.FC = () => {
   const { state } = useGlobalState();
 
+  if (!state.gpxData) {
+    return <div>No GPX data available.</div>;
+  }
+
+  const { waypoints, trackParts } = state.gpxData;
+
   return (
     <div className="outer-list-container">
       <div className="inner-list-container">
         <ul>
-          {state.gpxData?.waypoints.map((waypoint, index) => (
-            <WaypointItem key={`${waypoint.name}-${index}`} index={index} />
+          {waypoints.map((waypoint, index) => (
+            <React.Fragment key={`waypoint-${index}`}>
+              <WaypointItem index={index} />
+              {index < trackParts.length && (
+                <TrackPart key={`trackpart-${index}`} trackPart={trackParts[index]} />
+              )}
+            </React.Fragment>
           ))}
         </ul>
       </div>

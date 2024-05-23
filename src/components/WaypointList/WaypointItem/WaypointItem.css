@@ -22,6 +22,7 @@
   border: 1px solid transparent;
   transition: border 0.5s ease, background-color 0.3s ease;
   overflow-x: hidden;
+  cursor: pointer;
 }
 
 .waypoint-info-container:hover {
@@ -68,30 +69,6 @@
 .item-name {
   width: 100%;
   text-align: left;
-}
-
-.track-part-container {
-  display: flex;
-  flex-direction: row;
-  gap: 2rem;
-  padding: 10px 2.1rem 10px 0;
-  align-items: center;
-}
-
-.track-part-info {
-  display: flex;
-  flex-direction: row;
-  width: 100%;
-  justify-content: space-between;
-}
-
-.track-part-icon {
-  color: rgb(194, 194, 194);
-  font-size: 20px;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  padding-left: 10px;
 }
 
 .stoptime-wrapper {

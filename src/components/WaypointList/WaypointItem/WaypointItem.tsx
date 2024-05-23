@@ -2,12 +2,7 @@ import React, { useState } from "react";
 import StopTimeSelector from "../StopTimeSelector/StopTimeSelector";
 import { useGlobalState } from "../../../context/GlobalContext";
 import "./WaypointItem.css";
-import { FaArrowsUpDown } from "react-icons/fa6";
 import EditableText from "../../EditableText/EditableText";
-import {
-  formatTimeFromSeconds,
-  minutesToSeconds,
-} from "../../../utils/timeUtils";
 import { debounce } from "lodash";
 import { LatLngTuple } from "leaflet";
 import {
@@ -16,6 +11,8 @@ import {
   setIsProgrammaticMove,
   setMapZoom,
 } from "../../../context/actions";
+import TrackPart from "../TrackPart/TrackPart"; // Import TrackPart component
+import { formatTimeFromSeconds, minutesToSeconds } from "../../../utils/timeUtils";
 
 interface WaypointItemProps {
   index: number;
@@ -129,17 +126,6 @@ const WaypointItem: React.FC<WaypointItemProps> = ({ index }) => {
           </div>
         </div>
       </div>
-      {trackPart && (
-        <div className="track-part-container">
-          <div className="track-part-icon">
-            <FaArrowsUpDown />
-          </div>
-          <div className="track-part-info">
-            <p>Distance: {trackPart.distance.toFixed(1)} km</p>
-            <p>Duration: {formatTimeFromSeconds(trackPart.travelTime)}</p>
-          </div>
-        </div>
-      )}
     </li>
   );
 };
