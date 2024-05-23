@@ -1,5 +1,3 @@
-// WaypointItem.tsx
-
 import React, { useState } from "react";
 import StopTimeSelector from "../StopTimeSelector/StopTimeSelector";
 import { useGlobalState } from "../../../context/GlobalContext";
@@ -12,6 +10,12 @@ import {
 } from "../../../utils/timeUtils";
 import { debounce } from "lodash";
 import { LatLngTuple } from "leaflet";
+import {
+  setMapCenter,
+  setFocusedWaypoint,
+  setIsProgrammaticMove,
+  setMapZoom,
+} from "../../../context/actions";
 
 interface WaypointItemProps {
   index: number;
@@ -74,10 +78,13 @@ const WaypointItem: React.FC<WaypointItemProps> = ({ index }) => {
         parseFloat(waypoint.lat),
         parseFloat(waypoint.lon),
       ] as LatLngTuple;
-      dispatch({ type: "SET_MAP_CENTER", payload: newCenter });
-      dispatch({ type: "SET_FOCUSED_WAYPOINT", payload: index });
+      console.log("Setting map center to:", newCenter); // Debug log
+      dispatch(setIsProgrammaticMove(true));
+      dispatch(setMapCenter(newCenter));
+      dispatch(setFocusedWaypoint(index));
     }
   };
+  
 
   return (
     <li

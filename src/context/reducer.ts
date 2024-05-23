@@ -19,6 +19,7 @@ export interface GlobalState {
   finalArrivalTime: string;
   focusedWaypointIndex: number | null;
   startTime: string;
+  isProgrammaticMove: boolean;
 }
 
 const setLocalStorage = (key: string, value: any): void => {
@@ -47,6 +48,7 @@ export const initialState: GlobalState = {
   mapZoom: getLocalStorage("mapZoom", 13),
   travelMode: getLocalStorage("travelMode", "Casual Walking"),
   focusedWaypointIndex: null,
+  isProgrammaticMove: false,
   startTime: getLocalStorage("startTime", "08:00:00"),
 
   totalDistance: 0,
@@ -191,7 +193,11 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
     case "SET_MAP_CENTER":
       localStorage.setItem("mapCenter", JSON.stringify(action.payload));
       return { ...state, mapCenter: action.payload };
-
+    case "SET_IS_PROGRAMMATIC_MOVE":
+      return {
+        ...state,
+        isProgrammaticMove: action.payload,
+      };
     case "SET_MAP_ZOOM":
       localStorage.setItem("mapZoom", JSON.stringify(action.payload));
       return { ...state, mapZoom: action.payload };
@@ -250,7 +256,6 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
     case "UPDATE_STOP_TIME": {
       if (!state.gpxData || !state.gpxData.waypoints) return state;
 
-      // Update stop times for the specified waypoint
       const updatedWaypointsWithStops = state.gpxData.waypoints.map(
         (waypoint, idx) => {
           if (idx === action.payload.index) {

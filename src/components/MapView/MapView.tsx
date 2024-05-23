@@ -1,23 +1,28 @@
-import React, { useEffect, useState, useMemo, useCallback } from "react";
+import React, { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import {
   MapContainer,
   TileLayer,
   Polyline,
   Marker,
   LayerGroup,
-  useMapEvents,
   Tooltip,
 } from "react-leaflet";
-import type { LatLngTuple } from "leaflet";
+import type { LatLngTuple, Map } from "leaflet";
 import "./MapView.css";
 import { TrackPoint } from "../../utils/parseGPX";
 import { createMarkerIcon } from "../../utils/markerStyles";
 import { calculateValueRange } from "../../utils/calculateValueRange";
 import getColorForValue from "../../utils/getColorForValue";
 import { useGlobalState } from "../../context/GlobalContext";
-import { setFocusedWaypoint } from "../../context/actions";
+import {
+  setFocusedWaypoint,
+  setIsProgrammaticMove,
+  setMapCenter,
+  setMapZoom,
+} from "../../context/actions";
 import WaypointModal from "./WaypointModal/WaypointModal";
 import ModeToggles from "./ModeToggles/ModeToggles";
+import MapEvents from "./MapEvents";
 
 type ModeKeys = "ele" | "curve" | "slope";
 
@@ -31,21 +36,6 @@ const getValueForMode = (
   return (pointValue + prevPointValue) / 2;
 };
 
-interface MapEventsProps {
-  onMapMove: (center: LatLngTuple, zoom: number) => void;
-}
-
-function MapEvents({ onMapMove }: MapEventsProps) {
-  useMapEvents({
-    moveend: (e) => {
-      const center = e.target.getCenter();
-      const zoom = e.target.getZoom();
-      onMapMove(center, zoom);
-    },
-  });
-  return null;
-}
-
 interface ValueRanges {
   ele: { minValue: number; maxValue: number };
   curve: { minValue: number; maxValue: number };
@@ -53,12 +43,11 @@ interface ValueRanges {
 }
 
 const MapView: React.FC = () => {
-  
+  const mapRef = useRef<Map | null>(null);
+  const isProgrammaticMoveRef = useRef(false);
   const { state, dispatch } = useGlobalState();
   const { gpxData, mapCenter, mapZoom, mapMode, dataVersion } = state;
-  const [selectedWaypointIndex, setSelectedWaypointIndex] = useState<
-    number | null
-  >(null);
+  const [selectedWaypointIndex, setSelectedWaypointIndex] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [valueRanges, setValueRanges] = useState<ValueRanges>({
     ele: { minValue: 0, maxValue: 100 },
@@ -74,8 +63,11 @@ const MapView: React.FC = () => {
 
   const handleMapMove = useCallback(
     (center: LatLngTuple, zoom: number) => {
-      dispatch({ type: "SET_MAP_ZOOM", payload: zoom });
-      dispatch({ type: "SET_MAP_CENTER", payload: center });
+      if (!isProgrammaticMoveRef.current) {
+        console.log("handleMapMove - Center:", center, "Zoom:", zoom); // Debug log
+        dispatch(setMapZoom(zoom));
+        dispatch(setMapCenter(center));
+      }
     },
     [dispatch]
   );
@@ -83,7 +75,7 @@ const MapView: React.FC = () => {
   const handleModeChange = (modeKey: string) => {
     const newMode = modeMap[modeKey];
     if (newMode && newMode !== mapMode) {
-      dispatch({ type: "SET_MAP_MODE", payload: newMode }); // Ensure newMode is correctly typed
+      dispatch({ type: "SET_MAP_MODE", payload: newMode });
     }
   };
 
@@ -99,7 +91,6 @@ const MapView: React.FC = () => {
   };
 
   useEffect(() => {
-    console.log("mapMode updated:", mapMode);
     setVersion((prev) => prev + 1);
   }, [mapMode]);
 
@@ -118,10 +109,35 @@ const MapView: React.FC = () => {
   }, [gpxData, mapMode]);
 
   useEffect(() => {
-    if (mapRef.current) {
+    if (mapRef.current && state.isProgrammaticMove) {
+      console.log(
+        "Calling setView with center:",
+        mapCenter,
+        "and zoom:",
+        mapZoom
+      ); // Debug log
       mapRef.current.setView(mapCenter, mapZoom);
+      isProgrammaticMoveRef.current = false;
+      dispatch(setIsProgrammaticMove(false));
     }
-  }, [mapCenter, mapZoom]);
+  }, [mapCenter, mapZoom, dispatch, state.isProgrammaticMove]);
+
+  useEffect(() => {
+    if (selectedWaypointIndex !== null && gpxData?.waypoints) {
+      const waypoint = gpxData.waypoints[selectedWaypointIndex];
+      if (waypoint) {
+        const newCenter: LatLngTuple = [
+          parseFloat(waypoint.lat),
+          parseFloat(waypoint.lon),
+        ];
+        console.log("Setting map center to:", newCenter); // Debug log
+        isProgrammaticMoveRef.current = true;
+        dispatch(setIsProgrammaticMove(true));
+        dispatch(setMapCenter(newCenter));
+        dispatch(setMapZoom(15)); // Optionally set a zoom level
+      }
+    }
+  }, [selectedWaypointIndex, gpxData, dispatch]);
 
   const renderTracks = useMemo(() => {
     if (!gpxData?.tracks) return null;
@@ -180,11 +196,12 @@ const MapView: React.FC = () => {
   return (
     <div className="map-view">
       <MapContainer
-        key={`map-${dataVersion}`}
+        // key={`map-${dataVersion}`}
         center={mapCenter}
         zoom={mapZoom}
         scrollWheelZoom={true}
         className="map-container"
+        ref={mapRef}
       >
         <TileLayer url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png" />
         <ModeToggles currentMode={mapMode} onModeChange={handleModeChange} />

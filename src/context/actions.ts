@@ -16,6 +16,9 @@ export const SET_FOCUSED_WAYPOINT = "SET_FOCUSED_WAYPOINT";
 export const SET_GPX_NAME = "SET_GPX_NAME";
 export const UPDATE_RELATIVE_TIMES = "UPDATE_RELATIVE_TIMES";
 export const CALCULATE_TOTALS = "CALCULATE_TOTALS";
+export const SET_IS_PROGRAMMATIC_MOVE = "SET_IS_PROGRAMMATIC_MOVE";
+export const SET_MAP_CENTER = "SET_MAP_CENTER"; // Added this line
+export const SET_MAP_ZOOM = "SET_MAP_ZOOM"; // Added this line
 
 export interface SetGPXNameAction {
   type: typeof SET_GPX_NAME;
@@ -91,6 +94,21 @@ export interface CalculateTotalsAction {
   type: typeof CALCULATE_TOTALS;
 }
 
+export interface SetIsProgrammaticMoveAction {
+  type: typeof SET_IS_PROGRAMMATIC_MOVE;
+  payload: boolean;
+}
+
+export interface SetMapCenterAction {
+  type: typeof SET_MAP_CENTER;
+  payload: LatLngTuple;
+}
+
+export interface SetMapZoomAction {
+  type: typeof SET_MAP_ZOOM;
+  payload: number;
+}
+
 export type Action =
   | SetGPXDataAction
   | UpdateRelativeTimesAction
@@ -105,7 +123,8 @@ export type Action =
   | SetStartTimeAction
   | ClearPreviousDataAction
   | SetFocusedWaypointAction
-  | SetGPXNameAction;
+  | SetGPXNameAction
+  | SetIsProgrammaticMoveAction;
 
 export const calculateTotals = (): CalculateTotalsAction => ({
   type: CALCULATE_TOTALS,
@@ -150,15 +169,6 @@ export const setGPXName = (name: string): SetGPXNameAction => ({
   type: SET_GPX_NAME,
   payload: name,
 });
-interface SetMapCenterAction {
-  type: "SET_MAP_CENTER";
-  payload: LatLngTuple;
-}
-
-interface SetMapZoomAction {
-  type: "SET_MAP_ZOOM";
-  payload: number;
-}
 
 export const incrementDataVersion = (): IncrementDataVersionAction => ({
   type: INCREMENT_DATA_VERSION,
@@ -170,4 +180,19 @@ export const updateStopTime = (
 ): UpdateStopTimeAction => ({
   type: UPDATE_STOP_TIME,
   payload: { index, stopTime },
+});
+
+export const setIsProgrammaticMove = (isProgrammatic: boolean): SetIsProgrammaticMoveAction => ({
+  type: SET_IS_PROGRAMMATIC_MOVE,
+  payload: isProgrammatic,
+});
+
+export const setMapCenter = (center: LatLngTuple): SetMapCenterAction => ({
+  type: SET_MAP_CENTER,
+  payload: center,
+});
+
+export const setMapZoom = (zoom: number): SetMapZoomAction => ({
+  type: SET_MAP_ZOOM,
+  payload: zoom,
 });
