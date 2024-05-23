@@ -18,7 +18,7 @@ function MapEvents({ onMapMove }: MapEventsProps) {
     },
     movestart: () => {
       if (state.isProgrammaticMove) {
-        dispatch(setIsProgrammaticMove(false)); // Ensure it's false when manually dragging
+        dispatch(setIsProgrammaticMove(false));
       }
     },
   });
