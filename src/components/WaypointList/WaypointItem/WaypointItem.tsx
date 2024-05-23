@@ -14,7 +14,6 @@ import {
   setMapCenter,
   setFocusedWaypoint,
   setIsProgrammaticMove,
-  setMapZoom,
 } from "../../../context/actions";
 
 interface WaypointItemProps {
@@ -78,13 +77,13 @@ const WaypointItem: React.FC<WaypointItemProps> = ({ index }) => {
         parseFloat(waypoint.lat),
         parseFloat(waypoint.lon),
       ] as LatLngTuple;
-      console.log("Setting map center to:", newCenter); // Debug log
       dispatch(setIsProgrammaticMove(true));
       dispatch(setMapCenter(newCenter));
       dispatch(setFocusedWaypoint(index));
     }
   };
-  
+
+  const isActive = state.focusedWaypointIndex === index;
 
   return (
     <li
@@ -96,7 +95,7 @@ const WaypointItem: React.FC<WaypointItemProps> = ({ index }) => {
       <div className="waypoint-container">
         <div className="item-order-number">{index + 1}</div>
         <div
-          className="waypoint-info-container"
+          className={`waypoint-info-container ${isActive ? "active" : ""}`}
           id={`waypoint-info-${index}`}
           style={{
             backgroundColor:
