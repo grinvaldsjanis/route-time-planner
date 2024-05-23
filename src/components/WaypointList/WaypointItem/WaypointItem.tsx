@@ -14,6 +14,7 @@ import {
   setMapCenter,
   setFocusedWaypoint,
   setIsProgrammaticMove,
+  setMapZoom,
 } from "../../../context/actions";
 
 interface WaypointItemProps {
@@ -80,6 +81,7 @@ const WaypointItem: React.FC<WaypointItemProps> = ({ index }) => {
       dispatch(setIsProgrammaticMove(true));
       dispatch(setMapCenter(newCenter));
       dispatch(setFocusedWaypoint(index));
+      dispatch(setMapZoom(15));
     }
   };
 
