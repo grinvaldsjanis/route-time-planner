@@ -17,12 +17,21 @@ export const SET_GPX_NAME = "SET_GPX_NAME";
 export const UPDATE_RELATIVE_TIMES = "UPDATE_RELATIVE_TIMES";
 export const CALCULATE_TOTALS = "CALCULATE_TOTALS";
 export const SET_IS_PROGRAMMATIC_MOVE = "SET_IS_PROGRAMMATIC_MOVE";
-export const SET_MAP_CENTER = "SET_MAP_CENTER"; // Added this line
-export const SET_MAP_ZOOM = "SET_MAP_ZOOM"; // Added this line
+export const SET_MAP_CENTER = "SET_MAP_CENTER";
+export const SET_MAP_ZOOM = "SET_MAP_ZOOM";
+export const UPDATE_DURATION_MULTIPLIER = "UPDATE_DURATION_MULTIPLIER";
 
 export interface SetGPXNameAction {
   type: typeof SET_GPX_NAME;
   payload: string;
+}
+
+export interface UpdateDurationMultiplierAction {
+  type: typeof UPDATE_DURATION_MULTIPLIER;
+  payload: {
+    index: number;
+    multiplier: number;
+  };
 }
 
 export interface InitializeStateAction {
@@ -124,7 +133,8 @@ export type Action =
   | ClearPreviousDataAction
   | SetFocusedWaypointAction
   | SetGPXNameAction
-  | SetIsProgrammaticMoveAction;
+  | SetIsProgrammaticMoveAction
+  | UpdateDurationMultiplierAction;
 
 export const calculateTotals = (): CalculateTotalsAction => ({
   type: CALCULATE_TOTALS,
@@ -141,6 +151,14 @@ export const updateRelativeTimes = (
 ): UpdateRelativeTimesAction => ({
   type: UPDATE_RELATIVE_TIMES,
   payload: { index, relativeTimes },
+});
+
+export const updateDurationMultiplier = (
+  index: number,
+  multiplier: number
+): UpdateDurationMultiplierAction => ({
+  type: UPDATE_DURATION_MULTIPLIER,
+  payload: { index, multiplier },
 });
 
 export const setMapMode = (mode: "ele" | "curve" | "slope"): SetMapModeAction => ({

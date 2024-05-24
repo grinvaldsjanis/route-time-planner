@@ -1,0 +1,31 @@
+.segmented-control {
+  display: flex;
+  gap: 5px;
+  justify-content: space-between;
+}
+.segment {
+  text-align: center;
+  padding: 0 0 5px 0;
+  border-radius: 0;
+  border-width: 0 0 2px 0;
+  border-color: transparent;
+  background-color: transparent;
+  font-size: 1rem;
+  cursor: pointer;
+  margin: 0;
+  color: rgb(54, 217, 0);
+  border-bottom: solid 4px transparent;
+}
+
+.segment:hover {
+    color: #007bff;
+  }
+
+.segment.selected {
+  border-bottom: solid 4px #007bff;
+  color: #007bff;
+}
+
+.segment.focus {
+  background-color: transparent;
+}

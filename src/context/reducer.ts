@@ -1,4 +1,4 @@
-import { Action } from "./actions";
+import { Action, UPDATE_DURATION_MULTIPLIER } from "./actions";
 import { GPXData } from "../utils/parseGPX";
 import { LatLngTuple } from "leaflet";
 import travelModes, { TravelMode } from "../constants/travelModes";
@@ -208,6 +208,52 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
     case "SET_MAP_ZOOM":
       localStorage.setItem("mapZoom", JSON.stringify(action.payload));
       return { ...state, mapZoom: action.payload };
+
+    case UPDATE_DURATION_MULTIPLIER: {
+      if (!state.gpxData) return state;
+
+      const updatedTrackParts = state.gpxData.trackParts.map(
+        (trackPart, idx) => {
+          if (idx === action.payload.index) {
+            return {
+              ...trackPart,
+              durationMultiplier: action.payload.multiplier,
+            };
+          }
+          return trackPart;
+        }
+      );
+
+      const updatedWaypointsWithTimes = calculateRelativeTimes(
+        state.gpxData.waypoints,
+        updatedTrackParts
+      );
+
+      const updatedGPXData = {
+        ...state.gpxData,
+        trackParts: updatedTrackParts,
+        waypoints: updatedWaypointsWithTimes,
+      };
+
+      setLocalStorage("gpxData", updatedGPXData);
+
+      const {
+        totalDistance,
+        totalTravelTime,
+        totalJourneyTime,
+        finalArrivalTime,
+      } = calculateWaypointStatistics(updatedGPXData, state.startTime);
+
+      return {
+        ...state,
+        gpxData: updatedGPXData,
+        totalDistance,
+        totalTravelTime,
+        totalJourneyTime,
+        finalArrivalTime,
+      };
+    }
+
     case "SET_TRAVEL_MODE": {
       if (typeof action.payload === "string" && action.payload in travelModes) {
         if (state.gpxData) {

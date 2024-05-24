@@ -27,6 +27,7 @@ export interface TrackPart {
   }[];
   distance: number;
   travelTime: number;
+  durationMultiplier: number;
 }
 
 export interface Waypoint {

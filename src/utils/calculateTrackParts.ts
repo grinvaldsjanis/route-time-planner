@@ -70,6 +70,7 @@ const calculateTrackParts = (
         }],
         distance: distance,
         travelTime: 0,
+        durationMultiplier: 1,
       });
     }
   }

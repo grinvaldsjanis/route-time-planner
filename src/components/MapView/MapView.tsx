@@ -1,4 +1,10 @@
-import React, { useEffect, useState, useMemo, useCallback, useRef } from "react";
+import React, {
+  useEffect,
+  useState,
+  useMemo,
+  useCallback,
+  useRef,
+} from "react";
 import {
   MapContainer,
   TileLayer,
@@ -46,8 +52,10 @@ const MapView: React.FC = () => {
   const mapRef = useRef<Map | null>(null);
   const isProgrammaticMoveRef = useRef(false);
   const { state, dispatch } = useGlobalState();
-  const { gpxData, mapCenter, mapZoom, mapMode, dataVersion } = state;
-  const [selectedWaypointIndex, setSelectedWaypointIndex] = useState<number | null>(null);
+  const { gpxData, mapCenter, mapZoom, mapMode } = state;
+  const [selectedWaypointIndex, setSelectedWaypointIndex] = useState<
+    number | null
+  >(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [valueRanges, setValueRanges] = useState<ValueRanges>({
     ele: { minValue: 0, maxValue: 100 },

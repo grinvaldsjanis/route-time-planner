@@ -11,7 +11,6 @@ import {
   setIsProgrammaticMove,
   setMapZoom,
 } from "../../../context/actions";
-import TrackPart from "../TrackPart/TrackPart"; // Import TrackPart component
 import { formatTimeFromSeconds, minutesToSeconds } from "../../../utils/timeUtils";
 
 interface WaypointItemProps {
@@ -21,7 +20,6 @@ interface WaypointItemProps {
 const WaypointItem: React.FC<WaypointItemProps> = ({ index }) => {
   const { state, dispatch } = useGlobalState();
 
-  const trackPart = state.gpxData?.trackParts?.[index];
   const waypoint = state.gpxData?.waypoints[index];
   const [editableName, setEditableName] = useState<string>(
     waypoint?.name || `Point ${index + 1}`

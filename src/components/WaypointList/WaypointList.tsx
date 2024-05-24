@@ -23,7 +23,11 @@ const WaypointList: React.FC = () => {
             <React.Fragment key={`waypoint-${index}`}>
               <WaypointItem index={index} />
               {index < trackParts.length && (
-                <TrackPart key={`trackpart-${index}`} trackPart={trackParts[index]} />
+                <TrackPart
+                  key={`trackpart-${index}`}
+                  trackPart={trackParts[index]}
+                  index={index}
+                />
               )}
             </React.Fragment>
           ))}
@@ -35,7 +39,8 @@ const WaypointList: React.FC = () => {
             <strong>Distance:</strong> {state.totalDistance.toFixed(2)} km
           </p>
           <p>
-            <strong>Road Time:</strong> {formatTimeFromSeconds(state.totalTravelTime)}
+            <strong>Road Time:</strong>{" "}
+            {formatTimeFromSeconds(state.totalTravelTime)}
           </p>
           <p>
             <strong>Journey Time:</strong> {state.totalJourneyTime}
@@ -43,7 +48,9 @@ const WaypointList: React.FC = () => {
         </div>
         <div className="arrival-time">
           <p>Arrival time</p>
-          <div className="arrival-time-numbers">{formatTimeToHHMM(state.finalArrivalTime)}</div>
+          <div className="arrival-time-numbers">
+            {formatTimeToHHMM(state.finalArrivalTime)}
+          </div>
         </div>
       </div>
     </div>

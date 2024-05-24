@@ -8,13 +8,17 @@ interface ModeTogglesProps {
   onModeChange: (mode: ModeKeys) => void;
 }
 
-const ModeToggles: React.FC<ModeTogglesProps> = ({ currentMode, onModeChange }) => {
+const ModeToggles: React.FC<ModeTogglesProps> = ({
+  currentMode,
+  onModeChange,
+}) => {
   return (
     <div
       className="map-buttons"
       style={{
         position: "absolute",
         top: 10,
+        gap: 10,
         right: 10,
         zIndex: 1000,
         display: "flex",

@@ -26,8 +26,8 @@ export const createMarkerIcon = (type: string, index: number) => {
     case "shaping":
       return L.divIcon({
         className: "custom-shaping-icon",
-        html: `<div style="background-color: white; width: 8px; height: 8px; border-radius: 50%;"></div>`,
-        iconSize: [8, 8],
+        html: `<div style="border: 2px solid rgba(0, 0, 0, 0.61); background-color: rgba(211, 70, 255, 0.55); width: 8x; height: 8px; border-radius: 50%;"></div>`,
+        iconSize: [12, 12],
       });
     case "destination":
       return L.divIcon({
