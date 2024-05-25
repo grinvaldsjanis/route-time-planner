@@ -97,6 +97,7 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
       localStorage.removeItem("gpxData");
       localStorage.removeItem("dataVersion");
       localStorage.removeItem("stopTimes");
+      localStorage.removeItem("waypointNames"); // Clear waypoint names
 
       return {
         ...initialState,
