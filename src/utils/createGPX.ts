@@ -75,6 +75,18 @@ export default function createGPX(gpxData: GPXData, startTime: string, gpxName: 
       wpt.appendChild(desc);
     }
 
+    if (waypoint.type) {
+      const type = xmlDoc.createElement("type");
+      type.textContent = waypoint.type;
+      wpt.appendChild(type);
+    }
+
+    if (waypoint.sym) {
+      const sym = xmlDoc.createElement("sym");
+      sym.textContent = waypoint.sym;
+      wpt.appendChild(sym);
+    }
+
     gpx.appendChild(wpt);
   });
 
