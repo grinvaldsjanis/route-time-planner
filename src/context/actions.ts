@@ -214,3 +214,7 @@ export const setMapZoom = (zoom: number): SetMapZoomAction => ({
   type: SET_MAP_ZOOM,
   payload: zoom,
 });
+
+export const clearPreviousData = (): ClearPreviousDataAction => ({
+  type: CLEAR_PREVIOUS_DATA,
+});

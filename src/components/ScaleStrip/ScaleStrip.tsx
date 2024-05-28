@@ -10,10 +10,12 @@ const ScaleStrip: React.FC = () => {
   const tracks = gpxData?.tracks;
 
   const [range, setRange] = useState({ minValue: 0, maxValue: 100 });
+  const [hasNoRange, setHasNoRange] = useState(false);
 
   useEffect(() => {
     if (!tracks || !mapMode) {
-      setRange({ minValue: 0, maxValue: 100 });
+      setRange({ minValue: 0, maxValue: 0 });
+      setHasNoRange(true);
       return;
     }
 
@@ -26,7 +28,11 @@ const ScaleStrip: React.FC = () => {
       defaultValue
     );
 
-    setRange({ minValue, maxValue });
+    setRange({
+      minValue: isNaN(minValue) ? 0 : minValue,
+      maxValue: isNaN(maxValue) ? 0 : maxValue,
+    });
+    setHasNoRange(minValue === maxValue);
   }, [mapMode, tracks]);
 
   const generateLabels = () => {
@@ -36,7 +42,12 @@ const ScaleStrip: React.FC = () => {
       const value = range.minValue + stepValue * i;
       return {
         value: Math.round(value),
-        color: getColorForValue(value, range.minValue, range.maxValue, mapMode === "curve" ),
+        color: getColorForValue(
+          value,
+          range.minValue,
+          range.maxValue,
+          mapMode === "curve"
+        ),
       };
     });
   };
@@ -57,12 +68,18 @@ const ScaleStrip: React.FC = () => {
 
   return (
     <div className="scale-strip">
-      <div className="gradient-strip" style={gradientStyle} />
-      <div className="scale-labels">
-        {labels.map((label, index) => (
-          <span key={index}>{label.value}</span>
-        ))}
-      </div>
+      {hasNoRange ? (
+        <div className="no-range">There's no range for the data</div>
+      ) : (
+        <>
+          <div className="gradient-strip" style={gradientStyle} />
+          <div className="scale-labels">
+            {labels.map((label, index) => (
+              <span key={index}>{label.value}</span>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 };

@@ -1,3 +1,4 @@
+// parseGPX.ts
 import travelModes from "../constants/travelModes";
 import calculateCurveRadius from "./calculateCurvature";
 import calculateSlope from "./calculateSlope";
@@ -84,8 +85,13 @@ export default function parseGPX(gpxContent: string, modeKey: string): GPXData {
   const gpxName =
     xmlDoc.getElementsByTagName("metadata")[0]?.getElementsByTagName("name")[0]
       ?.textContent || null;
-  const waypoints = xmlDoc.getElementsByTagName("wpt");
+  let waypoints = xmlDoc.getElementsByTagName("wpt");
+  const routePoints = xmlDoc.getElementsByTagName("rtept");
   const tracks = xmlDoc.getElementsByTagName("trk");
+
+  if (waypoints.length === 0 && routePoints.length > 0) {
+    waypoints = routePoints;
+  }
 
   const parsedWaypoints: Waypoint[] = [];
   const parsedTracks: Track[] = [];
@@ -190,7 +196,7 @@ function parseWaypoint(
 
     if (isTrackPoint) {
       const eleText = element.getElementsByTagName("ele")[0]?.textContent;
-      ele = eleText !== null ? parseFloat(eleText) : null;
+      ele = eleText !== null ? parseFloat(eleText) : 0;
 
       return {
         type,

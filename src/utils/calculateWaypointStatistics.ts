@@ -33,7 +33,7 @@ export default function calculateWaypointStatistics(
   
     gpxData.waypoints.forEach((waypoint, index) => {
       if (index > 0) {
-        currentSeconds += gpxData.trackParts[index - 1].travelTime;
+        currentSeconds += gpxData.trackParts[index - 1].travelTime * gpxData.trackParts[index - 1].durationMultiplier;
       }
       arrivalSeconds.push(currentSeconds);
   

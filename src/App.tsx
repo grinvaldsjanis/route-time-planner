@@ -6,9 +6,14 @@ import ScaleStrip from "./components/ScaleStrip/ScaleStrip";
 import { useGlobalState } from "./context/GlobalContext";
 import TravelModeSelector from "./components/TravelModeSelector/TravelModesSelector";
 import GPXDownloadButton from "./components/GPXDownloadButton/GPXDownloadButton";
+import { clearPreviousData } from "./context/actions";
 
 function App() {
-  const { state } = useGlobalState();
+  const { state, dispatch  } = useGlobalState();
+
+  const handleClearData = () => {
+    dispatch(clearPreviousData());
+  };
 
   return (
     <div className="App">
@@ -19,6 +24,9 @@ function App() {
         <div className="file-buttons">
           <FileUploader />
           <GPXDownloadButton />
+          <button onClick={handleClearData} className="clear-button">
+            Clear Data
+          </button> {/* Add the clear button */}
         </div>
       </header>
       {state.gpxData && (

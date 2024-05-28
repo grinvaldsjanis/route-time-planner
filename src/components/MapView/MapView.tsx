@@ -53,9 +53,7 @@ const MapView: React.FC = () => {
   const isProgrammaticMoveRef = useRef(false);
   const { state, dispatch } = useGlobalState();
   const { gpxData, mapCenter, mapZoom, mapMode } = state;
-  const [selectedWaypointIndex, setSelectedWaypointIndex] = useState<
-    number | null
-  >(null);
+  const [selectedWaypointIndex, setSelectedWaypointIndex] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [valueRanges, setValueRanges] = useState<ValueRanges>({
     ele: { minValue: 0, maxValue: 100 },
@@ -72,7 +70,6 @@ const MapView: React.FC = () => {
   const handleMapMove = useCallback(
     (center: LatLngTuple, zoom: number) => {
       if (!isProgrammaticMoveRef.current) {
-        console.log("handleMapMove - Center:", center, "Zoom:", zoom); // Debug log
         dispatch(setMapZoom(zoom));
         dispatch(setMapCenter(center));
       }
@@ -118,12 +115,6 @@ const MapView: React.FC = () => {
 
   useEffect(() => {
     if (mapRef.current && state.isProgrammaticMove) {
-      console.log(
-        "Calling setView with center:",
-        mapCenter,
-        "and zoom:",
-        mapZoom
-      ); // Debug log
       mapRef.current.setView(mapCenter, mapZoom);
       isProgrammaticMoveRef.current = false;
       dispatch(setIsProgrammaticMove(false));
@@ -138,7 +129,6 @@ const MapView: React.FC = () => {
           parseFloat(waypoint.lat),
           parseFloat(waypoint.lon),
         ];
-        console.log("Setting map center to:", newCenter); // Debug log
         isProgrammaticMoveRef.current = true;
         dispatch(setIsProgrammaticMove(true));
         dispatch(setMapCenter(newCenter));
@@ -179,12 +169,17 @@ const MapView: React.FC = () => {
 
               const modeKey = modeMap[mapMode] || "ele";
               const value = getValueForMode(point, prevPoint, modeKey);
-              const color = getColorForValue(
-                value,
-                valueRanges[modeKey].minValue,
-                valueRanges[modeKey].maxValue,
-                mapMode === "curve"
-              );
+              let color;
+              if (valueRanges[modeKey].minValue === valueRanges[modeKey].maxValue) {
+                color = "red";
+              } else {
+                color = getColorForValue(
+                  value,
+                  valueRanges[modeKey].minValue,
+                  valueRanges[modeKey].maxValue,
+                  mapMode === "curve"
+                );
+              }
 
               return (
                 <Polyline
@@ -204,7 +199,6 @@ const MapView: React.FC = () => {
   return (
     <div className="map-view">
       <MapContainer
-        // key={`map-${dataVersion}`}
         center={mapCenter}
         zoom={mapZoom}
         scrollWheelZoom={true}

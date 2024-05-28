@@ -34,7 +34,14 @@ const setLocalStorage = (key: string, value: any): void => {
 const getLocalStorage = <T>(key: string, defaultValue: T): T => {
   try {
     const item = localStorage.getItem(key);
-    return item ? JSON.parse(item) : defaultValue;
+    if (item) {
+      try {
+        return JSON.parse(item) as T;
+      } catch {
+        return item as T;
+      }
+    }
+    return defaultValue;
   } catch (error) {
     console.error(`Error getting ${key} from localStorage:`, error);
     return defaultValue;
@@ -97,7 +104,7 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
       localStorage.removeItem("gpxData");
       localStorage.removeItem("dataVersion");
       localStorage.removeItem("stopTimes");
-      localStorage.removeItem("waypointNames"); // Clear waypoint names
+      localStorage.removeItem("waypointNames");
 
       return {
         ...initialState,
@@ -134,9 +141,6 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
 
       setLocalStorage("gpxData", updatedGPXDataWithTimes);
       setLocalStorage("dataVersion", 0);
-      if (averageCoord) {
-        setLocalStorage("mapCenter", [averageCoord.lat, averageCoord.lon]);
-      }
 
       const {
         totalDistance,
@@ -144,13 +148,14 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
         totalJourneyTime,
         finalArrivalTime,
       } = calculateWaypointStatistics(updatedGPXDataWithTimes, state.startTime);
-
+      
       return {
         ...state,
         gpxData: updatedGPXDataWithTimes,
         mapCenter: averageCoord
           ? [averageCoord.lat, averageCoord.lon]
           : state.mapCenter,
+        isProgrammaticMove: true,
         dataVersion: 0,
         totalDistance,
         totalTravelTime,
@@ -210,7 +215,7 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
       localStorage.setItem("mapZoom", JSON.stringify(action.payload));
       return { ...state, mapZoom: action.payload };
 
-    case UPDATE_DURATION_MULTIPLIER: {
+    case "UPDATE_DURATION_MULTIPLIER": {
       if (!state.gpxData) return state;
 
       const updatedTrackParts = state.gpxData.trackParts.map(
