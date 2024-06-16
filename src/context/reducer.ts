@@ -1,7 +1,8 @@
+// context/reducer.ts
 import { Action, UPDATE_DURATION_MULTIPLIER } from "./actions";
 import { GPXData } from "../utils/parseGPX";
 import { LatLngTuple } from "leaflet";
-import travelModes, { TravelMode } from "../constants/travelModes";
+import { TravelMode } from "../constants/travelModes";
 import calculateTravelTimes from "../utils/calculateTravelTimes";
 import calculateAverageCoordinate from "../utils/calculateAverageCoordinate";
 import calculateWaypointStatistics from "../utils/calculateWaypointStatistics";
@@ -165,7 +166,54 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
       };
     }
 
-    case "UPDATE_RELATIVE_TIMES":
+    case UPDATE_DURATION_MULTIPLIER: {
+      const { index, multiplier } = action.payload;
+
+      if (!state.gpxData || !state.gpxData.trackParts) return state;
+
+      // Update the duration multiplier for the specified track part
+      const updatedTrackParts = state.gpxData.trackParts.map((part, idx) =>
+        idx === index ? { ...part, durationMultiplier: multiplier } : part
+      );
+
+      // Recalculate the travel times based on the new multipliers
+      const updatedTravelTimes = calculateTravelTimes(
+        { ...state.gpxData, trackParts: updatedTrackParts },
+        state.travelMode
+      );
+
+      // Recalculate the relative times for waypoints
+      const updatedWaypointsWithTimes = calculateRelativeTimes(
+        state.gpxData.waypoints,
+        updatedTravelTimes
+      );
+
+      const updatedGPXDataWithTimes = {
+        ...state.gpxData,
+        trackParts: updatedTravelTimes,
+        waypoints: updatedWaypointsWithTimes,
+      };
+
+      const {
+        totalDistance,
+        totalTravelTime,
+        totalJourneyTime,
+        finalArrivalTime,
+      } = calculateWaypointStatistics(updatedGPXDataWithTimes, state.startTime);
+
+      setLocalStorage("gpxData", updatedGPXDataWithTimes);
+
+      return {
+        ...state,
+        gpxData: updatedGPXDataWithTimes,
+        totalDistance,
+        totalTravelTime,
+        totalJourneyTime,
+        finalArrivalTime,
+      };
+    }
+
+    case "UPDATE_RELATIVE_TIMES": {
       if (!state.gpxData || !state.gpxData.waypoints) return state;
 
       const updatedWaypointsWithTimes = state.gpxData.waypoints.map(
@@ -199,6 +247,7 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
         totalJourneyTime,
         finalArrivalTime,
       };
+    }
 
     case "SET_MAP_MODE":
       localStorage.setItem("mapMode", action.payload);
@@ -207,11 +256,13 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
     case "SET_MAP_CENTER":
       localStorage.setItem("mapCenter", JSON.stringify(action.payload));
       return { ...state, mapCenter: action.payload };
+
     case "SET_IS_PROGRAMMATIC_MOVE":
       return {
         ...state,
         isProgrammaticMove: action.payload,
       };
+
     case "SET_MAP_ZOOM":
       localStorage.setItem("mapZoom", JSON.stringify(action.payload));
       return { ...state, mapZoom: action.payload };

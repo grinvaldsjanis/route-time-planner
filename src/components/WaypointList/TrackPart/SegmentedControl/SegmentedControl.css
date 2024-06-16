@@ -3,6 +3,7 @@
   gap: 5px;
   justify-content: space-between;
 }
+
 .segment {
   text-align: center;
   padding: 0 0 5px 0;
@@ -18,14 +19,14 @@
 }
 
 .segment:hover {
-    color: #007bff;
-  }
-
-.segment.selected {
-  border-bottom: solid 4px #007bff;
-  color: #007bff;
+  color: #007bffab;
 }
 
-.segment.focus {
+.segment.selected {
+  border-bottom: solid 4px #007bff !important; /* Ensure border color changes */
+  color: #007bff !important;
+}
+
+.segment:focus {
   background-color: transparent;
 }
