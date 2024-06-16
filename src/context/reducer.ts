@@ -110,6 +110,7 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
         ...initialState,
         mapMode: state.mapMode,
         travelMode: state.travelMode,
+        gpxData: null, // Ensure gpxData is reset to null
       };
 
     case "SET_GPX_DATA": {
@@ -148,7 +149,7 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
         totalJourneyTime,
         finalArrivalTime,
       } = calculateWaypointStatistics(updatedGPXDataWithTimes, state.startTime);
-      
+
       return {
         ...state,
         gpxData: updatedGPXDataWithTimes,
@@ -215,195 +216,6 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
       localStorage.setItem("mapZoom", JSON.stringify(action.payload));
       return { ...state, mapZoom: action.payload };
 
-    case "UPDATE_DURATION_MULTIPLIER": {
-      if (!state.gpxData) return state;
-
-      const updatedTrackParts = state.gpxData.trackParts.map(
-        (trackPart, idx) => {
-          if (idx === action.payload.index) {
-            return {
-              ...trackPart,
-              durationMultiplier: action.payload.multiplier,
-            };
-          }
-          return trackPart;
-        }
-      );
-
-      const updatedWaypointsWithTimes = calculateRelativeTimes(
-        state.gpxData.waypoints,
-        updatedTrackParts
-      );
-
-      const updatedGPXData = {
-        ...state.gpxData,
-        trackParts: updatedTrackParts,
-        waypoints: updatedWaypointsWithTimes,
-      };
-
-      setLocalStorage("gpxData", updatedGPXData);
-
-      const {
-        totalDistance,
-        totalTravelTime,
-        totalJourneyTime,
-        finalArrivalTime,
-      } = calculateWaypointStatistics(updatedGPXData, state.startTime);
-
-      return {
-        ...state,
-        gpxData: updatedGPXData,
-        totalDistance,
-        totalTravelTime,
-        totalJourneyTime,
-        finalArrivalTime,
-      };
-    }
-
-    case "SET_TRAVEL_MODE": {
-      if (typeof action.payload === "string" && action.payload in travelModes) {
-        if (state.gpxData) {
-          const updatedTrackParts = calculateTravelTimes(
-            state.gpxData,
-            action.payload as TravelMode
-          );
-          const updatedGPXData = {
-            ...state.gpxData,
-            trackParts: updatedTrackParts,
-          };
-
-          localStorage.setItem("travelMode", JSON.stringify(action.payload));
-          localStorage.setItem("gpxData", JSON.stringify(updatedGPXData));
-
-          const updatedWaypointsWithTimes = calculateRelativeTimes(
-            updatedGPXData.waypoints,
-            updatedTrackParts
-          );
-
-          const finalGPXDataWithTimes = {
-            ...updatedGPXData,
-            waypoints: updatedWaypointsWithTimes,
-          };
-
-          const {
-            totalDistance,
-            totalTravelTime,
-            totalJourneyTime,
-            finalArrivalTime,
-          } = calculateWaypointStatistics(
-            finalGPXDataWithTimes,
-            state.startTime
-          );
-
-          return {
-            ...state,
-            travelMode: action.payload as TravelMode,
-            gpxData: finalGPXDataWithTimes,
-            totalDistance,
-            totalTravelTime,
-            totalJourneyTime,
-            finalArrivalTime,
-          };
-        }
-
-        localStorage.setItem("travelMode", JSON.stringify(action.payload));
-        return { ...state, travelMode: action.payload as TravelMode };
-      }
-      return state;
-    }
-
-    case "INCREMENT_DATA_VERSION":
-      const updatedDataVersion = state.dataVersion + 1;
-      setLocalStorage("dataVersion", updatedDataVersion);
-      return { ...state, dataVersion: updatedDataVersion };
-    case "SET_START_TIME":
-      localStorage.setItem("startTime", action.payload);
-      return { ...state, startTime: action.payload };
-
-    case "UPDATE_STOP_TIME": {
-      if (!state.gpxData || !state.gpxData.waypoints) return state;
-
-      const updatedWaypointsWithStops = state.gpxData.waypoints.map(
-        (waypoint, idx) => {
-          if (idx === action.payload.index) {
-            return { ...waypoint, stopTime: action.payload.stopTime };
-          }
-          return waypoint;
-        }
-      );
-
-      const updatedGPXDataWithStops = {
-        ...state.gpxData,
-        waypoints: updatedWaypointsWithStops,
-      };
-
-      // Save the updated GPX data in local storage
-      setLocalStorage("gpxData", updatedGPXDataWithStops);
-
-      // Recalculate journey statistics based on updated stop times
-      const {
-        totalDistance,
-        totalTravelTime,
-        totalJourneyTime,
-        finalArrivalTime,
-      } = calculateWaypointStatistics(updatedGPXDataWithStops, state.startTime);
-
-      // Recalculate relative times
-      const updatedWaypointsWithTimes = calculateRelativeTimes(
-        updatedGPXDataWithStops.waypoints,
-        updatedGPXDataWithStops.trackParts
-      );
-
-      const finalGPXDataWithTimes = {
-        ...updatedGPXDataWithStops,
-        waypoints: updatedWaypointsWithTimes,
-      };
-
-      setLocalStorage("gpxData", finalGPXDataWithTimes);
-
-      return {
-        ...state,
-        gpxData: finalGPXDataWithTimes,
-        totalDistance,
-        totalTravelTime,
-        totalJourneyTime,
-        finalArrivalTime,
-      };
-    }
-
-    case "SET_WAYPOINT_NAME": {
-      if (!state.gpxData) {
-        console.error("No GPX data available to update waypoint name.");
-        return state;
-      }
-
-      const updatedWaypoints = state.gpxData.waypoints.map((waypoint, idx) => {
-        if (idx === action.payload.index) {
-          return { ...waypoint, name: action.payload.name };
-        }
-        return waypoint;
-      });
-
-      return {
-        ...state,
-        gpxData: { ...state.gpxData, waypoints: updatedWaypoints },
-      };
-    }
-    case "SET_GPX_NAME":
-      if (state.gpxData) {
-        const updatedGPXData = { ...state.gpxData, gpxName: action.payload };
-        setLocalStorage("gpxData", updatedGPXData);
-        return {
-          ...state,
-          gpxData: updatedGPXData,
-        };
-      }
-      return state;
-    case "SET_FOCUSED_WAYPOINT":
-      return {
-        ...state,
-        focusedWaypointIndex: action.payload,
-      };
     default:
       return state;
   }

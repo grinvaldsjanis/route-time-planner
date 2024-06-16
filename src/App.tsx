@@ -26,7 +26,7 @@ function App() {
           <GPXDownloadButton />
           <button onClick={handleClearData} className="clear-button">
             Clear Data
-          </button> {/* Add the clear button */}
+          </button>
         </div>
       </header>
       {state.gpxData && (

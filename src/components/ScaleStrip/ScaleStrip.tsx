@@ -9,13 +9,13 @@ const ScaleStrip: React.FC = () => {
   const { gpxData, mapMode } = state;
   const tracks = gpxData?.tracks;
 
-  const [range, setRange] = useState({ minValue: 0, maxValue: 100 });
+  const [range, setRange] = useState({ minValue: 0, maxValue: 0 });
   const [hasNoRange, setHasNoRange] = useState(false);
 
   useEffect(() => {
     if (!tracks || !mapMode) {
-      setRange({ minValue: 0, maxValue: 0 });
-      setHasNoRange(true);
+      setRange({ minValue: 0, maxValue: 100 });
+      setHasNoRange(false);
       return;
     }
 
@@ -28,11 +28,11 @@ const ScaleStrip: React.FC = () => {
       defaultValue
     );
 
+    setHasNoRange(minValue === maxValue);
     setRange({
       minValue: isNaN(minValue) ? 0 : minValue,
       maxValue: isNaN(maxValue) ? 0 : maxValue,
     });
-    setHasNoRange(minValue === maxValue);
   }, [mapMode, tracks]);
 
   const generateLabels = () => {
