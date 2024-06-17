@@ -2,7 +2,7 @@ import React from "react";
 import "./WaypointList.css";
 import { useGlobalState } from "../../context/GlobalContext";
 import WaypointItem from "./WaypointItem/WaypointItem";
-import TrackPart from "./TrackPart/TrackPart"; // Import TrackPart component
+import TrackPart from "./TrackPart/TrackPart";
 import { formatTimeFromSeconds } from "../../utils/timeUtils";
 import formatTimeToHHMM from "../../utils/formatTimeToHHMM";
 

@@ -130,10 +130,13 @@ export default function parseGPX(gpxContent: string, modeKey: string): GPXData {
 
     parsedTracks.push({ name, segments });
   }
+
   for (let i = 0; i < waypoints.length; i++) {
     const wpt = waypoints[i];
     const parsedWpt = parseWaypoint(wpt) as Waypoint;
-    if (parsedWpt) {
+
+    // Filter out waypoints with <type>shaping</type>
+    if (parsedWpt && parsedWpt.type !== "shaping") {
       let closestDistance = Infinity;
       let closestTrackPointRef: TrackPointRef | undefined;
 
@@ -211,6 +214,9 @@ function parseWaypoint(
         slope: null,
       };
     }
+
+    // Exclude waypoints with type 'shaping'
+    if (type === "shaping") return null;
 
     return { type, lat, lon, name, desc, sym };
   }
