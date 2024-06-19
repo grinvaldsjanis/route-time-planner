@@ -218,23 +218,71 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
       };
     }
 
+    case "UPDATE_STOP_TIME": {
+      if (!state.gpxData || !state.gpxData.waypoints) return state;
+
+      const updatedWaypointsWithStops = state.gpxData.waypoints.map(
+        (waypoint, idx) => {
+          if (idx === action.payload.index) {
+            return { ...waypoint, stopTime: action.payload.stopTime };
+          }
+          return waypoint;
+        }
+      );
+
+      const updatedGPXDataWithStops = {
+        ...state.gpxData,
+        waypoints: updatedWaypointsWithStops,
+      };
+
+      // Save the updated GPX data in local storage
+      setLocalStorage("gpxData", updatedGPXDataWithStops);
+
+      // Recalculate journey statistics based on updated stop times
+      const {
+        totalDistance,
+        totalTravelTime,
+        totalJourneyTime,
+        finalArrivalTime,
+      } = calculateWaypointStatistics(updatedGPXDataWithStops, state.startTime);
+
+      // Recalculate relative times
+      const updatedWaypointsWithTimes = calculateRelativeTimes(
+        updatedGPXDataWithStops.waypoints,
+        updatedGPXDataWithStops.trackParts
+      );
+
+      const finalGPXDataWithTimes = {
+        ...updatedGPXDataWithStops,
+        waypoints: updatedWaypointsWithTimes,
+      };
+
+      setLocalStorage("gpxData", finalGPXDataWithTimes);
+
+      return {
+        ...state,
+        gpxData: finalGPXDataWithTimes,
+        totalDistance,
+        totalTravelTime,
+        totalJourneyTime,
+        finalArrivalTime,
+      };
+    }
+
     case UPDATE_DURATION_MULTIPLIER: {
       const { index, multiplier } = action.payload;
 
       if (!state.gpxData || !state.gpxData.trackParts) return state;
 
-      // Update the duration multiplier for the specified track part
       const updatedTrackParts = state.gpxData.trackParts.map((part, idx) =>
         idx === index ? { ...part, durationMultiplier: multiplier } : part
       );
 
-      // Recalculate the travel times based on the new multipliers
       const updatedTravelTimes = calculateTravelTimes(
         { ...state.gpxData, trackParts: updatedTrackParts },
         state.travelMode
       );
 
-      // Recalculate the relative times for waypoints
       const updatedWaypointsWithTimes = calculateRelativeTimes(
         state.gpxData.waypoints,
         updatedTravelTimes

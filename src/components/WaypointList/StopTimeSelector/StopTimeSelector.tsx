@@ -15,12 +15,10 @@ const StopTimeSelector: React.FC<StopTimeSelectorProps> = ({
   const [sliderValue, setSliderValue] = useState(stopTime);
   const [isDragging, setIsDragging] = useState(false);
 
-  // Keep slider value synced with the initial stop time prop
   useEffect(() => {
     setSliderValue(stopTime);
   }, [stopTime]);
 
-  // Use `useCallback` to memoize `handleSliderCommit`
   const handleSliderCommit = useCallback(() => {
     if (isDragging) {
       const debouncedCommit = debounce((value: number) => {
@@ -32,14 +30,12 @@ const StopTimeSelector: React.FC<StopTimeSelectorProps> = ({
     }
   }, [isDragging, sliderValue, handleStopTimeChange]);
 
-  // Handle slider change events
   const handleSliderChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = timePresets[parseInt(event.target.value)];
     setSliderValue(value);
     setIsDragging(true);
   };
 
-  // Set up global event listeners for mouse/touch end events
   useEffect(() => {
     const handleGlobalMouseUp = () => handleSliderCommit();
     document.addEventListener("mouseup", handleGlobalMouseUp);
