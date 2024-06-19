@@ -15,7 +15,6 @@ export const CLEAR_PREVIOUS_DATA = "CLEAR_PREVIOUS_DATA";
 export const SET_FOCUSED_WAYPOINT = "SET_FOCUSED_WAYPOINT";
 export const SET_GPX_NAME = "SET_GPX_NAME";
 export const UPDATE_RELATIVE_TIMES = "UPDATE_RELATIVE_TIMES";
-export const CALCULATE_TOTALS = "CALCULATE_TOTALS";
 export const SET_IS_PROGRAMMATIC_MOVE = "SET_IS_PROGRAMMATIC_MOVE";
 export const SET_MAP_CENTER = "SET_MAP_CENTER";
 export const SET_MAP_ZOOM = "SET_MAP_ZOOM";
@@ -99,9 +98,6 @@ export interface UpdateRelativeTimesAction {
   };
 }
 
-export interface CalculateTotalsAction {
-  type: typeof CALCULATE_TOTALS;
-}
 
 export interface SetIsProgrammaticMoveAction {
   type: typeof SET_IS_PROGRAMMATIC_MOVE;
@@ -136,9 +132,6 @@ export type Action =
   | SetIsProgrammaticMoveAction
   | UpdateDurationMultiplierAction;
 
-export const calculateTotals = (): CalculateTotalsAction => ({
-  type: CALCULATE_TOTALS,
-});
 
 export const setGPXData = (data: GPXData): SetGPXDataAction => ({
   type: SET_GPX_DATA,

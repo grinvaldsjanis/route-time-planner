@@ -177,7 +177,7 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
       };
 
       const averageCoord = calculateAverageCoordinate(
-        updatedGPXData.waypoints.map((wp: { lat: string; lon: string; }) => ({
+        updatedGPXData.waypoints.map((wp: { lat: string; lon: string }) => ({
           lat: parseFloat(wp.lat),
           lon: parseFloat(wp.lon),
         }))
@@ -218,6 +218,43 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
       };
     }
 
+    case "SET_GPX_NAME": {
+      if (!state.gpxData) {
+        console.error("No GPX data available to update GPX name.");
+        return state;
+      }
+
+      const updatedGPXData = { ...state.gpxData, gpxName: action.payload };
+      setLocalStorage("gpxData", updatedGPXData);
+
+      return {
+        ...state,
+        gpxData: updatedGPXData,
+      };
+    }
+
+    case "SET_WAYPOINT_NAME": {
+      if (!state.gpxData) {
+        console.error("No GPX data available to update waypoint name.");
+        return state;
+      }
+
+      const updatedWaypoints = state.gpxData.waypoints.map((waypoint, idx) => {
+        if (idx === action.payload.index) {
+          return { ...waypoint, name: action.payload.name };
+        }
+        return waypoint;
+      });
+
+      const updatedGPXData = { ...state.gpxData, waypoints: updatedWaypoints };
+      setLocalStorage("gpxData", updatedGPXData);
+
+      return {
+        ...state,
+        gpxData: updatedGPXData,
+      };
+    }
+
     case "UPDATE_STOP_TIME": {
       if (!state.gpxData || !state.gpxData.waypoints) return state;
 
@@ -235,7 +272,6 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
         waypoints: updatedWaypointsWithStops,
       };
 
-      // Save the updated GPX data in local storage
       setLocalStorage("gpxData", updatedGPXDataWithStops);
 
       // Recalculate journey statistics based on updated stop times
@@ -349,6 +385,15 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
       };
     }
 
+    case "INCREMENT_DATA_VERSION":
+      const updatedDataVersion = state.dataVersion + 1;
+      setLocalStorage("dataVersion", updatedDataVersion);
+      return { ...state, dataVersion: updatedDataVersion };
+
+    case "SET_START_TIME":
+      localStorage.setItem("startTime", action.payload);
+      return { ...state, startTime: action.payload };
+
     case "SET_MAP_MODE":
       localStorage.setItem("mapMode", action.payload);
       return { ...state, mapMode: action.payload };
@@ -366,7 +411,11 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
     case "SET_MAP_ZOOM":
       localStorage.setItem("mapZoom", JSON.stringify(action.payload));
       return { ...state, mapZoom: action.payload };
-
+    case "SET_FOCUSED_WAYPOINT":
+      return {
+        ...state,
+        focusedWaypointIndex: action.payload,
+      };
     default:
       return state;
   }
