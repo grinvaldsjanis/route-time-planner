@@ -1,7 +1,7 @@
 // context/reducer.ts
 import { Action, UPDATE_DURATION_MULTIPLIER } from "./actions";
 import { LatLngTuple } from "leaflet";
-import { TravelMode } from "../constants/travelModes";
+import travelModes, { TravelMode } from "../constants/travelModes";
 import calculateTravelTimes from "../utils/calculateTravelTimes";
 import calculateAverageCoordinate from "../utils/calculateAverageCoordinate";
 import calculateWaypointStatistics from "../utils/calculateWaypointStatistics";
@@ -99,6 +99,58 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
         ...action.payload,
         ...waypointStats,
       };
+    }
+
+    case "SET_TRAVEL_MODE": {
+      if (typeof action.payload === "string" && action.payload in travelModes) {
+        if (state.gpxData) {
+          const updatedTrackParts = calculateTravelTimes(
+            state.gpxData,
+            action.payload as TravelMode
+          );
+          const updatedGPXData = {
+            ...state.gpxData,
+            trackParts: updatedTrackParts,
+          };
+
+          localStorage.setItem("travelMode", JSON.stringify(action.payload));
+          localStorage.setItem("gpxData", JSON.stringify(updatedGPXData));
+
+          const updatedWaypointsWithTimes = calculateRelativeTimes(
+            updatedGPXData.waypoints,
+            updatedTrackParts
+          );
+
+          const finalGPXDataWithTimes = {
+            ...updatedGPXData,
+            waypoints: updatedWaypointsWithTimes,
+          };
+
+          const {
+            totalDistance,
+            totalTravelTime,
+            totalJourneyTime,
+            finalArrivalTime,
+          } = calculateWaypointStatistics(
+            finalGPXDataWithTimes,
+            state.startTime
+          );
+
+          return {
+            ...state,
+            travelMode: action.payload as TravelMode,
+            gpxData: finalGPXDataWithTimes,
+            totalDistance,
+            totalTravelTime,
+            totalJourneyTime,
+            finalArrivalTime,
+          };
+        }
+
+        localStorage.setItem("travelMode", JSON.stringify(action.payload));
+        return { ...state, travelMode: action.payload as TravelMode };
+      }
+      return state;
     }
 
     case "CLEAR_PREVIOUS_DATA":
