@@ -1,35 +1,3 @@
-
-.about-content {
-    line-height: 1.4;
-}
-
-.about-content ul {
-    list-style-type: none;
-    padding-left: 0;
-    margin: 10px;
-}
-
-.about-content li {
-    position: relative;
-    padding-left: 1em;
-    padding-bottom: 0.3em;
-    text-indent: -0em;
-    list-style-type: none;
-}
-
-.about-content li::before {
-    content: "•";
-    position: absolute;
-    left: 0;
-    top: 0;
-    line-height: 1.4;
-}
-
-.about-content strong {
-font-weight: 700;
-}
-
-
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -55,16 +23,47 @@ font-weight: 700;
 }
 
 .modal-close {
-  position: absolute;
-  top: 10px;
-  right: 10px;
+  position: fixed;
+  top: 20px;
+  right: 40px;
   background: transparent;
   border: none;
-  font-size: 1.5rem;
+  font-size: 2rem;
   cursor: pointer;
   color: green;
+  z-index: 1000;
 }
 
 .modal-close:hover {
   color: greenyellow;
+}
+
+.about-content {
+  line-height: 1.4;
+}
+
+.about-content ul {
+  list-style-type: none;
+  padding-left: 0;
+  margin: 10px;
+}
+
+.about-content li {
+  position: relative;
+  padding-left: 1em;
+  padding-bottom: 0.3em;
+  text-indent: -0em;
+  list-style-type: none;
+}
+
+.about-content li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  top: 0;
+  line-height: 1.4;
+}
+
+.about-content strong {
+  font-weight: 700;
 }

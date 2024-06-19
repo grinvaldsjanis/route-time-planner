@@ -81,13 +81,7 @@ function App() {
       </div>
       <footer className="footer">
         Under development by Janis Grinvalds.&emsp;
-        <a
-          href="https://chat.whatsapp.com/F7y1m1NBcEg0YiUwzV7S9R"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Whatsapp group for issues/features
-        </a>
+       
         &emsp;
         <button onClick={toggleModal} className="about-button">
           About
