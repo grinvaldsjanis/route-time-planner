@@ -38,9 +38,12 @@ export const createMarkerIcon = (type: string, index: number) => {
       });
     default:
       return L.divIcon({
-        className: "custom-shaping-icon",
-        html: `<div style="background-color: green; width: 8px; height: 8px; border-radius: 50%;"></div>`,
-        iconSize: [8, 8],
+        className: "custom-via-icon",
+        html: `<div style="position: relative; width: 27px; height: 36px; background-image: url(${viaIcon});">
+                   <span style="position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); font-weight: bold; font-size: 14px;">${index}</span>
+                 </div>`,
+        iconSize: [20, 36],
+        iconAnchor: [14, 38],
       });
   }
 };

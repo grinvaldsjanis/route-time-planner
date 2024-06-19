@@ -1,5 +1,5 @@
 import formatTimeToHHMM from "./formatTimeToHHMM";
-import { GPXData } from "./parseGPX";
+import { GPXData } from "./types";
 import { minutesToSeconds, formatTimeFromSeconds } from "./timeUtils";
 
 export default function createGPX(gpxData: GPXData, startTime: string, gpxName: string) {

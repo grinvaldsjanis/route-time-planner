@@ -1,6 +1,6 @@
 import travelModes from "../constants/travelModes";
 import haversineDistance from "./haversineDistance";
-import { Track, TrackPart } from "./parseGPX";
+import { Track, TrackPart } from "./types";
 
 const calculateTravelTime = (
   trackParts: TrackPart[],

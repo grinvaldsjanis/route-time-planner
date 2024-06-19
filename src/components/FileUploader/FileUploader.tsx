@@ -18,7 +18,7 @@ const FileUploader: React.FC = () => {
       reader.onload = async (e: ProgressEvent<FileReader>) => {
         const text = e.target?.result as string;
         dispatch(clearPreviousData());
-        const parsedGPXData = parseGPX(
+        const parsedGPXData = await parseGPX(
           text,
           state.travelMode as keyof typeof travelModes
         );

@@ -1,4 +1,4 @@
-import { TrackPart, Waypoint } from "./parseGPX";
+import { TrackPart, Waypoint } from "./types";
 
 const calculateRelativeTimes = (
   waypoints: Waypoint[],

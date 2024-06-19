@@ -1,4 +1,4 @@
-import { GPXData } from "./parseGPX";
+import { GPXData } from "./types";
 
 interface WaypointRelativeTimes {
   arrivalSeconds: number;

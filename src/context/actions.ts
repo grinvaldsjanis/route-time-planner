@@ -1,5 +1,5 @@
 import { LatLngTuple } from "leaflet";
-import { GPXData } from "../utils/parseGPX";
+import { GPXData } from "../utils/types";
 import { TravelMode } from "../constants/travelModes";
 import { GlobalState } from "./reducer";
 

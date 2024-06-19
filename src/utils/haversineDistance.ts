@@ -1,5 +1,4 @@
-const toRadians = (degree: number) => degree * Math.PI / 180;
-
+const toRadians = (degree: number) => (degree * Math.PI) / 180;
 
 const haversineDistance = (
   lat1: number,
@@ -17,7 +16,8 @@ const haversineDistance = (
     Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
     Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
+  const distance = R * c;
+  return Math.round(distance * 100) / 100;
 };
 
 export default haversineDistance;

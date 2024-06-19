@@ -1,4 +1,4 @@
-import { GPXData } from "../utils/parseGPX";
+import { GPXData } from "../utils/types";
 import { minutesToSeconds, formatTimeFromSeconds } from "../utils/timeUtils";
 
 interface WaypointStatistics {

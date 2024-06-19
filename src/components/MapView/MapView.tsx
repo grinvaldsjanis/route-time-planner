@@ -15,7 +15,6 @@ import {
 } from "react-leaflet";
 import type { LatLngTuple, Map } from "leaflet";
 import "./MapView.css";
-import { TrackPoint } from "../../utils/parseGPX";
 import { createMarkerIcon } from "../../utils/markerStyles";
 import { calculateValueRange } from "../../utils/calculateValueRange";
 import getColorForValue from "../../utils/getColorForValue";
@@ -29,6 +28,7 @@ import {
 import WaypointModal from "./WaypointModal/WaypointModal";
 import ModeToggles from "./ModeToggles/ModeToggles";
 import MapEvents from "./MapEvents";
+import { TrackPoint } from "../../utils/types";
 
 type ModeKeys = "ele" | "curve" | "slope";
 

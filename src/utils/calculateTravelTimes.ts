@@ -1,4 +1,4 @@
-import { GPXData, TrackPart } from "./parseGPX";
+import { GPXData, TrackPart } from "./types";
 import calculateTravelTime from "./calculateTravelTime";
 import travelModes from "../constants/travelModes";
 

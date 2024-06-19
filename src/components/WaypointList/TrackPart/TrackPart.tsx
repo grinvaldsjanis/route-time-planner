@@ -1,7 +1,7 @@
 import React from "react";
 import { FaArrowsUpDown, FaStopwatch } from "react-icons/fa6";
 import { formatTimeFromSeconds } from "../../../utils/timeUtils";
-import { TrackPart as TrackPartType } from "../../../utils/parseGPX";
+import { TrackPart as TrackPartType } from "../../../utils/types";
 import "./TrackPart.css";
 import { useGlobalState } from "../../../context/GlobalContext";
 import { updateDurationMultiplier } from "../../../context/actions";

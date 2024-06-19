@@ -1,4 +1,4 @@
-import { Track } from "./parseGPX";
+import { Track } from "./types";
 
 export function calculateValueRange(
   tracks: Track[],

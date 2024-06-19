@@ -1,5 +1,5 @@
 import { LatLngTuple } from "leaflet";
-import { Waypoint } from "./parseGPX";
+import { Waypoint } from "./types";
 
 export const calculateBounds = (waypoints: Waypoint[]) => {
     if (!waypoints.length) return null;

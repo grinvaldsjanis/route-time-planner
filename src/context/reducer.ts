@@ -1,12 +1,12 @@
 // context/reducer.ts
 import { Action, UPDATE_DURATION_MULTIPLIER } from "./actions";
-import { GPXData } from "../utils/parseGPX";
 import { LatLngTuple } from "leaflet";
 import { TravelMode } from "../constants/travelModes";
 import calculateTravelTimes from "../utils/calculateTravelTimes";
 import calculateAverageCoordinate from "../utils/calculateAverageCoordinate";
 import calculateWaypointStatistics from "../utils/calculateWaypointStatistics";
 import calculateRelativeTimes from "../utils/calculateRelativeTimes";
+import { GPXData } from "../utils/types";
 
 export interface GlobalState {
   gpxData: GPXData | null;
@@ -125,7 +125,7 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
       };
 
       const averageCoord = calculateAverageCoordinate(
-        updatedGPXData.waypoints.map((wp) => ({
+        updatedGPXData.waypoints.map((wp: { lat: string; lon: string; }) => ({
           lat: parseFloat(wp.lat),
           lon: parseFloat(wp.lon),
         }))

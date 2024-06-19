@@ -1,5 +1,6 @@
 import calculateAngle from "./calculateAngle";
-import { TrackPoint, TrackSegment } from "./parseGPX";
+import haversineDistance from "./haversineDistance";
+import { TrackPoint, TrackSegment } from "./types";
 
 function interpolatePoints(
   p1: TrackPoint,
@@ -12,12 +13,13 @@ function interpolatePoints(
   const interpolatedLon = parseFloat(p1.lon) + distanceRatio * lonDiff;
   const eleDiff = (p2.ele ?? 0) - (p1.ele ?? 0);
   const interpolatedEle = (p1.ele ?? 0) + distanceRatio * eleDiff;
+  const roundedInterpolatedEle = Math.round(interpolatedEle * 100) / 100;
 
   return {
     ...p1,
-    lat: interpolatedLat.toString(),
-    lon: interpolatedLon.toString(),
-    ele: interpolatedEle,
+    lat: interpolatedLat.toFixed(6), // Ensuring lat and lon are also consistent
+    lon: interpolatedLon.toFixed(6), // Ensuring lat and lon are also consistent
+    ele: roundedInterpolatedEle,
   };
 }
 
@@ -48,9 +50,21 @@ function addInterpolatedPoints(
 
       if (distance > 0) {
         const distanceRatioBefore =
-          distance / calculateDistance(prevPoint, point);
+          distance /
+          haversineDistance(
+            parseFloat(prevPoint.lat),
+            parseFloat(prevPoint.lon),
+            parseFloat(point.lat),
+            parseFloat(point.lon)
+          );
         const distanceRatioAfter =
-          distance / calculateDistance(point, nextPoint);
+          distance /
+          haversineDistance(
+            parseFloat(point.lat),
+            parseFloat(point.lon),
+            parseFloat(nextPoint.lat),
+            parseFloat(nextPoint.lon)
+          );
 
         if (distanceRatioBefore <= 1) {
           const interpolatedBefore = interpolatePoints(
@@ -93,19 +107,3 @@ export function preprocessTrackSegments(
 
   return segments.map((segment) => addInterpolatedPoints(segment, distances));
 }
-
-function calculateDistance(p1: TrackPoint, p2: TrackPoint): number {
-  const R = 6371e3;
-  const lat1 = parseFloat(p1.lat) * Math.PI / 180;
-  const lat2 = parseFloat(p2.lat) * Math.PI / 180;
-  const deltaLat = (parseFloat(p2.lat) - parseFloat(p1.lat)) * Math.PI / 180;
-  const deltaLon = (parseFloat(p2.lon) - parseFloat(p1.lon)) * Math.PI / 180;
-
-  const a = Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
-            Math.cos(lat1) * Math.cos(lat2) *
-            Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-  return R * c;
-}
-

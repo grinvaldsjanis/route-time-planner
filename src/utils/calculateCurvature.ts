@@ -1,5 +1,5 @@
 import haversineDistance from "./haversineDistance";
-import { TrackPoint } from "./parseGPX";
+import { TrackPoint } from "./types";
 
 export default function calculateCurveRadius(
   p1: TrackPoint,
