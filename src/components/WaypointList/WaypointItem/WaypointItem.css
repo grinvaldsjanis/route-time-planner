@@ -78,13 +78,14 @@
 
 .timeinfo-wrapper {
   display: flex;
+  flex-direction: row;
   gap: 10px;
   justify-content: space-around;
   flex-direction: column;
-  align-items: center;
+  align-items: end;
   text-align: right;
   height: 2rem;
-  width: 175px;
+  width: 170px;
 }
 
 .arrival-departure {

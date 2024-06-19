@@ -1,18 +1,47 @@
+// src/App.tsx
+import React, { useState } from "react";
 import "./App.css";
 import FileUploader from "./components/FileUploader/FileUploader";
 import MapView from "./components/MapView/MapView";
 import WaypointList from "./components/WaypointList/WaypointList";
 import ScaleStrip from "./components/ScaleStrip/ScaleStrip";
 import { useGlobalState } from "./context/GlobalContext";
-import TravelModeSelector from "./components/TravelModeSelector/TravelModesSelector";
 import GPXDownloadButton from "./components/GPXDownloadButton/GPXDownloadButton";
 import { clearPreviousData } from "./context/actions";
+import Modal from "./components/Modal/Modal";
+import TravelModeSelector from "./components/TravelModeSelector/TravelModesSelector";
+import AboutContent from "./components/Modal/AboutContent";
+import parseGPX from "./utils/parseGPX";
+import travelModes from "./constants/travelModes";
 
 function App() {
-  const { state, dispatch  } = useGlobalState();
+  const { state, dispatch } = useGlobalState();
+  const [isModalOpen, setModalOpen] = useState(false);
 
   const handleClearData = () => {
     dispatch(clearPreviousData());
+  };
+
+  const toggleModal = () => {
+    setModalOpen(!isModalOpen);
+  };
+
+  const handleLoadStoredGPX = async () => {
+    try {
+      const response = await fetch("/files/Ziemeļkurzeme.gpx");
+      if (!response.ok) {
+        throw new Error("Failed to fetch the GPX file");
+      }
+      const text = await response.text();
+      dispatch(clearPreviousData());
+      const parsedGPXData = await parseGPX(
+        text,
+        state.travelMode as keyof typeof travelModes
+      );
+      dispatch({ type: "SET_GPX_DATA", payload: parsedGPXData });
+    } catch (error) {
+      console.error("Error loading GPX file:", error);
+    }
   };
 
   return (
@@ -29,18 +58,27 @@ function App() {
           </button>
         </div>
       </header>
-      {state.gpxData && (
-        <div className="App-main-container">
-          <div className="App-sidebar">
-            <TravelModeSelector />
-            <WaypointList />
+      <div className="App-main-container">
+        {!state.gpxData && (
+          <div className="try-stored-gpx">
+            <button onClick={handleLoadStoredGPX} className="try-button">
+              Try Example GPX
+            </button>
           </div>
-          <div className="App-graph-container">
-            <MapView />
-            <ScaleStrip />
-          </div>
-        </div>
-      )}
+        )}
+        {state.gpxData && (
+          <>
+            <div className="App-sidebar">
+              <TravelModeSelector />
+              <WaypointList />
+            </div>
+            <div className="App-graph-container">
+              <MapView />
+              <ScaleStrip />
+            </div>
+          </>
+        )}
+      </div>
       <footer className="footer">
         Under development by Janis Grinvalds.&emsp;
         <a
@@ -50,7 +88,14 @@ function App() {
         >
           Whatsapp group for issues/features
         </a>
+        &emsp;
+        <button onClick={toggleModal} className="about-button">
+          About
+        </button>
       </footer>
+      <Modal show={isModalOpen} onClose={toggleModal}>
+        <AboutContent />
+      </Modal>
     </div>
   );
 }

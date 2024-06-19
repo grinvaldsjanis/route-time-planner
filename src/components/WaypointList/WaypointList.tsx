@@ -35,19 +35,19 @@ const WaypointList: React.FC = () => {
       </div>
       <div className="resulting-info">
         <div className="total-summation">
-          <p>
+          <div>
             <strong>Distance:</strong> {state.totalDistance.toFixed(2)} km
-          </p>
-          <p>
+          </div>
+          <div>
             <strong>Road Time:</strong>{" "}
             {formatTimeFromSeconds(state.totalTravelTime)}
-          </p>
-          <p>
+          </div>
+          <div>
             <strong>Journey Time:</strong> {state.totalJourneyTime}
-          </p>
+          </div>
         </div>
         <div className="arrival-time">
-          <p>Arrival time</p>
+          <div>Arrival time</div>
           <div className="arrival-time-numbers">
             {formatTimeToHHMM(state.finalArrivalTime)}
           </div>

@@ -30,6 +30,7 @@
     display: flex;
     gap: 4px;
     flex-direction: row;
+    align-items: center;
     justify-content: end;
     padding-left: 10px;
   }

@@ -27,7 +27,7 @@ const TrackPart: React.FC<TrackPartProps> = ({ trackPart, index }) => {
         <FaArrowsUpDown />
       </div>
       <div className="track-part-info">
-        <p>Distance: {trackPart.distance.toFixed(1)} km</p>
+        <div>Distance: {trackPart.distance.toFixed(1)} km</div>
         <SegmentedControl
           key={index}
           options={multipliers}
@@ -38,11 +38,11 @@ const TrackPart: React.FC<TrackPartProps> = ({ trackPart, index }) => {
           <div className="track-part-stopwatch">
             <FaStopwatch />
           </div>
-          <p>
+          <div>
             {formatTimeFromSeconds(
               Math.round(trackPart.travelTime * trackPart.durationMultiplier)
             )}
-          </p>
+          </div>
         </div>
       </div>
     </div>

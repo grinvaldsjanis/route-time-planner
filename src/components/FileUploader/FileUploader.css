@@ -64,7 +64,7 @@ input[type="file"]::file-selector-button {
   align-self: center;
   font-size: 14px;
   font-weight: 400;
-  line-height: 1;
+  line-height: 1.2;
   margin: 10px;
   padding: 7px 10px;
   text-decoration: none;

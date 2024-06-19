@@ -40,7 +40,7 @@ const TimeSelector: React.FC = () => {
 
   return (
     <div id="time_wrapper">
-      <p>Departure time</p>
+      <div>Departure time</div>
       <div id="time_input">
         <label htmlFor="hours">
           <input

@@ -9,10 +9,8 @@
 }
 
 .App-logo {
-
   background-repeat: no-repeat, repeat;
   background-position: left center;
-
 }
 
 .App-header {
@@ -38,6 +36,7 @@
   flex-direction: column;
   width: 100%;
   overflow-y: auto;
+  height: 100%;
 }
 
 .App-sidebar {
@@ -57,10 +56,34 @@
   align-items: center;
   justify-content: center;
   border-top: 1px solid black;
+  position: relative;
+}
+
+.try-stored-gpx {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.try-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 1rem;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.try-button:hover {
+  background-color: #0056b3;
 }
 
 /* Media Queries */
-@media (min-width: 768px) { /* Adjustments for tablets and desktops */
+@media (min-width: 768px) {
+  /* Adjustments for tablets and desktops */
   .App-main-container {
     display: flex;
     flex-direction: row;
@@ -77,7 +100,7 @@
 
   .App-graph-container {
     height: calc(100vh - 200px);
-    position: relative; 
+    position: relative;
   }
 
   .App-logo {

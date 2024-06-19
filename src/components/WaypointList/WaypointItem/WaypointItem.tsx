@@ -44,18 +44,18 @@ const WaypointItem: React.FC<WaypointItemProps> = ({ index }) => {
 
   let timeInfo;
   if (waypoint?.type === "start") {
-    timeInfo = <p>Departure: {departureTime}</p>;
+    timeInfo = <div>Departure: {departureTime}</div>;
   } else if (waypoint?.type === "destination") {
-    timeInfo = <p>Arrival: {arrivalTime}</p>;
+    timeInfo = <div>Arrival: {arrivalTime}</div>;
   } else {
     timeInfo =
       stopTime > 0 ? (
         <div className="arrival-departure">
-          <p>Arrival: {arrivalTime}</p>
-          <p>Departure: {departureTime}</p>
+          <div>Arrival: {arrivalTime}</div>
+          <div>Departure: {departureTime}</div>
         </div>
       ) : (
-        <p>Pass: {arrivalTime}</p>
+        <div>Pass: {arrivalTime}</div>
       );
   }
 
