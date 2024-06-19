@@ -26,18 +26,23 @@ function App() {
     setModalOpen(!isModalOpen);
   };
 
+  const gpxFilePath =
+    process.env.REACT_APP_PUBLIC_FILES_URL + "/Ziemelkurzeme.gpx";
+
   const handleLoadStoredGPX = async () => {
     try {
-      const response = await fetch("/files/Ziemeļkurzeme.gpx");
+      const response = await fetch(gpxFilePath);
       if (!response.ok) {
         throw new Error("Failed to fetch the GPX file");
       }
       const text = await response.text();
+      console.log("Fetched GPX Data:", text); // Debugging line
       dispatch(clearPreviousData());
       const parsedGPXData = await parseGPX(
         text,
         state.travelMode as keyof typeof travelModes
       );
+      console.log("Parsed GPX Data:", parsedGPXData); // Debugging line
       dispatch({ type: "SET_GPX_DATA", payload: parsedGPXData });
     } catch (error) {
       console.error("Error loading GPX file:", error);
@@ -80,9 +85,7 @@ function App() {
         )}
       </div>
       <footer className="footer">
-        Under development by Janis Grinvalds.&emsp;
-       
-        &emsp;
+        Under development by Janis Grinvalds.&emsp; &emsp;
         <button onClick={toggleModal} className="about-button">
           About
         </button>

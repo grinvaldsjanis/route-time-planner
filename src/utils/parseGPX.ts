@@ -15,7 +15,6 @@ import {
 import isWithinApproximateDistance from "./isWithinApproximateDistance";
 import haversineDistance from "./haversineDistance";
 
-
 export default async function parseGPX(
   gpxContent: string,
   modeKey: string
@@ -104,7 +103,7 @@ export default async function parseGPX(
       for (let k = 1; k < segment.points.length; k++) {
         const prevPt = segment.points[k - 1];
         const currentPt = segment.points[k];
-        
+
         const distance = haversineDistance(
           parseFloat(prevPt.lat),
           parseFloat(prevPt.lon),
@@ -114,11 +113,10 @@ export default async function parseGPX(
 
         currentPt.slope = calculateSlope(prevPt, currentPt);
 
-        console.log(`Ele1: ${prevPt.ele}, Ele2: ${currentPt.ele}`, `Dis: ${distance}`, `Slo: ${currentPt.slope}`);
+        // console.log(`Ele1: ${prevPt.ele}, Ele2: ${currentPt.ele}`, `Dis: ${distance}`, `Slo: ${currentPt.slope}`);
       }
     });
   });
-  
 
   for (let i = 0; i < waypoints.length; i++) {
     const wpt = waypoints[i];
@@ -212,5 +210,3 @@ function parseWaypoint(
   console.warn("Skipping point with missing lat or lon");
   return null;
 }
-
-
