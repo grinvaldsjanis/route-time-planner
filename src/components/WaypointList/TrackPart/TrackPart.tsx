@@ -40,7 +40,7 @@ const TrackPart: React.FC<TrackPartProps> = ({ trackPart, index }) => {
           </div>
           <p>
             {formatTimeFromSeconds(
-              trackPart.travelTime * trackPart.durationMultiplier
+              Math.round(trackPart.travelTime * trackPart.durationMultiplier)
             )}
           </p>
         </div>
