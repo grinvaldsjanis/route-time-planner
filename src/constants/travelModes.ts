@@ -71,7 +71,7 @@ const travelModes = {
     terrain: "off-road",
     description: "Dirt bikes for rough terrain",
   },
-  "Moderate Gravel ride": {
+  "Moderate Gravel Ride": {
     maxSpeed: 100,
     handlingFactor: 0.8,
     powerFactor: 0.7,

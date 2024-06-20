@@ -63,7 +63,7 @@ export default async function parseGPX(
     );
   }
 
-  const parsedWaypoints: Waypoint[] = [];
+  let parsedWaypoints: Waypoint[] = [];
   const parsedTracks: Track[] = [];
   const pointsWithoutElevation: { lat: number; lon: number }[] = [];
 
@@ -141,6 +141,14 @@ export default async function parseGPX(
     const wpt = waypoints[i];
     const parsedWpt = parseWaypoint(wpt) as Waypoint;
 
+    if (parsedWpt) {
+      if (i === 0) {
+        parsedWpt.type = "start";
+      } else if (i === waypoints.length - 1) {
+        parsedWpt.type = "destination";
+      }
+    }
+
     if (parsedWpt && parsedWpt.type !== "shaping") {
       let isClose = false;
       let closestTrackPointRef: TrackPointRef | undefined;
@@ -175,22 +183,8 @@ export default async function parseGPX(
     }
   }
 
-  parsedWaypoints.sort((a, b) => {
-    if (a.closestTrackpoint && b.closestTrackpoint) {
-      if (a.closestTrackpoint.trackIndex !== b.closestTrackpoint.trackIndex) {
-        return a.closestTrackpoint.trackIndex - b.closestTrackpoint.trackIndex;
-      }
-      if (
-        a.closestTrackpoint.segmentIndex !== b.closestTrackpoint.segmentIndex
-      ) {
-        return (
-          a.closestTrackpoint.segmentIndex - b.closestTrackpoint.segmentIndex
-        );
-      }
-      return a.closestTrackpoint.pointIndex - b.closestTrackpoint.pointIndex;
-    }
-    return 0;
-  });
+  parsedWaypoints = sortWaypoints(parsedWaypoints);
+
 
   return {
     gpxName,
@@ -239,4 +233,31 @@ function parseWaypoint(
 
   console.warn("Skipping point with missing lat or lon");
   return null;
+}
+
+function sortWaypoints(waypoints: Waypoint[]): Waypoint[] {
+  // Perform sorting with additional iterations if necessary
+  let sorted = false;
+  while (!sorted) {
+    sorted = true;
+    for (let i = 0; i < waypoints.length - 1; i++) {
+      const a = waypoints[i];
+      const b = waypoints[i + 1];
+      if (
+        a.closestTrackpoint &&
+        b.closestTrackpoint &&
+        (a.closestTrackpoint.trackIndex > b.closestTrackpoint.trackIndex ||
+          (a.closestTrackpoint.trackIndex === b.closestTrackpoint.trackIndex &&
+            a.closestTrackpoint.segmentIndex > b.closestTrackpoint.segmentIndex) ||
+          (a.closestTrackpoint.trackIndex === b.closestTrackpoint.trackIndex &&
+            a.closestTrackpoint.segmentIndex === b.closestTrackpoint.segmentIndex &&
+            a.closestTrackpoint.pointIndex > b.closestTrackpoint.pointIndex))
+      ) {
+        // Swap a and b
+        [waypoints[i], waypoints[i + 1]] = [waypoints[i + 1], waypoints[i]];
+        sorted = false;
+      }
+    }
+  }
+  return waypoints;
 }

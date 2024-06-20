@@ -8,6 +8,17 @@ const calculateTravelTime = (
   modeKey: keyof typeof travelModes
 ): number[] => {
   const mode = travelModes[modeKey];
+
+  if (!mode) {
+    console.error("Invalid travel mode key:", modeKey);
+    return [];
+  }
+
+  if (mode.powerFactor === undefined) {
+    console.error("Power factor is missing for mode:", modeKey);
+    return [];
+  }
+
   return trackParts.map((trackPart) => {
     let totalTime = 0;
 
