@@ -1,4 +1,3 @@
-// src/App.tsx
 import React, { useState } from "react";
 import "./App.css";
 import FileUploader from "./components/FileUploader/FileUploader";
@@ -36,13 +35,11 @@ function App() {
         throw new Error("Failed to fetch the GPX file");
       }
       const text = await response.text();
-      console.log("Fetched GPX Data:", text); // Debugging line
       dispatch(clearPreviousData());
       const parsedGPXData = await parseGPX(
         text,
         state.travelMode as keyof typeof travelModes
       );
-      console.log("Parsed GPX Data:", parsedGPXData); // Debugging line
       dispatch({ type: "SET_GPX_DATA", payload: parsedGPXData });
     } catch (error) {
       console.error("Error loading GPX file:", error);

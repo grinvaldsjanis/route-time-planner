@@ -32,8 +32,8 @@ const EditableText: React.FC<EditableTextProps> = ({ text, onTextChange }) => {
   };
 
   const handleEditButtonClick = (event: React.MouseEvent) => {
-    event.stopPropagation(); // Prevent the container's click event
-    handleFocus(); // Trigger the editing mode
+    event.stopPropagation();
+    handleFocus();
   };
 
   return (

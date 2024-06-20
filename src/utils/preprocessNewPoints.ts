@@ -17,8 +17,8 @@ function interpolatePoints(
 
   return {
     ...p1,
-    lat: interpolatedLat.toFixed(6), // Ensuring lat and lon are also consistent
-    lon: interpolatedLon.toFixed(6), // Ensuring lat and lon are also consistent
+    lat: interpolatedLat.toFixed(6),
+    lon: interpolatedLon.toFixed(6),
     ele: roundedInterpolatedEle,
   };
 }

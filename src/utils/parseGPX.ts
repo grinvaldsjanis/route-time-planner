@@ -104,16 +104,8 @@ export default async function parseGPX(
         const prevPt = segment.points[k - 1];
         const currentPt = segment.points[k];
 
-        const distance = haversineDistance(
-          parseFloat(prevPt.lat),
-          parseFloat(prevPt.lon),
-          parseFloat(currentPt.lat),
-          parseFloat(currentPt.lon)
-        );
-
         currentPt.slope = calculateSlope(prevPt, currentPt);
 
-        // console.log(`Ele1: ${prevPt.ele}, Ele2: ${currentPt.ele}`, `Dis: ${distance}`, `Slo: ${currentPt.slope}`);
       }
     });
   });

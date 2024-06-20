@@ -55,7 +55,6 @@ const GPXDownloadButton: React.FC = () => {
   };
 
   const downloadGPX = (gpxString: string, rawFilename: string) => {
-    // Add ".gpx" extension within the sanitization function
     const sanitizedFilename = `${sanitizeFilename(rawFilename)}.gpx`;
     const blob = new Blob([gpxString], { type: "application/gpx+xml" });
     const url = URL.createObjectURL(blob);

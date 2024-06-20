@@ -1,4 +1,3 @@
-// context/reducer.ts
 import { Action, UPDATE_DURATION_MULTIPLIER } from "./actions";
 import { LatLngTuple } from "leaflet";
 import travelModes, { TravelMode } from "../constants/travelModes";
@@ -163,7 +162,7 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
         ...initialState,
         mapMode: state.mapMode,
         travelMode: state.travelMode,
-        gpxData: null, // Ensure gpxData is reset to null
+        gpxData: null,
       };
 
     case "SET_GPX_DATA": {
@@ -274,7 +273,6 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
 
       setLocalStorage("gpxData", updatedGPXDataWithStops);
 
-      // Recalculate journey statistics based on updated stop times
       const {
         totalDistance,
         totalTravelTime,
@@ -282,7 +280,6 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
         finalArrivalTime,
       } = calculateWaypointStatistics(updatedGPXDataWithStops, state.startTime);
 
-      // Recalculate relative times
       const updatedWaypointsWithTimes = calculateRelativeTimes(
         updatedGPXDataWithStops.waypoints,
         updatedGPXDataWithStops.trackParts

@@ -22,7 +22,6 @@ export default function calculateWaypointStatistics(
       };
     }
   
-    // Ensure startTime has a valid fallback value
     const [startHour, startMinute] = (startTime ?? "08:00").split(":").map(Number);
     const startTimeSeconds = minutesToSeconds(startHour * 60 + startMinute);
   

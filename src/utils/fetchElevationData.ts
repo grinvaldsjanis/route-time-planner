@@ -28,13 +28,10 @@ export async function fetchElevationData(
     });
     const elevations = response.data.results.map((result: ElevationResult) => result.elevation);
 
-    // Log elevations for debugging
-    // console.log("Fetched Elevations:", elevations);
 
-    // Ensure elevations are valid
     return elevations.map((elevation: number | null) => elevation !== null ? elevation : 0);
   } catch (error) {
     console.error("Error fetching elevation data:", error);
-    return coordinates.map(() => 0); // Return 0 if there is an error
+    return coordinates.map(() => 0);
   }
 }

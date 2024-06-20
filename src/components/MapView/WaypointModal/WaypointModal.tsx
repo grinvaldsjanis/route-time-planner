@@ -15,7 +15,6 @@ const WaypointModal: React.FC<WaypointModalProps> = ({
 }) => {
   const modalContentRef = useRef<HTMLDivElement | null>(null);
 
-  // Function to handle closing modal when clicking outside
   const handleClickOutside = (event: MouseEvent) => {
     if (
       modalContentRef.current &&
@@ -27,10 +26,8 @@ const WaypointModal: React.FC<WaypointModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      // Attach event listener to capture clicks outside the modal
       document.addEventListener("mousedown", handleClickOutside);
     } else {
-      // Clean up listener when modal is closed
       document.removeEventListener("mousedown", handleClickOutside);
     }
 

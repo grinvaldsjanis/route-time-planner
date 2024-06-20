@@ -132,7 +132,7 @@ const MapView: React.FC = () => {
         isProgrammaticMoveRef.current = true;
         dispatch(setIsProgrammaticMove(true));
         dispatch(setMapCenter(newCenter));
-        dispatch(setMapZoom(15)); // Optionally set a zoom level
+        dispatch(setMapZoom(15));
       }
     }
   }, [selectedWaypointIndex, gpxData, dispatch]);
