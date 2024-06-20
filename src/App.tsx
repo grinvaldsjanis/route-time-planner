@@ -11,7 +11,6 @@ import Modal from "./components/Modal/Modal";
 import TravelModeSelector from "./components/TravelModeSelector/TravelModesSelector";
 import AboutContent from "./components/Modal/AboutContent";
 import parseGPX from "./utils/parseGPX";
-import travelModes from "./constants/travelModes";
 
 function App() {
   const { state, dispatch } = useGlobalState();
@@ -30,16 +29,27 @@ function App() {
 
   const handleLoadStoredGPX = async () => {
     try {
-      const response = await fetch(gpxFilePath);
+      const response = await fetch(gpxFilePath, {
+        headers: {
+          "Cache-Control": "no-cache",
+          Pragma: "no-cache",
+          "If-Modified-Since": "0",
+        },
+      });
       if (!response.ok) {
         throw new Error("Failed to fetch the GPX file");
       }
       const text = await response.text();
+      console.log("Fetched GPX File Content:", text);
+
+      // Check if the content is an HTML document
+      if (text.startsWith("<!DOCTYPE html>")) {
+        console.error("Fetched content is HTML, not a GPX file.");
+        throw new Error("Fetched content is HTML, not a GPX file.");
+      }
+
       dispatch(clearPreviousData());
-      const parsedGPXData = await parseGPX(
-        text,
-        state.travelMode as keyof typeof travelModes
-      );
+      const parsedGPXData = await parseGPX(text);
       dispatch({ type: "SET_GPX_DATA", payload: parsedGPXData });
     } catch (error) {
       console.error("Error loading GPX file:", error);

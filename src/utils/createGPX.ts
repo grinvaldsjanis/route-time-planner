@@ -109,11 +109,6 @@ export default function createGPX(gpxData: GPXData, startTime: string, gpxName: 
           ele.textContent = point.ele.toString();
           trkpt.appendChild(ele);
         }
-        if (point.time) {
-          const time = xmlDoc.createElement("time");
-          time.textContent = point.time;
-          trkpt.appendChild(time);
-        }
         trkseg.appendChild(trkpt);
       });
       trk.appendChild(trkseg);

@@ -1,4 +1,3 @@
-import travelModes from "../constants/travelModes";
 import calculateCurveRadius from "./calculateCurvature";
 import calculateSlope from "./calculateSlope";
 import calculateTrackParts from "./calculateTrackParts";
@@ -13,61 +12,90 @@ import {
   TrackPointRef,
 } from "./types";
 import isWithinApproximateDistance from "./isWithinApproximateDistance";
-import haversineDistance from "./haversineDistance";
 
 export default async function parseGPX(
   gpxContent: string,
-  modeKey: string
+  trackIndex: number = 0,
+  maxProximityDistance: number = 1
 ): Promise<GPXData> {
-  if (!(modeKey in travelModes)) {
-    throw new Error("Invalid travel mode key");
-  }
+  console.log("Raw GPX Content:", gpxContent);
 
   const parser = new DOMParser();
   const xmlDoc = parser.parseFromString(gpxContent, "application/xml");
 
+  if (xmlDoc.getElementsByTagName("parsererror").length > 0) {
+    console.error(
+      "Error parsing XML:",
+      xmlDoc.getElementsByTagName("parsererror")[0]
+    );
+    throw new Error("Error parsing XML");
+  }
+
+  console.log("Parsed XML Document:", xmlDoc);
+
   const gpxName =
     xmlDoc.getElementsByTagName("metadata")[0]?.getElementsByTagName("name")[0]
       ?.textContent || null;
+  console.log("GPX Name:", gpxName);
+
   let waypoints = xmlDoc.getElementsByTagName("wpt");
   const routePoints = xmlDoc.getElementsByTagName("rtept");
-  const tracks = xmlDoc.getElementsByTagName("trk");
+  console.log("Number of Waypoints:", waypoints.length);
+  console.log("Number of Route Points:", routePoints.length);
 
   if (waypoints.length === 0 && routePoints.length > 0) {
     waypoints = routePoints;
+  }
+
+  const gpxNamespaceURI =
+    xmlDoc.documentElement.namespaceURI || "http://www.topografix.com/GPX/1/1";
+  console.log("GPX Namespace URI:", gpxNamespaceURI);
+
+  const tracks = xmlDoc.getElementsByTagNameNS(gpxNamespaceURI, "trk");
+  console.log("Number of Tracks Found:", tracks.length);
+
+  if (tracks.length === 0) {
+    throw new Error("No tracks found in the GPX file.");
+  }
+  if (trackIndex < 0 || trackIndex >= tracks.length) {
+    throw new Error(
+      `Invalid track index specified. The GPX file contains ${tracks.length} tracks.`
+    );
   }
 
   const parsedWaypoints: Waypoint[] = [];
   const parsedTracks: Track[] = [];
   const pointsWithoutElevation: { lat: number; lon: number }[] = [];
 
-  for (let i = 0; i < tracks.length; i++) {
-    const trk = tracks[i];
-    const name = trk.getElementsByTagName("name")[0]?.textContent;
-    const trksegs = trk.getElementsByTagName("trkseg");
+  const trk = tracks[trackIndex];
+  const name =
+    trk.getElementsByTagNameNS(gpxNamespaceURI, "name")[0]?.textContent || null;
+  console.log("Track Name:", name);
 
-    const segments: TrackSegment[] = [];
-    for (let j = 0; j < trksegs.length; j++) {
-      const seg = trksegs[j];
-      const trkpts = seg.getElementsByTagName("trkpt");
-      let points: TrackPoint[] = [];
+  const trksegs = trk.getElementsByTagNameNS(gpxNamespaceURI, "trkseg");
+  console.log("Number of Track Segments:", trksegs.length);
 
-      for (let k = 0; k < trkpts.length; k++) {
-        const pt = parseWaypoint(trkpts[k], true) as TrackPoint;
-        if (pt) {
-          points.push(pt);
-          if (pt.ele === null) {
-            pointsWithoutElevation.push({
-              lat: parseFloat(pt.lat),
-              lon: parseFloat(pt.lon),
-            });
-          }
+  const segments: TrackSegment[] = [];
+  for (let j = 0; j < trksegs.length; j++) {
+    const seg = trksegs[j];
+    const trkpts = seg.getElementsByTagNameNS(gpxNamespaceURI, "trkpt");
+    let points: TrackPoint[] = [];
+
+    for (let k = 0; k < trkpts.length; k++) {
+      const pt = parseWaypoint(trkpts[k], true) as TrackPoint;
+      if (pt) {
+        points.push(pt);
+        if (pt.ele === null) {
+          pointsWithoutElevation.push({
+            lat: parseFloat(pt.lat),
+            lon: parseFloat(pt.lon),
+          });
         }
       }
-      segments.push({ points });
     }
-    parsedTracks.push({ name, segments });
+    segments.push({ points });
   }
+  parsedTracks.push({ name, segments });
 
   if (pointsWithoutElevation.length > 0) {
     const elevations = await fetchElevationData(pointsWithoutElevation);
@@ -105,7 +133,6 @@ export default async function parseGPX(
         const currentPt = segment.points[k];
 
         currentPt.slope = calculateSlope(prevPt, currentPt);
-
       }
     });
   });
@@ -115,7 +142,7 @@ export default async function parseGPX(
     const parsedWpt = parseWaypoint(wpt) as Waypoint;
 
     if (parsedWpt && parsedWpt.type !== "shaping") {
-      let closestDistance = Infinity;
+      let isClose = false;
       let closestTrackPointRef: TrackPointRef | undefined;
 
       parsedTracks.forEach((track, trackIndex) => {
@@ -126,37 +153,50 @@ export default async function parseGPX(
                 parseFloat(parsedWpt.lat),
                 parseFloat(parsedWpt.lon),
                 parseFloat(point.lat),
-                parseFloat(point.lon)
+                parseFloat(point.lon),
+                maxProximityDistance
               )
             ) {
-              const distance = Math.sqrt(
-                Math.pow(parseFloat(parsedWpt.lat) - parseFloat(point.lat), 2) +
-                  Math.pow(parseFloat(parsedWpt.lon) - parseFloat(point.lon), 2)
-              );
-
-              if (distance < closestDistance) {
-                closestDistance = distance;
-                closestTrackPointRef = { trackIndex, segmentIndex, pointIndex };
-              }
+              isClose = true;
+              closestTrackPointRef = { trackIndex, segmentIndex, pointIndex };
             }
           });
         });
       });
 
-      parsedWpt.closestTrackpoint = closestTrackPointRef;
-      parsedWaypoints.push(parsedWpt);
+      if (isClose) {
+        parsedWpt.closestTrackpoint = closestTrackPointRef;
+        parsedWaypoints.push(parsedWpt);
+      } else {
+        // console.warn(
+        //   `Waypoint ${parsedWpt.name} is too far from the track and will be skipped.`
+        // );
+      }
     }
   }
+
+  parsedWaypoints.sort((a, b) => {
+    if (a.closestTrackpoint && b.closestTrackpoint) {
+      if (a.closestTrackpoint.trackIndex !== b.closestTrackpoint.trackIndex) {
+        return a.closestTrackpoint.trackIndex - b.closestTrackpoint.trackIndex;
+      }
+      if (
+        a.closestTrackpoint.segmentIndex !== b.closestTrackpoint.segmentIndex
+      ) {
+        return (
+          a.closestTrackpoint.segmentIndex - b.closestTrackpoint.segmentIndex
+        );
+      }
+      return a.closestTrackpoint.pointIndex - b.closestTrackpoint.pointIndex;
+    }
+    return 0;
+  });
 
   return {
     gpxName,
     waypoints: parsedWaypoints,
     tracks: parsedTracks,
-    trackParts: calculateTrackParts(
-      parsedWaypoints,
-      parsedTracks,
-      modeKey as keyof typeof travelModes
-    ),
+    trackParts: calculateTrackParts(parsedWaypoints, parsedTracks),
   };
 }
 
@@ -173,7 +213,6 @@ function parseWaypoint(
 
   if (lat !== null && lon !== null) {
     let ele: number | null = null;
-    let time = element.getElementsByTagName("time")[0]?.textContent || null;
 
     if (isTrackPoint) {
       const eleText = element.getElementsByTagName("ele")[0]?.textContent;
@@ -188,7 +227,6 @@ function parseWaypoint(
         desc,
         sym,
         ele,
-        time,
         curve: null,
         slope: null,
       };

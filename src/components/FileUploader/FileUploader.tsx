@@ -3,11 +3,10 @@ import "./FileUploader.css";
 import { FaUpload } from "react-icons/fa6";
 import { useGlobalState } from "../../context/GlobalContext";
 import parseGPX from "../../utils/parseGPX";
-import travelModes from "../../constants/travelModes";
 import { clearPreviousData } from "../../context/actions";
 
 const FileUploader: React.FC = () => {
-  const { state, dispatch } = useGlobalState();
+  const { dispatch } = useGlobalState();
 
   const handleFileChange = async (
     event: React.ChangeEvent<HTMLInputElement>
@@ -20,7 +19,6 @@ const FileUploader: React.FC = () => {
         dispatch(clearPreviousData());
         const parsedGPXData = await parseGPX(
           text,
-          state.travelMode as keyof typeof travelModes
         );
         dispatch({ type: "SET_GPX_DATA", payload: parsedGPXData });
       };

@@ -40,7 +40,6 @@ export interface TrackPointRef {
     lat: string;
     lon: string;
     ele: number | null;
-    time: string | null;
     curve: number | null;
     slope: number | null;
   }
