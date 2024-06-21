@@ -1,4 +1,4 @@
-import { Action, UPDATE_DURATION_MULTIPLIER } from "./actions";
+import { Action } from "./actions";
 import { LatLngTuple } from "leaflet";
 import travelModes, { TravelMode } from "../constants/travelModes";
 import calculateTravelTimes from "../utils/calculateTravelTimes";
@@ -21,6 +21,8 @@ export interface GlobalState {
   focusedWaypointIndex: number | null;
   startTime: string;
   isProgrammaticMove: boolean;
+  inProgress: boolean,
+  progressText: string,
 }
 
 const setLocalStorage = (key: string, value: any): void => {
@@ -63,6 +65,8 @@ export const initialState: GlobalState = {
   totalTravelTime: 0,
   totalJourneyTime: "0:00",
   finalArrivalTime: "0:00",
+  inProgress: false,
+  progressText: "",
 };
 
 if (initialState.gpxData) {
@@ -77,6 +81,14 @@ if (initialState.gpxData) {
 
 export const reducer = (state: GlobalState, action: Action): GlobalState => {
   switch (action.type) {
+    case "SET_IN_PROGRESS": {
+      return {
+        ...state,
+        inProgress: action.payload.inProgress,
+        progressText: action.payload.text,
+      };
+    }
+
     case "INITIALIZE_STATE": {
       const gpxData = action.payload.gpxData;
       let waypointStats = {
@@ -302,7 +314,7 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
       };
     }
 
-    case UPDATE_DURATION_MULTIPLIER: {
+    case "UPDATE_DURATION_MULTIPLIER": {
       const { index, multiplier } = action.payload;
 
       if (!state.gpxData || !state.gpxData.trackParts) return state;

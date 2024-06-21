@@ -6,11 +6,12 @@ import WaypointList from "./components/WaypointList/WaypointList";
 import ScaleStrip from "./components/ScaleStrip/ScaleStrip";
 import { useGlobalState } from "./context/GlobalContext";
 import GPXDownloadButton from "./components/GPXDownloadButton/GPXDownloadButton";
-import { clearPreviousData } from "./context/actions";
+import { clearPreviousData, setInProgress } from "./context/actions";
 import Modal from "./components/Modal/Modal";
 import TravelModeSelector from "./components/TravelModeSelector/TravelModesSelector";
 import AboutContent from "./components/Modal/AboutContent";
 import parseGPX from "./utils/parseGPX";
+import ProgressIndicator from "./components/ProgressIndicator/ProgressIndicator";
 
 function App() {
   const { state, dispatch } = useGlobalState();
@@ -28,6 +29,7 @@ function App() {
     process.env.REACT_APP_PUBLIC_FILES_URL + "/Ziemelkurzeme.gpx";
 
   const handleLoadStoredGPX = async () => {
+    dispatch(setInProgress(true, "Loading"));
     try {
       const response = await fetch(gpxFilePath, {
         headers: {
@@ -49,10 +51,13 @@ function App() {
       }
 
       dispatch(clearPreviousData());
+      dispatch(setInProgress(true, "Processing GPX"));
       const parsedGPXData = await parseGPX(text);
       dispatch({ type: "SET_GPX_DATA", payload: parsedGPXData });
     } catch (error) {
       console.error("Error loading GPX file:", error);
+    } finally {
+      dispatch(setInProgress(false, ""));
     }
   };
 
@@ -74,10 +79,11 @@ function App() {
         {!state.gpxData && (
           <div className="try-stored-gpx">
             <button onClick={handleLoadStoredGPX} className="try-button">
-              Try Example GPX
+              Try Example GPX!
             </button>
           </div>
         )}
+        {state.inProgress && <ProgressIndicator text={state.progressText} />}
         {state.gpxData && (
           <>
             <div className="App-sidebar">

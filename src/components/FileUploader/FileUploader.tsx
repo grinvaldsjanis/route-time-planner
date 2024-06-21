@@ -3,7 +3,7 @@ import "./FileUploader.css";
 import { FaUpload } from "react-icons/fa6";
 import { useGlobalState } from "../../context/GlobalContext";
 import parseGPX from "../../utils/parseGPX";
-import { clearPreviousData } from "../../context/actions";
+import { clearPreviousData, setInProgress } from "../../context/actions";
 
 const FileUploader: React.FC = () => {
   const { dispatch } = useGlobalState();
@@ -13,14 +13,20 @@ const FileUploader: React.FC = () => {
   ) => {
     const file = event.target.files?.[0];
     if (file) {
+      dispatch(setInProgress(true, "Loading"));
       const reader = new FileReader();
       reader.onload = async (e: ProgressEvent<FileReader>) => {
-        const text = e.target?.result as string;
-        dispatch(clearPreviousData());
-        const parsedGPXData = await parseGPX(
-          text,
-        );
-        dispatch({ type: "SET_GPX_DATA", payload: parsedGPXData });
+        try {
+          const text = e.target?.result as string;
+          dispatch(clearPreviousData());
+          dispatch(setInProgress(true, "Processing GPX"));
+          const parsedGPXData = await parseGPX(text);
+          dispatch({ type: "SET_GPX_DATA", payload: parsedGPXData });
+        } catch (error) {
+          console.error("Error parsing GPX file:", error);
+        } finally {
+          dispatch(setInProgress(false, ""));
+        }
       };
       reader.readAsText(file);
     }
