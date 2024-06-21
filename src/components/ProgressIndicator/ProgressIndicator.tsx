@@ -11,7 +11,7 @@ const ProgressIndicator: React.FC<ProgressIndicatorProps> = ({ text }) => {
   useEffect(() => {
     const timeout = setTimeout(() => {
       setVisible(true);
-    }, 10); // Small delay to trigger the transition
+    }, 10);
 
     return () => clearTimeout(timeout);
   }, []);
@@ -19,7 +19,7 @@ const ProgressIndicator: React.FC<ProgressIndicatorProps> = ({ text }) => {
   return (
     <div className={`progress-indicator-overlay ${visible ? "visible" : ""}`}>
       <div className="progress-indicator-content">
-        <div className="spinner"></div>
+        <div className="loader"></div>
         <div>{text}</div>
       </div>
     </div>
