@@ -15,13 +15,15 @@ const debounce = (func: Function, wait: number) => {
 
 const ScaleStrip: React.FC = () => {
   const { state, dispatch } = useGlobalState();
-  const { gpxData, mapMode } = state;
+  const { gpxData, mapMode, highlightMode } = state;
   const tracks = gpxData?.tracks;
   const stripRef = useRef<HTMLDivElement | null>(null);
 
-  const [range, setRange] = useState({ minValue: 0, maxValue: 0 });
+  const [range, setRange] = useState({ minValue: 0, maxValue: 100 });
   const [hasNoRange, setHasNoRange] = useState(false);
   const isMouseInsideRef = useRef(false);
+  const [isMouseInside, setIsMouseInside] = useState(false);
+  const [localHighlightRange, setLocalHighlightRange] = useState<[number, number]>([0, 0]);
 
   useEffect(() => {
     if (!tracks || !mapMode) {
@@ -80,7 +82,7 @@ const ScaleStrip: React.FC = () => {
   const updateHighlight = useCallback(
     debounce((value: number) => {
       if (isMouseInsideRef.current) {
-        const tolerance = (range.maxValue - range.minValue) * 0.2;
+        const tolerance = (range.maxValue - range.minValue) * 0.06;
         const highlightRange: [number, number] = [
           value - tolerance,
           value + tolerance,
@@ -90,6 +92,18 @@ const ScaleStrip: React.FC = () => {
     }, 200),
     [range, dispatch]
   );
+
+  const handleMouseEnter = () => {
+    isMouseInsideRef.current = true;
+    setIsMouseInside(true);
+  };
+
+  const handleMouseLeave = () => {
+    isMouseInsideRef.current = false;
+    setIsMouseInside(false);
+    setLocalHighlightRange([0, 0]);
+    dispatch(setHighlight([0, 0], false));
+  };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!stripRef.current) return;
@@ -101,16 +115,34 @@ const ScaleStrip: React.FC = () => {
       range.minValue +
       (offsetX / stripWidth) * (range.maxValue - range.minValue);
 
+    const tolerance = (range.maxValue - range.minValue) * 0.1;
+    const newHighlightRange: [number, number] = [
+      value - tolerance,
+      value + tolerance,
+    ];
+
+    setLocalHighlightRange(newHighlightRange);
     updateHighlight(value);
   };
 
-  const handleMouseEnter = () => {
-    isMouseInsideRef.current = true;
-  };
+  const getHighlightStyle = () => {
+    if (!highlightMode) return { left: 0, right: 0, opacity: 0 };
 
-  const handleMouseLeave = () => {
-    isMouseInsideRef.current = false;
-    dispatch(setHighlight([0, 0], false));
+    const left =
+      ((localHighlightRange[0] - range.minValue) /
+        (range.maxValue - range.minValue)) *
+      100;
+    const right =
+      100 -
+      ((localHighlightRange[1] - range.minValue) /
+        (range.maxValue - range.minValue)) *
+        100;
+
+    return {
+      left: `${left}%`,
+      right: `${right}%`,
+      opacity: 1,
+    };
   };
 
   return (
@@ -125,7 +157,9 @@ const ScaleStrip: React.FC = () => {
         <div className="no-range">There's no range for the data</div>
       ) : (
         <>
-          <div className="gradient-strip" style={gradientStyle} />
+          <div className="gradient-strip" style={{ ...gradientStyle }}>
+            <div className="highlight-overlay" style={getHighlightStyle()}></div>
+          </div>
           <div className="scale-labels">
             {labels.map((label, index) => (
               <span key={index}>{label.value}</span>
