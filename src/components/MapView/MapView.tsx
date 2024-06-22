@@ -132,7 +132,7 @@ const MapView: React.FC = () => {
         isProgrammaticMoveRef.current = true;
         dispatch(setIsProgrammaticMove(true));
         dispatch(setMapCenter(newCenter));
-        dispatch(setMapZoom(15));
+        dispatch(setMapZoom(14));
       }
     }
   }, [selectedWaypointIndex, gpxData, dispatch]);
@@ -196,6 +196,29 @@ const MapView: React.FC = () => {
     ));
   }, [gpxData?.tracks, mapMode, modeMap, valueRanges, version]);
 
+  const renderMarkers = useMemo(() => {
+    if (!gpxData?.waypoints) return null;
+  
+    return gpxData.waypoints.map((point, idx) => {
+      let iconType = point.type || "via";
+      if (iconType !== "start" && iconType !== "destination" && mapZoom < 11) {
+        iconType = "small";
+      }
+  
+      return (
+        <Marker
+          key={idx}
+          position={[parseFloat(point.lat), parseFloat(point.lon)]}
+          icon={createMarkerIcon(iconType, idx + 1)}
+          eventHandlers={{ click: () => handleMarkerClick(idx) }}
+        >
+          <Tooltip sticky>{point.name || `Waypoint ${idx + 1}`}</Tooltip>
+        </Marker>
+      );
+    });
+  }, [gpxData?.waypoints, mapZoom]);
+  
+
   return (
     <div className="map-view">
       <MapContainer
@@ -208,17 +231,7 @@ const MapView: React.FC = () => {
         <TileLayer url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png" />
         <ModeToggles currentMode={mapMode} onModeChange={handleModeChange} />
         {renderTracks}
-        {mapZoom >= 11 &&
-          gpxData?.waypoints.map((point, idx) => (
-            <Marker
-              key={idx}
-              position={[parseFloat(point.lat), parseFloat(point.lon)]}
-              icon={createMarkerIcon(point.type || "default", idx + 1)}
-              eventHandlers={{ click: () => handleMarkerClick(idx) }}
-            >
-              <Tooltip sticky>{point.name || `Waypoint ${idx + 1}`}</Tooltip>
-            </Marker>
-          ))}
+        {renderMarkers}
         <MapEvents onMapMove={handleMapMove} />
       </MapContainer>
       {selectedWaypointIndex !== null && gpxData && (

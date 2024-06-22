@@ -29,6 +29,15 @@ export const createMarkerIcon = (type: string, index: number) => {
         html: `<div style="border: 2px solid rgba(0, 0, 0, 0.61); background-color: rgba(211, 70, 255, 0.55); width: 8x; height: 8px; border-radius: 50%;"></div>`,
         iconSize: [12, 12],
       });
+
+      case "small":
+        return L.divIcon({
+          className: "custom-shaping-icon",
+          html: `<div style="border: 2px solid rgba(0, 0, 0, 1); background-color: rgba(106, 255, 26, 0.5); width: 10x; height: 8px; border-radius: 50%;"></div>`,
+          iconSize: [12, 12],
+          iconAnchor: [5, 9],
+        });
+
     case "destination":
       return L.divIcon({
         className: "custom-start-icon",
