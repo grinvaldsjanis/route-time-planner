@@ -128,6 +128,7 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
         ...initialState,
         mapMode: state.mapMode,
         travelMode: state.travelMode,
+        gpxData: null,
       };
 
     case "SET_GPX_DATA": {
