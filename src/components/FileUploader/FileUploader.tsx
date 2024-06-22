@@ -1,31 +1,35 @@
-import React from "react";
+import React, { useState } from "react";
 import "./FileUploader.css";
-import { FaUpload } from "react-icons/fa6";
+import { FaUpload } from "react-icons/fa";
 import { useGlobalState } from "../../context/GlobalContext";
 import parseGPX from "../../utils/parseGPX";
 import { clearPreviousData, setInProgress } from "../../context/actions";
 
 const FileUploader: React.FC = () => {
   const { dispatch } = useGlobalState();
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const handleFileChange = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     const file = event.target.files?.[0];
     if (file) {
-      dispatch(setInProgress(true, "Loading"));
+      dispatch(setInProgress(true, "Loading GPX file"));
       const reader = new FileReader();
       reader.onload = async (e: ProgressEvent<FileReader>) => {
         try {
           const text = e.target?.result as string;
           dispatch(clearPreviousData());
-          dispatch(setInProgress(true, "Processing GPX"));
+          dispatch(setInProgress(true, "Processing GPX data"));
           const parsedGPXData = await parseGPX(text);
           dispatch({ type: "SET_GPX_DATA", payload: parsedGPXData });
+          setUploadError(null);
         } catch (error) {
           console.error("Error parsing GPX file:", error);
+          setUploadError("Failed to process the GPX file.");
         } finally {
           dispatch(setInProgress(false, ""));
+          event.target.value = ""; // Reset the file input
         }
       };
       reader.readAsText(file);
@@ -46,6 +50,7 @@ const FileUploader: React.FC = () => {
         <FaUpload />
         <strong>Upload GPX</strong>
       </label>
+      {uploadError && <div className="error-message">{uploadError}</div>}
     </div>
   );
 };

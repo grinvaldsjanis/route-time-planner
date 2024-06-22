@@ -1,5 +1,3 @@
-/* src/components/ProgressIndicator/ProgressIndicator.css */
-
 .progress-indicator-overlay {
   position: fixed;
   top: 0;
@@ -33,6 +31,7 @@
   padding: 20px 40px;
   border-radius: 8px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+  transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
 .spinner {
@@ -76,7 +75,10 @@
   background-repeat: repeat-x;
 }
 .loader:before {
+  mask: repeating-linear-gradient(90deg, #000 0 8%, #0000 0 15%);
   -webkit-mask: repeating-linear-gradient(90deg, #000 0 8%, #0000 0 15%);
+  -moz-mask: repeating-linear-gradient(90deg, #000 0 8%, #0000 0 15%);
+  -o-mask: repeating-linear-gradient(90deg, #000 0 8%, #0000 0 15%);
 }
 .loader:after {
   clip-path: inset(0 100% 0 0);

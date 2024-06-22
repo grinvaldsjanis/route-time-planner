@@ -18,7 +18,7 @@ export const UPDATE_RELATIVE_TIMES = "UPDATE_RELATIVE_TIMES";
 export const SET_IS_PROGRAMMATIC_MOVE = "SET_IS_PROGRAMMATIC_MOVE";
 export const SET_MAP_CENTER = "SET_MAP_CENTER";
 export const SET_MAP_ZOOM = "SET_MAP_ZOOM";
-export const UPDATE_DURATION_MULTIPLIER = "UPDATE_DURATION_MULTIPLIER";  // Added definition
+export const UPDATE_DURATION_MULTIPLIER = "UPDATE_DURATION_MULTIPLIER"; // Added definition
 export const SET_IN_PROGRESS = "SET_IN_PROGRESS";
 
 export interface SetGPXNameAction {
@@ -141,7 +141,6 @@ export type Action =
   | UpdateDurationMultiplierAction
   | SetInProgressAction;
 
-
 export const setGPXData = (data: GPXData): SetGPXDataAction => ({
   type: SET_GPX_DATA,
   payload: data,
@@ -163,7 +162,9 @@ export const updateDurationMultiplier = (
   payload: { index, multiplier },
 });
 
-export const setMapMode = (mode: "ele" | "curve" | "slope"): SetMapModeAction => ({
+export const setMapMode = (
+  mode: "ele" | "curve" | "slope"
+): SetMapModeAction => ({
   type: SET_MAP_MODE,
   payload: mode,
 });
@@ -202,7 +203,9 @@ export const updateStopTime = (
   payload: { index, stopTime },
 });
 
-export const setIsProgrammaticMove = (isProgrammatic: boolean): SetIsProgrammaticMoveAction => ({
+export const setIsProgrammaticMove = (
+  isProgrammatic: boolean
+): SetIsProgrammaticMoveAction => ({
   type: SET_IS_PROGRAMMATIC_MOVE,
   payload: isProgrammatic,
 });
@@ -221,10 +224,13 @@ export const clearPreviousData = (): ClearPreviousDataAction => ({
   type: CLEAR_PREVIOUS_DATA,
 });
 
-export const setInProgress = (inProgress: boolean, text: string): SetInProgressAction => ({
+export const setInProgress = (
+  inProgress: boolean,
+  text: string
+): SetInProgressAction => ({
   type: SET_IN_PROGRESS,
   payload: {
     inProgress,
-    text
-  }
+    text,
+  },
 });
