@@ -20,7 +20,15 @@ export const SET_MAP_CENTER = "SET_MAP_CENTER";
 export const SET_MAP_ZOOM = "SET_MAP_ZOOM";
 export const UPDATE_DURATION_MULTIPLIER = "UPDATE_DURATION_MULTIPLIER"; // Added definition
 export const SET_IN_PROGRESS = "SET_IN_PROGRESS";
+export const SET_HIGHLIGHT = "SET_HIGHLIGHT";
 
+export interface SetHighlightAction {
+  type: typeof SET_HIGHLIGHT;
+  payload: {
+    range: [number, number];
+    isActive: boolean;
+  };
+}
 export interface SetGPXNameAction {
   type: typeof SET_GPX_NAME;
   payload: string;
@@ -139,7 +147,19 @@ export type Action =
   | SetGPXNameAction
   | SetIsProgrammaticMoveAction
   | UpdateDurationMultiplierAction
-  | SetInProgressAction;
+  | SetInProgressAction
+  | SetHighlightAction;
+
+export const setHighlight = (
+  range: [number, number],
+  isActive: boolean
+): SetHighlightAction => ({
+  type: SET_HIGHLIGHT,
+  payload: {
+    range,
+    isActive,
+  },
+});
 
 export const setGPXData = (data: GPXData): SetGPXDataAction => ({
   type: SET_GPX_DATA,

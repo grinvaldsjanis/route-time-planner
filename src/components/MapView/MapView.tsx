@@ -52,7 +52,14 @@ const MapView: React.FC = () => {
   const mapRef = useRef<Map | null>(null);
   const isProgrammaticMoveRef = useRef(false);
   const { state, dispatch } = useGlobalState();
-  const { gpxData, mapCenter, mapZoom, mapMode } = state;
+  const {
+    gpxData,
+    mapCenter,
+    mapZoom,
+    mapMode,
+    highlightMode,
+    highlightRange,
+  } = state;
   const [selectedWaypointIndex, setSelectedWaypointIndex] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [valueRanges, setValueRanges] = useState<ValueRanges>({
@@ -137,11 +144,16 @@ const MapView: React.FC = () => {
     }
   }, [selectedWaypointIndex, gpxData, dispatch]);
 
+  useEffect(() => {
+    console.log("Is there a highlight?: ", highlightMode);
+    console.log("Highlight range: ", highlightRange);
+  }, [highlightMode, highlightRange]);
+
   const renderTracks = useMemo(() => {
     if (!gpxData?.tracks) return null;
 
     return gpxData.tracks.map((track, trackIdx) => (
-      <LayerGroup key={`${trackIdx}-${version}`}>
+      <LayerGroup key={`${trackIdx}-${version}-${highlightMode}-${highlightRange}`}>
         {track.segments.flatMap((segment, segmentIdx) => {
           const outlinePositions = segment.points.map(
             (point) =>
@@ -170,6 +182,8 @@ const MapView: React.FC = () => {
               const modeKey = modeMap[mapMode] || "ele";
               const value = getValueForMode(point, prevPoint, modeKey);
               let color;
+              let opacity = 1;
+
               if (valueRanges[modeKey].minValue === valueRanges[modeKey].maxValue) {
                 color = "red";
               } else {
@@ -181,12 +195,18 @@ const MapView: React.FC = () => {
                 );
               }
 
+              if (highlightMode && (value < highlightRange[0] || value > highlightRange[1])) {
+                opacity = 0.05;
+              }
+
               return (
                 <Polyline
                   key={`${trackIdx}-${segmentIdx}-${pointIdx}-${modeKey}`}
                   positions={[startPos, endPos]}
                   color={color}
+                  opacity={opacity}
                   weight={4}
+                  className="polyline-transition"
                 />
               );
             }),
@@ -194,17 +214,25 @@ const MapView: React.FC = () => {
         })}
       </LayerGroup>
     ));
-  }, [gpxData?.tracks, mapMode, modeMap, valueRanges, version]);
+  }, [
+    gpxData?.tracks,
+    highlightMode,
+    highlightRange,
+    mapMode,
+    modeMap,
+    valueRanges,
+    version,
+  ]);
 
   const renderMarkers = useMemo(() => {
     if (!gpxData?.waypoints) return null;
-  
+
     return gpxData.waypoints.map((point, idx) => {
       let iconType = point.type || "via";
       if (iconType !== "start" && iconType !== "destination" && mapZoom < 11) {
         iconType = "small";
       }
-  
+
       return (
         <Marker
           key={idx}
@@ -217,7 +245,6 @@ const MapView: React.FC = () => {
       );
     });
   }, [gpxData?.waypoints, mapZoom]);
-  
 
   return (
     <div className="map-view">

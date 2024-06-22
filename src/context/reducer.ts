@@ -25,6 +25,8 @@ export interface GlobalState {
   isProgrammaticMove: boolean;
   inProgress: boolean;
   progressText: string;
+  highlightRange: [number, number];
+  highlightMode: boolean;
 }
 
 export const initialState: GlobalState = {
@@ -44,6 +46,8 @@ export const initialState: GlobalState = {
   finalArrivalTime: "0:00",
   inProgress: false,
   progressText: "",
+  highlightRange: [0, 100],
+  highlightMode: false,
 };
 
 if (initialState.gpxData) {
@@ -313,7 +317,16 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
     case "SET_FOCUSED_WAYPOINT":
       return { ...state, focusedWaypointIndex: action.payload };
 
-    default:
+      case "SET_HIGHLIGHT":
+        // console.log("Highlight reducer active ", action.payload.range)
+
+        return {
+          ...state,
+          highlightRange: action.payload.range,
+          highlightMode: action.payload.isActive,
+        };
+    
+      default:
       return state;
   }
 };
