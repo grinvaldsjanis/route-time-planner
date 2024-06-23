@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef } from "react";
+import React, { useEffect, useState, useCallback, useRef, CSSProperties } from "react";
 import { useGlobalState } from "../../context/GlobalContext";
 import { calculateValueRange } from "../../utils/calculateValueRange";
 import getColorForValue from "../../utils/getColorForValue";
@@ -23,7 +23,10 @@ const ScaleStrip: React.FC = () => {
   const [hasNoRange, setHasNoRange] = useState(false);
   const isMouseInsideRef = useRef(false);
   const [isMouseInside, setIsMouseInside] = useState(false);
-  const [localHighlightRange, setLocalHighlightRange] = useState<[number, number]>([0, 0]);
+  const [localHighlightRange, setLocalHighlightRange] = useState<[number, number]>([
+    0,
+    0,
+  ]);
 
   useEffect(() => {
     if (!tracks || !mapMode) {
@@ -46,6 +49,9 @@ const ScaleStrip: React.FC = () => {
       minValue: isNaN(minValue) ? 0 : minValue,
       maxValue: isNaN(maxValue) ? 0 : maxValue,
     });
+
+    // Set initial highlight range to full range
+    setLocalHighlightRange([minValue, maxValue]);
   }, [mapMode, tracks]);
 
   const generateLabels = () => {
@@ -82,7 +88,7 @@ const ScaleStrip: React.FC = () => {
   const updateHighlight = useCallback(
     debounce((value: number) => {
       if (isMouseInsideRef.current) {
-        const tolerance = (range.maxValue - range.minValue) * 0.06;
+        const tolerance = (range.maxValue - range.minValue) * 0.1;
         const highlightRange: [number, number] = [
           value - tolerance,
           value + tolerance,
@@ -101,8 +107,8 @@ const ScaleStrip: React.FC = () => {
   const handleMouseLeave = () => {
     isMouseInsideRef.current = false;
     setIsMouseInside(false);
-    setLocalHighlightRange([0, 0]);
-    dispatch(setHighlight([0, 0], false));
+    setLocalHighlightRange([range.minValue, range.maxValue]);
+    dispatch(setHighlight([range.minValue, range.maxValue], false));
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -125,9 +131,7 @@ const ScaleStrip: React.FC = () => {
     updateHighlight(value);
   };
 
-  const getHighlightStyle = () => {
-    if (!highlightMode) return { left: 0, right: 0, opacity: 0 };
-
+  const getForegroundStyle = (): CSSProperties => {
     const left =
       ((localHighlightRange[0] - range.minValue) /
         (range.maxValue - range.minValue)) *
@@ -139,9 +143,7 @@ const ScaleStrip: React.FC = () => {
         100;
 
     return {
-      left: `${left}%`,
-      right: `${right}%`,
-      opacity: 1,
+      clipPath: `polygon(${left}% 0%, ${100 - right}% 0%, ${100 - right}% 100%, ${left}% 100%)`,
     };
   };
 
@@ -157,9 +159,8 @@ const ScaleStrip: React.FC = () => {
         <div className="no-range">There's no range for the data</div>
       ) : (
         <>
-          <div className="gradient-strip" style={{ ...gradientStyle }}>
-            <div className="highlight-overlay" style={getHighlightStyle()}></div>
-          </div>
+          <div className="gradient-strip background" style={gradientStyle}></div>
+          <div className="gradient-strip foreground" style={{ ...gradientStyle, ...getForegroundStyle() }}></div>
           <div className="scale-labels">
             {labels.map((label, index) => (
               <span key={index}>{label.value}</span>
