@@ -12,6 +12,7 @@ import TravelModeSelector from "./components/TravelModeSelector/TravelModesSelec
 import AboutContent from "./components/Modal/AboutContent";
 import parseGPX from "./utils/parseGPX";
 import ProgressIndicator from "./components/ProgressIndicator/ProgressIndicator";
+import ErrorBoundary from "./components/ErrorBoundary/ErrorBoundary";
 
 function App() {
   const { state, dispatch } = useGlobalState();
@@ -91,7 +92,11 @@ function App() {
               <WaypointList />
             </div>
             <div className="App-graph-container">
-              <MapView />
+              <ErrorBoundary>
+                {" "}
+                {/* Wrap MapView with ErrorBoundary */}
+                <MapView />
+              </ErrorBoundary>
               <ScaleStrip />
             </div>
           </>

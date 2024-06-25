@@ -1,8 +1,8 @@
 import calculateAngle from "./calculateAngle";
 import haversineDistance from "./haversineDistance";
-import { TrackPoint, TrackSegment } from "./types";
+import { TrackPoint, Track } from "./types";
 
-function interpolatePoints(
+export function interpolatePoints(
   p1: TrackPoint,
   p2: TrackPoint,
   distanceRatio: number
@@ -24,15 +24,15 @@ function interpolatePoints(
 }
 
 function addInterpolatedPoints(
-  segment: TrackSegment,
+  points: TrackPoint[],
   distances: Record<number, number>
-): TrackSegment {
+): TrackPoint[] {
   const newPoints: TrackPoint[] = [];
 
-  segment.points.forEach((point, i) => {
-    if (i > 0 && i < segment.points.length - 1) {
-      const prevPoint = segment.points[i - 1];
-      const nextPoint = segment.points[i + 1];
+  points.forEach((point: TrackPoint, i: number) => {
+    if (i > 0 && i < points.length - 1) {
+      const prevPoint = points[i - 1];
+      const nextPoint = points[i + 1];
 
       const angle = calculateAngle(
         [parseFloat(prevPoint.lat), parseFloat(prevPoint.lon)],
@@ -93,17 +93,20 @@ function addInterpolatedPoints(
     }
   });
 
-  return { ...segment, points: newPoints };
+  return newPoints;
 }
 
-export function preprocessTrackSegments(
-  segments: TrackSegment[]
-): TrackSegment[] {
+export function preprocessTrackPoints(
+  tracks: Track[]
+): Track[] {
   const distances: Record<number, number> = {
     90: 10,
     120: 30,
     160: 60,
   };
 
-  return segments.map((segment) => addInterpolatedPoints(segment, distances));
+  return tracks.map((track) => ({
+    ...track,
+    points: addInterpolatedPoints(track.points, distances),
+  }));
 }

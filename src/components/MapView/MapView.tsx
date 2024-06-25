@@ -109,7 +109,7 @@ const MapView: React.FC = () => {
   const [version, setVersion] = useState(0);
 
   useEffect(() => {
-    if (gpxData?.tracks) {
+    if (gpxData?.tracks && gpxData.tracks.length > 0) {
       const newRanges = {
         ele: calculateValueRange(gpxData.tracks, "ele", 0),
         curve: calculateValueRange(gpxData.tracks, "curve", 1000),
@@ -129,7 +129,7 @@ const MapView: React.FC = () => {
   }, [mapCenter, mapZoom, dispatch, state.isProgrammaticMove]);
 
   useEffect(() => {
-    if (selectedWaypointIndex !== null && gpxData?.waypoints) {
+    if (selectedWaypointIndex !== null && gpxData?.waypoints && gpxData.waypoints.length > 0) {
       const waypoint = gpxData.waypoints[selectedWaypointIndex];
       if (waypoint) {
         const newCenter: LatLngTuple = [
@@ -150,72 +150,70 @@ const MapView: React.FC = () => {
   }, [highlightMode, highlightRange]);
 
   const renderTracks = useMemo(() => {
-    if (!gpxData?.tracks) return null;
+    if (!gpxData || !gpxData.tracks || gpxData.tracks.length === 0) return null;
 
-    return gpxData.tracks.map((track, trackIdx) => (
-      <LayerGroup key={`${trackIdx}-${version}-${highlightMode}-${highlightRange}`}>
-        {track.segments.flatMap((segment, segmentIdx) => {
-          const outlinePositions = segment.points.map(
-            (point) =>
-              [parseFloat(point.lat), parseFloat(point.lon)] as LatLngTuple
-          );
+    return gpxData.tracks.map((track, trackIdx) => {
+      const outlinePositions = track.points.map(
+        (point: TrackPoint) =>
+          [parseFloat(point.lat), parseFloat(point.lon)] as LatLngTuple
+      );
 
-          return [
-            <Polyline
-              key={`${trackIdx}-${segmentIdx}-outline`}
-              positions={outlinePositions}
-              color="#000000"
-              opacity={0.5}
-              weight={10}
-            />,
-            ...segment.points.slice(1).map((point, pointIdx) => {
-              const prevPoint = segment.points[pointIdx];
-              const startPos: LatLngTuple = [
-                parseFloat(prevPoint.lat),
-                parseFloat(prevPoint.lon),
-              ];
-              const endPos: LatLngTuple = [
-                parseFloat(point.lat),
-                parseFloat(point.lon),
-              ];
+      return (
+        <LayerGroup key={`${trackIdx}-${version}-${highlightMode}-${highlightRange}`}>
+          <Polyline
+            key={`${trackIdx}-outline`}
+            positions={outlinePositions}
+            color="#000000"
+            opacity={0.5}
+            weight={10}
+          />,
+          {track.points.slice(1).map((point: TrackPoint, pointIdx: number) => {
+            const prevPoint = track.points[pointIdx];
+            const startPos: LatLngTuple = [
+              parseFloat(prevPoint.lat),
+              parseFloat(prevPoint.lon),
+            ];
+            const endPos: LatLngTuple = [
+              parseFloat(point.lat),
+              parseFloat(point.lon),
+            ];
 
-              const modeKey = modeMap[mapMode] || "ele";
-              const value = getValueForMode(point, prevPoint, modeKey);
-              let color;
-              let opacity = 1;
+            const modeKey = modeMap[mapMode] || "ele";
+            const value = getValueForMode(point, prevPoint, modeKey);
+            let color;
+            let opacity = 1;
 
-              if (valueRanges[modeKey].minValue === valueRanges[modeKey].maxValue) {
-                color = "red";
-              } else {
-                color = getColorForValue(
-                  value,
-                  valueRanges[modeKey].minValue,
-                  valueRanges[modeKey].maxValue,
-                  mapMode === "curve"
-                );
-              }
-
-              if (highlightMode && (value < highlightRange[0] || value > highlightRange[1])) {
-                opacity = 0.05;
-              }
-
-              return (
-                <Polyline
-                  key={`${trackIdx}-${segmentIdx}-${pointIdx}-${modeKey}`}
-                  positions={[startPos, endPos]}
-                  color={color}
-                  opacity={opacity}
-                  weight={4}
-                  className="polyline-transition"
-                />
+            if (valueRanges[modeKey].minValue === valueRanges[modeKey].maxValue) {
+              color = "red";
+            } else {
+              color = getColorForValue(
+                value,
+                valueRanges[modeKey].minValue,
+                valueRanges[modeKey].maxValue,
+                mapMode === "curve"
               );
-            }),
-          ];
-        })}
-      </LayerGroup>
-    ));
+            }
+
+            if (highlightMode && (value < highlightRange[0] || value > highlightRange[1])) {
+              opacity = 0.05;
+            }
+
+            return (
+              <Polyline
+                key={`${trackIdx}-${pointIdx}-${modeKey}`}
+                positions={[startPos, endPos]}
+                color={color}
+                opacity={opacity}
+                weight={4}
+                className="polyline-transition"
+              />
+            );
+          })}
+        </LayerGroup>
+      );
+    });
   }, [
-    gpxData?.tracks,
+    gpxData,
     highlightMode,
     highlightRange,
     mapMode,
@@ -225,7 +223,7 @@ const MapView: React.FC = () => {
   ]);
 
   const renderMarkers = useMemo(() => {
-    if (!gpxData?.waypoints) return null;
+    if (!gpxData || !gpxData.waypoints || gpxData.waypoints.length === 0) return null;
 
     return gpxData.waypoints.map((point, idx) => {
       let iconType = point.type || "via";
@@ -244,7 +242,7 @@ const MapView: React.FC = () => {
         </Marker>
       );
     });
-  }, [gpxData?.waypoints, mapZoom]);
+  }, [gpxData, mapZoom]);
 
   return (
     <div className="map-view">

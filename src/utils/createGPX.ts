@@ -55,8 +55,7 @@ export default function createGPX(gpxData: GPXData, startTime: string, gpxName: 
 
     if (index === 0) {
       waypointName += ` (${formatTimeToHHMM(times[index].departureTime)})`;
-    }
-    else if (waypoint.stopTime && waypoint.stopTime > 0) {
+    } else if (waypoint.stopTime && waypoint.stopTime > 0) {
       waypointName += ` (${formatTimeToHHMM(
         times[index].arrivalTime
       )} - ${formatTimeToHHMM(times[index].departureTime)})`;
@@ -98,21 +97,19 @@ export default function createGPX(gpxData: GPXData, startTime: string, gpxName: 
       trk.appendChild(name);
     }
 
-    track.segments.forEach((segment) => {
-      const trkseg = xmlDoc.createElement("trkseg");
-      segment.points.forEach((point) => {
-        const trkpt = xmlDoc.createElement("trkpt");
-        trkpt.setAttribute("lat", point.lat);
-        trkpt.setAttribute("lon", point.lon);
-        if (point.ele !== null) {
-          const ele = xmlDoc.createElement("ele");
-          ele.textContent = point.ele.toString();
-          trkpt.appendChild(ele);
-        }
-        trkseg.appendChild(trkpt);
-      });
-      trk.appendChild(trkseg);
+    const trkseg = xmlDoc.createElement("trkseg");
+    track.points.forEach((point) => {
+      const trkpt = xmlDoc.createElement("trkpt");
+      trkpt.setAttribute("lat", point.lat);
+      trkpt.setAttribute("lon", point.lon);
+      if (point.ele !== null) {
+        const ele = xmlDoc.createElement("ele");
+        ele.textContent = point.ele.toString();
+        trkpt.appendChild(ele);
+      }
+      trkseg.appendChild(trkpt);
     });
+    trk.appendChild(trkseg);
     gpx.appendChild(trk);
   });
 

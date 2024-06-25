@@ -24,7 +24,6 @@ const calculateTrackParts = (
     return totalDistance / 1000;
   };
 
-
   for (let i = 0; i < waypoints.length - 1; i++) {
     const wp1 = waypoints[i];
     const wp2 = waypoints[i + 1];
@@ -33,15 +32,14 @@ const calculateTrackParts = (
 
     if (tp1 && tp2 && tp1.trackIndex === tp2.trackIndex) {
       const track = tracks[tp1.trackIndex];
-      const segment = track.segments[tp1.segmentIndex];
-      const points = segment.points;
+      const points = track.points;
       const distance = calculateTotalDistance(points, tp1.pointIndex, tp2.pointIndex);
 
       trackParts.push({
         waypoints: [i, i + 1],
         trackPoints: [{
           trackIndex: tp1.trackIndex,
-          segmentIndex: tp1.segmentIndex,
+          segmentIndex: 0,  // Segments are no longer used, so setting it to 0
           startIndex: tp1.pointIndex,
           endIndex: tp2.pointIndex
         }],

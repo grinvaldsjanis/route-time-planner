@@ -23,20 +23,17 @@ const calculateTravelTime = (
     let totalTime = 0;
 
     trackPart.trackPoints.forEach(
-      ({ trackIndex, segmentIndex, startIndex, endIndex }) => {
-        if (!tracks[trackIndex] || !tracks[trackIndex].segments[segmentIndex]) {
-          console.error(
-            "Invalid track or segment index",
-            trackIndex,
-            segmentIndex
-          );
+      ({ trackIndex, startIndex, endIndex }) => {
+        const track = tracks[trackIndex];
+        if (!track) {
+          console.error("Invalid track index", trackIndex);
           return;
         }
-        const segment = tracks[trackIndex].segments[segmentIndex];
+        const points = track.points;
 
         for (let i = startIndex; i < endIndex; i++) {
-          const pointA = segment.points[i];
-          const pointB = segment.points[i + 1];
+          const pointA = points[i];
+          const pointB = points[i + 1];
           const distance = haversineDistance(
             parseFloat(pointA.lat),
             parseFloat(pointA.lon),

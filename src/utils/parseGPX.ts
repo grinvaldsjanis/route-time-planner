@@ -1,12 +1,11 @@
 import calculateCurveRadius from "./calculateCurvature";
 import calculateSlope from "./calculateSlope";
 import calculateTrackParts from "./calculateTrackParts";
-import { preprocessTrackSegments } from "./preprocessNewPoints";
+import { preprocessTrackPoints } from "./preprocessNewPoints";
 import { fetchElevationData } from "../utils/fetchElevationData";
 import {
   GPXData,
   Track,
-  TrackSegment,
   TrackPoint,
   Waypoint,
   TrackPointRef,
@@ -75,11 +74,10 @@ export default async function parseGPX(
   const trksegs = trk.getElementsByTagNameNS(gpxNamespaceURI, "trkseg");
   console.log("Number of Track Segments:", trksegs.length);
 
-  const segments: TrackSegment[] = [];
+  const points: TrackPoint[] = [];
   for (let j = 0; j < trksegs.length; j++) {
     const seg = trksegs[j];
     const trkpts = seg.getElementsByTagNameNS(gpxNamespaceURI, "trkpt");
-    let points: TrackPoint[] = [];
 
     for (let k = 0; k < trkpts.length; k++) {
       const pt = parseWaypoint(trkpts[k], true) as TrackPoint;
@@ -93,48 +91,42 @@ export default async function parseGPX(
         }
       }
     }
-    segments.push({ points });
   }
-  parsedTracks.push({ name, segments });
+
+  parsedTracks.push({ name, points });
 
   if (pointsWithoutElevation.length > 0) {
     const elevations = await fetchElevationData(pointsWithoutElevation);
     let elevationIndex = 0;
 
     parsedTracks.forEach((track) => {
-      track.segments.forEach((segment) => {
-        segment.points.forEach((point) => {
-          if (point.ele === null) {
-            point.ele = elevations[elevationIndex++];
-          }
-        });
+      track.points.forEach((point) => {
+        if (point.ele === null) {
+          point.ele = elevations[elevationIndex++];
+        }
       });
     });
   }
 
   parsedTracks.forEach((track) => {
-    track.segments = preprocessTrackSegments(track.segments);
-    track.segments.forEach((segment) => {
-      for (let k = 0; k < segment.points.length; k++) {
-        if (k > 0 && k < segment.points.length - 1) {
-          const prevPt = segment.points[k - 1];
-          const currentPt = segment.points[k];
-          const nextPt = segment.points[k + 1];
-          currentPt.curve = calculateCurveRadius(prevPt, currentPt, nextPt);
-        }
+    track.points = preprocessTrackPoints([{ name: track.name, points: track.points }])[0].points;
+    for (let k = 0; k < track.points.length; k++) {
+      if (k > 0 && k < track.points.length - 1) {
+        const prevPt = track.points[k - 1];
+        const currentPt = track.points[k];
+        const nextPt = track.points[k + 1];
+        currentPt.curve = calculateCurveRadius(prevPt, currentPt, nextPt);
       }
-    });
+    }
   });
 
   parsedTracks.forEach((track) => {
-    track.segments.forEach((segment) => {
-      for (let k = 1; k < segment.points.length; k++) {
-        const prevPt = segment.points[k - 1];
-        const currentPt = segment.points[k];
+    for (let k = 1; k < track.points.length; k++) {
+      const prevPt = track.points[k - 1];
+      const currentPt = track.points[k];
 
-        currentPt.slope = calculateSlope(prevPt, currentPt);
-      }
-    });
+      currentPt.slope = calculateSlope(prevPt, currentPt);
+    }
   });
 
   for (let i = 0; i < waypoints.length; i++) {
@@ -154,21 +146,19 @@ export default async function parseGPX(
       let closestTrackPointRef: TrackPointRef | undefined;
 
       parsedTracks.forEach((track, trackIndex) => {
-        track.segments.forEach((segment, segmentIndex) => {
-          segment.points.forEach((point, pointIndex) => {
-            if (
-              isWithinApproximateDistance(
-                parseFloat(parsedWpt.lat),
-                parseFloat(parsedWpt.lon),
-                parseFloat(point.lat),
-                parseFloat(point.lon),
-                maxProximityDistance
-              )
-            ) {
-              isClose = true;
-              closestTrackPointRef = { trackIndex, segmentIndex, pointIndex };
-            }
-          });
+        track.points.forEach((point, pointIndex) => {
+          if (
+            isWithinApproximateDistance(
+              parseFloat(parsedWpt.lat),
+              parseFloat(parsedWpt.lon),
+              parseFloat(point.lat),
+              parseFloat(point.lon),
+              maxProximityDistance
+            )
+          ) {
+            isClose = true;
+            closestTrackPointRef = { trackIndex, segmentIndex: 0, pointIndex };
+          }
         });
       });
 
@@ -184,7 +174,6 @@ export default async function parseGPX(
   }
 
   parsedWaypoints = sortWaypoints(parsedWaypoints);
-
 
   return {
     gpxName,
