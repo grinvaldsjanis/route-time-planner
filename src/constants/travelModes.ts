@@ -79,7 +79,7 @@ const travelModes = {
     description: "Smaller, less powerful cars",
   },
   "Standard Driving": {
-    maxSpeed: 120,
+    maxSpeed: 110,
     handlingFactor: 0.6,
     powerFactor: 0.8,
     terrain: "road",
