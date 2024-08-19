@@ -13,7 +13,12 @@ export function calculateValueRange(
   }
 
   tracks.forEach((track) => {
-    if (!track.points) return; // Ensure track.points is defined
+    // Additional safeguard: Check if the track exists and has points
+    if (!track || !track.points || track.points.length === 0) {
+      console.warn("Track or track points are missing or empty:", track);
+      return;
+    }
+
     track.points.forEach((point: TrackPoint) => {
       let sampleValue = defaultValue;
       switch (mode) {
@@ -34,6 +39,7 @@ export function calculateValueRange(
     });
   });
 
+  // If no valid points are found, return default values
   if (minValue === Infinity) minValue = defaultValue;
   if (maxValue === -Infinity) maxValue = defaultValue;
 

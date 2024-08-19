@@ -19,29 +19,59 @@ const TravelModeSelector = React.memo(() => {
 
   const selectedMode = getTravelModeDetails(state.travelMode);
   const gpxName = state.gpxData?.gpxName || "My Journey";
+  const tracks = state.gpxData?.tracks || [];
+  const currentTrackIndex = state.currentTrackIndex ?? 0;
 
-  const handleGPXNameChange = useCallback((newName: string) => {
-    dispatch(setGPXName(newName));
-  }, [dispatch]);
+  const handleGPXNameChange = useCallback(
+    (newName: string) => {
+      dispatch(setGPXName(newName));
+    },
+    [dispatch]
+  );
 
-  const handleChange = (newMode: keyof typeof travelModes) => {
+  const handleChangeMode = (newMode: keyof typeof travelModes) => {
     if (travelModes[newMode]) {
       dispatch({ type: "SET_TRAVEL_MODE", payload: newMode });
     }
   };
 
+  const handleTrackChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedTrackIndex = parseInt(e.target.value, 10);
+    if (!isNaN(selectedTrackIndex)) {
+      dispatch({ type: "SET_CURRENT_TRACK_INDEX", payload: selectedTrackIndex });
+    }
+  };
+
   return (
     <div className="travel-setting-wrapper">
-      <EditableText
-        text={gpxName}
-        onTextChange={handleGPXNameChange}
-      />
+      {/* Editable GPX Name */}
+      <EditableText text={gpxName} onTextChange={handleGPXNameChange} />
+
+      {/* Track Selector */}
+      {tracks.length > 1 && (
+        <div className="track-selector">
+          {/* <label htmlFor="trackSelector">Select Track:</label> */}
+          <select
+            id="trackSelector"
+            value={currentTrackIndex}
+            onChange={handleTrackChange}
+          >
+            {tracks.map((track, index) => (
+              <option key={index} value={index}>
+                {track.name || `Track ${index + 1}`}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {/* Travel Mode Selector */}
       <div className="travel-settings">
         <div className="travel-mode-selector">
           <select
             value={state.travelMode}
             onChange={(e) =>
-              handleChange(e.target.value as keyof typeof travelModes)
+              handleChangeMode(e.target.value as keyof typeof travelModes)
             }
           >
             {Object.keys(travelModes).map((mode) => (

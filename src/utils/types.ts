@@ -1,39 +1,35 @@
-export interface TrackPointRef {
-  trackIndex: number;
-  segmentIndex: number;
-  pointIndex: number;
-}
+
 
 export interface GPXData {
   gpxName: string | null;
-  waypoints: Waypoint[];
+  referenceWaypoints: ReferenceWaypoint[];
   tracks: Track[];
-  trackParts: TrackPart[];
+
 }
 
 export interface TrackPart {
-  waypoints: number[];
-  trackPoints: {
-    trackIndex: number;
-    segmentIndex: number;
-    startIndex: number;
-    endIndex: number;
-  }[];
-  distance: number;
-  travelTime: number;
-  durationMultiplier: number;
+ startIndex: number;
+ endIndex: number;
+ distance: number;
+ travelTime: number;
+ durationMultiplier: number;
 }
 
-export interface Waypoint {
-  type: string | null;
+export interface ReferenceWaypoint {
+  id: string;
   lat: string;
   lon: string;
   name: string | null;
   desc: string | null;
   sym: string | null;
-  closestTrackpoint?: TrackPointRef;
+  type: string | null;
+}
+
+export interface TrackWaypoint {
+  referenceId: string;
   stopTime?: number;
   relativeTimes?: { arrivalSeconds: number; departureSeconds: number };
+  closestTrackPointIndex?: number;
 }
 
 export interface TrackPoint {
@@ -44,8 +40,9 @@ export interface TrackPoint {
   slope: number | null;
 }
 
-
 export interface Track {
   name: string | null;
   points: TrackPoint[];
+  waypoints: TrackWaypoint[];
+  parts: TrackPart[];
 }

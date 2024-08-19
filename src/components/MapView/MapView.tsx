@@ -28,7 +28,7 @@ import {
 import WaypointModal from "./WaypointModal/WaypointModal";
 import ModeToggles from "./ModeToggles/ModeToggles";
 import MapEvents from "./MapEvents";
-import { TrackPoint } from "../../utils/types";
+import { TrackPoint, TrackWaypoint } from "../../utils/types";
 
 type ModeKeys = "ele" | "curve" | "slope";
 
@@ -59,6 +59,7 @@ const MapView: React.FC = () => {
     mapMode,
     highlightMode,
     highlightRange,
+    currentTrackIndex,
   } = state;
   const [selectedWaypointIndex, setSelectedWaypointIndex] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -129,25 +130,27 @@ const MapView: React.FC = () => {
   }, [mapCenter, mapZoom, dispatch, state.isProgrammaticMove]);
 
   useEffect(() => {
-    if (selectedWaypointIndex !== null && gpxData?.waypoints && gpxData.waypoints.length > 0) {
-      const waypoint = gpxData.waypoints[selectedWaypointIndex];
+    if (selectedWaypointIndex !== null && gpxData?.tracks[currentTrackIndex!]) {
+      const track = gpxData.tracks[currentTrackIndex!];
+      const waypoint = track.waypoints[selectedWaypointIndex];
       if (waypoint) {
-        const newCenter: LatLngTuple = [
-          parseFloat(waypoint.lat),
-          parseFloat(waypoint.lon),
-        ];
-        isProgrammaticMoveRef.current = true;
-        dispatch(setIsProgrammaticMove(true));
-        dispatch(setMapCenter(newCenter));
-        dispatch(setMapZoom(14));
+        const refWaypoint = gpxData.referenceWaypoints.find(ref => ref.id === waypoint.referenceId);
+        if (refWaypoint) {
+          const newCenter: LatLngTuple = [
+            parseFloat(refWaypoint.lat),
+            parseFloat(refWaypoint.lon),
+          ];
+          isProgrammaticMoveRef.current = true;
+          dispatch(setIsProgrammaticMove(true));
+          dispatch(setMapCenter(newCenter));
+          dispatch(setMapZoom(14));
+        }
       }
     }
-  }, [selectedWaypointIndex, gpxData, dispatch]);
+  }, [selectedWaypointIndex, gpxData, currentTrackIndex, dispatch]);
 
-  useEffect(() => {
-    console.log("Is there a highlight?: ", highlightMode);
-    console.log("Highlight range: ", highlightRange);
-  }, [highlightMode, highlightRange]);
+  // Move hooks outside conditional rendering
+  const currentTrack = currentTrackIndex !== null && gpxData?.tracks ? gpxData.tracks[currentTrackIndex] : null;
 
   const renderTracks = useMemo(() => {
     if (!gpxData || !gpxData.tracks || gpxData.tracks.length === 0) return null;
@@ -158,62 +161,79 @@ const MapView: React.FC = () => {
           [parseFloat(point.lat), parseFloat(point.lon)] as LatLngTuple
       );
 
+      const isActive = trackIdx === currentTrackIndex;
+
       return (
         <LayerGroup key={`${trackIdx}-${version}-${highlightMode}-${highlightRange}`}>
-          <Polyline
-            key={`${trackIdx}-outline`}
-            positions={outlinePositions}
-            color="#000000"
-            opacity={0.5}
-            weight={10}
-          />,
-          {track.points.slice(1).map((point: TrackPoint, pointIdx: number) => {
-            const prevPoint = track.points[pointIdx];
-            const startPos: LatLngTuple = [
-              parseFloat(prevPoint.lat),
-              parseFloat(prevPoint.lon),
-            ];
-            const endPos: LatLngTuple = [
-              parseFloat(point.lat),
-              parseFloat(point.lon),
-            ];
+          {/* Drawing the current (active) track */}
+          {isActive ? (
+            <Polyline
+              key={`${trackIdx}-outline`}
+              positions={outlinePositions}
+              color="#000000" // Black for the active track
+              opacity={0.5}
+              weight={10} // Thicker line for the active track
+            />
+          ) : (
+            <Polyline
+              key={`${trackIdx}-outline-inactive`}
+              positions={outlinePositions}
+              color="#FF0000" // Red for inactive tracks
+              opacity={0.5}
+              weight={2} // Thinner line for inactive tracks
+            />
+          )}
 
-            const modeKey = modeMap[mapMode] || "ele";
-            const value = getValueForMode(point, prevPoint, modeKey);
-            let color;
-            let opacity = 1;
+          {/* Colorized polyline for the active track only */}
+          {isActive &&
+            track.points.slice(1).map((point: TrackPoint, pointIdx: number) => {
+              const prevPoint = track.points[pointIdx];
+              const startPos: LatLngTuple = [
+                parseFloat(prevPoint.lat),
+                parseFloat(prevPoint.lon),
+              ];
+              const endPos: LatLngTuple = [
+                parseFloat(point.lat),
+                parseFloat(point.lon),
+              ];
 
-            if (valueRanges[modeKey].minValue === valueRanges[modeKey].maxValue) {
-              color = "red";
-            } else {
-              color = getColorForValue(
-                value,
-                valueRanges[modeKey].minValue,
-                valueRanges[modeKey].maxValue,
-                mapMode === "curve"
+              const modeKey = modeMap[mapMode] || "ele";
+              const value = getValueForMode(point, prevPoint, modeKey);
+              let color;
+              let opacity = 1;
+
+              if (valueRanges[modeKey].minValue === valueRanges[modeKey].maxValue) {
+                color = "blue";
+              } else {
+                color = getColorForValue(
+                  value,
+                  valueRanges[modeKey].minValue,
+                  valueRanges[modeKey].maxValue,
+                  mapMode === "curve"
+                );
+              }
+
+              if (highlightMode && (value < highlightRange[0] || value > highlightRange[1])) {
+                opacity = 0.05; // Reduce opacity for non-highlighted segments
+              }
+
+              return (
+                <Polyline
+                  key={`${trackIdx}-${pointIdx}-${modeKey}`}
+                  positions={[startPos, endPos]}
+                  color={color}
+                  opacity={opacity}
+                  weight={4}
+                  className="polyline-transition"
+                />
               );
-            }
-
-            if (highlightMode && (value < highlightRange[0] || value > highlightRange[1])) {
-              opacity = 0.05;
-            }
-
-            return (
-              <Polyline
-                key={`${trackIdx}-${pointIdx}-${modeKey}`}
-                positions={[startPos, endPos]}
-                color={color}
-                opacity={opacity}
-                weight={4}
-                className="polyline-transition"
-              />
-            );
-          })}
+            })}
         </LayerGroup>
       );
     });
   }, [
     gpxData,
+    currentTrackIndex,
     highlightMode,
     highlightRange,
     mapMode,
@@ -223,26 +243,41 @@ const MapView: React.FC = () => {
   ]);
 
   const renderMarkers = useMemo(() => {
-    if (!gpxData || !gpxData.waypoints || gpxData.waypoints.length === 0) return null;
-
-    return gpxData.waypoints.map((point, idx) => {
-      let iconType = point.type || "via";
-      if (iconType !== "start" && iconType !== "destination" && mapZoom < 11) {
+    if (!gpxData || !gpxData.tracks || gpxData.tracks.length === 0 || !currentTrack) return null;
+  
+    return currentTrack.waypoints.map((waypoint: TrackWaypoint, idx: number) => {
+      const refWaypoint = gpxData.referenceWaypoints.find(ref => ref.id === waypoint.referenceId);
+      if (!refWaypoint) return null;
+  
+      // Determine the icon type for the waypoint
+      let iconType = refWaypoint.type || "via"; // Default to "via" if no type is set
+  
+      // Ensure the first waypoint gets the "start" icon and the last gets the "destination" icon
+      if (idx === 0) {
+        iconType = "start";
+      } else if (idx === currentTrack.waypoints.length - 1) {
+        iconType = "destination";
+      } else if (iconType !== "start" && iconType !== "destination" && mapZoom < 11) {
         iconType = "small";
       }
-
+  
       return (
         <Marker
           key={idx}
-          position={[parseFloat(point.lat), parseFloat(point.lon)]}
+          position={[parseFloat(refWaypoint.lat), parseFloat(refWaypoint.lon)]}
           icon={createMarkerIcon(iconType, idx + 1)}
           eventHandlers={{ click: () => handleMarkerClick(idx) }}
         >
-          <Tooltip sticky>{point.name || `Waypoint ${idx + 1}`}</Tooltip>
+          <Tooltip sticky>{refWaypoint.name || `Waypoint ${idx + 1}`}</Tooltip>
         </Marker>
       );
     });
-  }, [gpxData, mapZoom]);
+  }, [currentTrack, gpxData, mapZoom]);
+  
+
+  if (!gpxData || currentTrackIndex === null) {
+    return <div>No GPX data available.</div>;
+  }
 
   return (
     <div className="map-view">

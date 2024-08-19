@@ -1,9 +1,12 @@
+import travelModes from "../constants/travelModes";
+import calculateTravelTime from "./calculateTravelTime";
 import haversineDistance from "./haversineDistance";
-import { Track, TrackPart, TrackPoint, Waypoint } from "./types";
+import { Track, TrackPart, TrackPoint, TrackWaypoint } from "./types";
 
 const calculateTrackParts = (
-  waypoints: Waypoint[],
-  tracks: Track[],
+  waypoints: TrackWaypoint[],
+  track: Track,
+  modeKey: keyof typeof travelModes
 ): TrackPart[] => {
   const trackParts: TrackPart[] = [];
 
@@ -21,32 +24,33 @@ const calculateTrackParts = (
         parseFloat(points[i + 1].lon)
       );
     }
-    return totalDistance / 1000;
+    return totalDistance / 1000; // Convert to kilometers
   };
 
   for (let i = 0; i < waypoints.length - 1; i++) {
     const wp1 = waypoints[i];
     const wp2 = waypoints[i + 1];
-    const tp1 = wp1.closestTrackpoint;
-    const tp2 = wp2.closestTrackpoint;
+    const startIndex = wp1.closestTrackPointIndex!;
+    const endIndex = wp2.closestTrackPointIndex!;
 
-    if (tp1 && tp2 && tp1.trackIndex === tp2.trackIndex) {
-      const track = tracks[tp1.trackIndex];
-      const points = track.points;
-      const distance = calculateTotalDistance(points, tp1.pointIndex, tp2.pointIndex);
+    if (startIndex !== -1 && endIndex !== -1 && startIndex < endIndex) {
+      const distance = calculateTotalDistance(track.points, startIndex, endIndex);
 
-      trackParts.push({
-        waypoints: [i, i + 1],
-        trackPoints: [{
-          trackIndex: tp1.trackIndex,
-          segmentIndex: 0,  // Segments are no longer used, so setting it to 0
-          startIndex: tp1.pointIndex,
-          endIndex: tp2.pointIndex
-        }],
-        distance: distance,
+      // Removed trackIndex, updated to fit the new TrackPart structure
+      const trackPart: TrackPart = {
+        startIndex,
+        endIndex,
+        distance,
         travelTime: 0,
         durationMultiplier: 1,
-      });
+      };
+
+      // Pass the single TrackPart instead of an array
+      trackPart.travelTime = calculateTravelTime(trackPart, track, modeKey);
+
+      trackParts.push(trackPart);
+    } else {
+      console.warn(`Invalid start or end index for waypoint ${i}`);
     }
   }
 

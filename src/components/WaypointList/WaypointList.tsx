@@ -1,3 +1,4 @@
+// WaypointList.tsx
 import React from "react";
 import "./WaypointList.css";
 import { useGlobalState } from "../../context/GlobalContext";
@@ -9,11 +10,20 @@ import formatTimeToHHMM from "../../utils/formatTimeToHHMM";
 const WaypointList: React.FC = () => {
   const { state } = useGlobalState();
 
-  if (!state.gpxData) {
+  // Check if GPX data and current track index are valid
+  if (!state.gpxData || state.currentTrackIndex === null) {
     return <div>No GPX data available.</div>;
   }
 
-  const { waypoints, trackParts } = state.gpxData;
+  const currentTrack = state.gpxData.tracks[state.currentTrackIndex];
+
+  // Check if the current track and its waypoints are valid
+  if (!currentTrack || !currentTrack.waypoints || currentTrack.waypoints.length === 0) {
+    return <div>No waypoints available for the current track.</div>;
+  }
+
+  const waypoints = currentTrack.waypoints;
+  const trackParts = currentTrack.parts || [];
 
   return (
     <div className="outer-list-container">
@@ -21,12 +31,13 @@ const WaypointList: React.FC = () => {
         <ul>
           {waypoints.map((waypoint, index) => (
             <React.Fragment key={`waypoint-${index}`}>
-              <WaypointItem index={index} />
-              {index < trackParts.length && (
+              <WaypointItem index={index} currentTrack={currentTrack} />
+              {index < trackParts.length && state.currentTrackIndex !== null && (
                 <TrackPart
                   key={`trackpart-${index}`}
                   trackPart={trackParts[index]}
-                  index={index}
+                  trackIndex={state.currentTrackIndex!}
+                  partIndex={index}
                 />
               )}
             </React.Fragment>

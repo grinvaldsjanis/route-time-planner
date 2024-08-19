@@ -21,6 +21,7 @@ export const SET_MAP_ZOOM = "SET_MAP_ZOOM";
 export const UPDATE_DURATION_MULTIPLIER = "UPDATE_DURATION_MULTIPLIER"; // Added definition
 export const SET_IN_PROGRESS = "SET_IN_PROGRESS";
 export const SET_HIGHLIGHT = "SET_HIGHLIGHT";
+export const SET_CURRENT_TRACK_INDEX = "SET_CURRENT_TRACK_INDEX";
 
 export interface SetHighlightAction {
   type: typeof SET_HIGHLIGHT;
@@ -45,7 +46,8 @@ export interface SetInProgressAction {
 export interface UpdateDurationMultiplierAction {
   type: typeof UPDATE_DURATION_MULTIPLIER;
   payload: {
-    index: number;
+    trackIndex: number;
+    partIndex: number;
     multiplier: number;
   };
 }
@@ -130,6 +132,11 @@ export interface SetMapZoomAction {
   payload: number;
 }
 
+export interface SetCurrentTrackIndex {
+  type: typeof SET_CURRENT_TRACK_INDEX;
+  payload: number;
+}
+
 export type Action =
   | SetGPXDataAction
   | UpdateRelativeTimesAction
@@ -148,7 +155,8 @@ export type Action =
   | SetIsProgrammaticMoveAction
   | UpdateDurationMultiplierAction
   | SetInProgressAction
-  | SetHighlightAction;
+  | SetHighlightAction
+  | SetCurrentTrackIndex;
 
 export const setHighlight = (
   range: [number, number],
@@ -175,12 +183,14 @@ export const updateRelativeTimes = (
 });
 
 export const updateDurationMultiplier = (
-  index: number,
+  trackIndex: number,
+  partIndex: number,
   multiplier: number
 ): UpdateDurationMultiplierAction => ({
   type: UPDATE_DURATION_MULTIPLIER,
-  payload: { index, multiplier },
+  payload: { trackIndex, partIndex, multiplier },
 });
+
 
 export const setMapMode = (
   mode: "ele" | "curve" | "slope"
@@ -209,6 +219,11 @@ export const setFocusedWaypoint = (
 export const setGPXName = (name: string): SetGPXNameAction => ({
   type: SET_GPX_NAME,
   payload: name,
+});
+
+export const setCurrentTrackIndex = (index: number) => ({
+  type: SET_CURRENT_TRACK_INDEX,
+  payload: index,
 });
 
 export const incrementDataVersion = (): IncrementDataVersionAction => ({

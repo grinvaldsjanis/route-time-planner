@@ -1,65 +1,65 @@
-import travelModes from "../constants/travelModes";
-import haversineDistance from "./haversineDistance";
 import { Track, TrackPart } from "./types";
+import haversineDistance from "./haversineDistance";
+import travelModes from "../constants/travelModes";
 
 const calculateTravelTime = (
-  trackParts: TrackPart[],
-  tracks: Track[],
+  trackPart: TrackPart,
+  track: Track,
   modeKey: keyof typeof travelModes
-): number[] => {
+): number => {
   const mode = travelModes[modeKey];
 
   if (!mode) {
     console.error("Invalid travel mode key:", modeKey);
-    return [];
+    return 0;
   }
 
   if (mode.powerFactor === undefined) {
     console.error("Power factor is missing for mode:", modeKey);
-    return [];
+    return 0;
   }
 
-  return trackParts.map((trackPart) => {
-    let totalTime = 0;
+  const points = track.points;
 
-    trackPart.trackPoints.forEach(
-      ({ trackIndex, startIndex, endIndex }) => {
-        const track = tracks[trackIndex];
-        if (!track) {
-          console.error("Invalid track index", trackIndex);
-          return;
-        }
-        const points = track.points;
+  if (
+    trackPart.startIndex < 0 ||
+    trackPart.endIndex >= points.length ||
+    trackPart.startIndex >= trackPart.endIndex
+  ) {
+    console.error(
+      "Invalid start or end index",
+      trackPart.startIndex,
+      trackPart.endIndex
+    );
+    return 0;
+  }
 
-        for (let i = startIndex; i < endIndex; i++) {
-          const pointA = points[i];
-          const pointB = points[i + 1];
-          const distance = haversineDistance(
-            parseFloat(pointA.lat),
-            parseFloat(pointA.lon),
-            parseFloat(pointB.lat),
-            parseFloat(pointB.lon)
-          );
+  let totalTime = 0;
 
-          const curveFactor = Math.log10((pointB.curve ?? 1000) / 10 + 1) / 3;
-
-          const slopeImpact = (pointB.slope ?? 0) / 100;
-          const slopeAdjustmentFactor = Math.exp(
-            -mode.powerFactor * slopeImpact
-          );
-          let effectiveSpeed =
-            mode.maxSpeed *
-            (1 - mode.handlingFactor * curveFactor) *
-            slopeAdjustmentFactor;
-
-          const time = (distance / 1000 / effectiveSpeed) * 3600;
-          totalTime += time;
-        }
-      }
+  for (let i = trackPart.startIndex; i < trackPart.endIndex; i++) {
+    const pointA = points[i];
+    const pointB = points[i + 1];
+    const distance = haversineDistance(
+      parseFloat(pointA.lat),
+      parseFloat(pointA.lon),
+      parseFloat(pointB.lat),
+      parseFloat(pointB.lon)
     );
 
-    return Math.round(totalTime);
-  });
+    const curveFactor = Math.log10((pointB.curve ?? 1000) / 10 + 1) / 3;
+
+    const slopeImpact = (pointB.slope ?? 0) / 100;
+    const slopeAdjustmentFactor = Math.exp(-mode.powerFactor * slopeImpact);
+    let effectiveSpeed =
+      mode.maxSpeed *
+      (1 - mode.handlingFactor * curveFactor) *
+      slopeAdjustmentFactor;
+
+    const time = (distance / 1000 / effectiveSpeed) * 3600;
+    totalTime += time;
+  }
+
+  return Math.round(totalTime);
 };
 
 export default calculateTravelTime;

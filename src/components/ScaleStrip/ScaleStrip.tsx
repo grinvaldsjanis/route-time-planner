@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef, CSSProperties } from "react";
+import React, { useEffect, useState, useRef, CSSProperties, useCallback } from "react";
 import { useGlobalState } from "../../context/GlobalContext";
 import { calculateValueRange } from "../../utils/calculateValueRange";
 import getColorForValue from "../../utils/getColorForValue";
@@ -15,34 +15,32 @@ const debounce = (func: Function, wait: number) => {
 
 const ScaleStrip: React.FC = () => {
   const { state, dispatch } = useGlobalState();
-  const { gpxData, mapMode, highlightMode } = state;
-  const tracks = gpxData?.tracks;
+  const { gpxData, mapMode, currentTrackIndex } = state;
   const stripRef = useRef<HTMLDivElement | null>(null);
+  const isMouseInsideRef = useRef(false);
 
   const [range, setRange] = useState({ minValue: 0, maxValue: 100 });
   const [hasNoRange, setHasNoRange] = useState(false);
-  const isMouseInsideRef = useRef(false);
-  const [isMouseInside, setIsMouseInside] = useState(false);
-  const [localHighlightRange, setLocalHighlightRange] = useState<[number, number]>([
-    0,
-    0,
-  ]);
+  const [localHighlightRange, setLocalHighlightRange] = useState<[number, number]>([0, 0]);
 
   useEffect(() => {
-    if (!tracks || !mapMode) {
+    if (!gpxData || currentTrackIndex === null || !mapMode) {
       setRange({ minValue: 0, maxValue: 100 });
       setHasNoRange(false);
       return;
     }
 
-    const modeKey =
-      mapMode === "curve" ? "curve" : mapMode === "slope" ? "slope" : "ele";
+    const currentTrack = gpxData.tracks[currentTrackIndex];
+
+    if (!currentTrack || !currentTrack.points || currentTrack.points.length === 0) {
+      setRange({ minValue: 0, maxValue: 100 });
+      setHasNoRange(true);
+      return;
+    }
+
+    const modeKey = mapMode === "curve" ? "curve" : mapMode === "slope" ? "slope" : "ele";
     const defaultValue = modeKey === "curve" ? 1000 : 0;
-    const { minValue, maxValue } = calculateValueRange(
-      tracks,
-      modeKey,
-      defaultValue
-    );
+    const { minValue, maxValue } = calculateValueRange([currentTrack], modeKey, defaultValue);
 
     setHasNoRange(minValue === maxValue);
     setRange({
@@ -50,63 +48,31 @@ const ScaleStrip: React.FC = () => {
       maxValue: isNaN(maxValue) ? 0 : maxValue,
     });
 
-    // Set initial highlight range to full range
     setLocalHighlightRange([minValue, maxValue]);
-  }, [mapMode, tracks]);
+  }, [mapMode, gpxData, currentTrackIndex]);
 
-  const generateLabels = () => {
-    const steps = 9;
-    const stepValue = (range.maxValue - range.minValue) / steps;
-    return Array.from({ length: steps + 1 }, (_, i) => {
-      const value = range.minValue + stepValue * i;
-      return {
-        value: Math.round(value),
-        color: getColorForValue(
-          value,
-          range.minValue,
-          range.maxValue,
-          mapMode === "curve"
-        ),
-      };
-    });
-  };
-
-  const labels = generateLabels();
-  const gradientStops = labels
-    .map(
-      (label) =>
-        `${label.color} ${
-          ((label.value - range.minValue) / (range.maxValue - range.minValue)) *
-          100
-        }%`
-    )
-    .join(", ");
-  const gradientStyle = {
-    background: `linear-gradient(to right, ${gradientStops})`,
-  };
-
-  const updateHighlight = useCallback(
-    debounce((value: number) => {
+  const debouncedUpdateHighlight = useRef(
+    debounce((value: number, tolerance: number) => {
       if (isMouseInsideRef.current) {
-        const tolerance = (range.maxValue - range.minValue) * 0.1;
-        const highlightRange: [number, number] = [
-          value - tolerance,
-          value + tolerance,
-        ];
+        const highlightRange: [number, number] = [value - tolerance, value + tolerance];
         dispatch(setHighlight(highlightRange, true));
       }
-    }, 200),
-    [range, dispatch]
-  );
+    }, 200)
+  ).current;
+
+  const updateHighlight = (value: number) => {
+    if (isMouseInsideRef.current) {
+      const tolerance = (range.maxValue - range.minValue) * 0.1;
+      debouncedUpdateHighlight(value, tolerance);
+    }
+  };
 
   const handleMouseEnter = () => {
     isMouseInsideRef.current = true;
-    setIsMouseInside(true);
   };
 
   const handleMouseLeave = () => {
     isMouseInsideRef.current = false;
-    setIsMouseInside(false);
     setLocalHighlightRange([range.minValue, range.maxValue]);
     dispatch(setHighlight([range.minValue, range.maxValue], false));
   };
@@ -117,34 +83,47 @@ const ScaleStrip: React.FC = () => {
     const rect = stripRef.current.getBoundingClientRect();
     const offsetX = e.clientX - rect.left;
     const stripWidth = rect.width;
-    const value =
-      range.minValue +
-      (offsetX / stripWidth) * (range.maxValue - range.minValue);
+    const value = range.minValue + (offsetX / stripWidth) * (range.maxValue - range.minValue);
 
     const tolerance = (range.maxValue - range.minValue) * 0.1;
-    const newHighlightRange: [number, number] = [
-      value - tolerance,
-      value + tolerance,
-    ];
+    const newHighlightRange: [number, number] = [value - tolerance, value + tolerance];
 
     setLocalHighlightRange(newHighlightRange);
     updateHighlight(value);
   };
 
   const getForegroundStyle = (): CSSProperties => {
-    const left =
-      ((localHighlightRange[0] - range.minValue) /
-        (range.maxValue - range.minValue)) *
-      100;
-    const right =
-      100 -
-      ((localHighlightRange[1] - range.minValue) /
-        (range.maxValue - range.minValue)) *
-        100;
+    const left = ((localHighlightRange[0] - range.minValue) / (range.maxValue - range.minValue)) * 100;
+    const right = 100 - ((localHighlightRange[1] - range.minValue) / (range.maxValue - range.minValue)) * 100;
 
     return {
       clipPath: `polygon(${left}% 0%, ${100 - right}% 0%, ${100 - right}% 100%, ${left}% 100%)`,
     };
+  };
+
+  const generateLabels = () => {
+    const steps = 9;
+    const stepValue = (range.maxValue - range.minValue) / steps;
+    return Array.from({ length: steps + 1 }, (_, i) => {
+      const value = range.minValue + stepValue * i;
+      return {
+        value: Math.round(value),
+        color: getColorForValue(value, range.minValue, range.maxValue, mapMode === "curve"),
+      };
+    });
+  };
+
+  const labels = generateLabels();
+  const gradientStops = labels
+    .map(
+      (label) =>
+        `${label.color} ${
+          ((label.value - range.minValue) / (range.maxValue - range.minValue)) * 100
+        }%`
+    )
+    .join(", ");
+  const gradientStyle = {
+    background: `linear-gradient(to right, ${gradientStops})`,
   };
 
   return (

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import StopTimeSelector from "../StopTimeSelector/StopTimeSelector";
 import { useGlobalState } from "../../../context/GlobalContext";
 import "./WaypointItem.css";
@@ -12,20 +12,28 @@ import {
   setMapZoom,
 } from "../../../context/actions";
 import { formatTimeFromSeconds, minutesToSeconds } from "../../../utils/timeUtils";
+import { Track } from "../../../utils/types";
 
 interface WaypointItemProps {
   index: number;
+  currentTrack: Track;
 }
 
-const WaypointItem: React.FC<WaypointItemProps> = ({ index }) => {
+const WaypointItem: React.FC<WaypointItemProps> = ({ index, currentTrack }) => {
   const { state, dispatch } = useGlobalState();
 
-  const waypoint = state.gpxData?.waypoints[index];
+  // Get the waypoint from the current track using the provided index
+  const trackWaypoint = currentTrack.waypoints[index];
+
+  const waypoint = state.gpxData?.referenceWaypoints.find(
+    (refWaypoint) => refWaypoint.id === trackWaypoint?.referenceId
+  );
+
   const [editableName, setEditableName] = useState<string>(
     waypoint?.name || `Point ${index + 1}`
   );
 
-  const stopTime = waypoint?.stopTime ?? 0;
+  const stopTime = trackWaypoint?.stopTime ?? 0;
 
   const [startHour, startMinute] = state.startTime.split(":").map(Number);
   const startTimeSeconds = minutesToSeconds(startHour * 60 + startMinute);
@@ -33,14 +41,33 @@ const WaypointItem: React.FC<WaypointItemProps> = ({ index }) => {
   let arrivalTime = formatTimeFromSeconds(startTimeSeconds);
   let departureTime = formatTimeFromSeconds(startTimeSeconds);
 
-  if (waypoint?.relativeTimes) {
+  if (trackWaypoint?.relativeTimes) {
     arrivalTime = formatTimeFromSeconds(
-      waypoint.relativeTimes.arrivalSeconds + startTimeSeconds
+      trackWaypoint.relativeTimes.arrivalSeconds + startTimeSeconds
     );
     departureTime = formatTimeFromSeconds(
-      waypoint.relativeTimes.departureSeconds + startTimeSeconds
+      trackWaypoint.relativeTimes.departureSeconds + startTimeSeconds
     );
   }
+
+  // Effect to update the name and time when the track or waypoint changes
+  useEffect(() => {
+    if (waypoint?.name) {
+      setEditableName(waypoint.name);
+    } else {
+      setEditableName(`Point ${index + 1}`);
+    }
+
+    // Recalculate arrival and departure times when track changes
+    if (trackWaypoint?.relativeTimes) {
+      arrivalTime = formatTimeFromSeconds(
+        trackWaypoint.relativeTimes.arrivalSeconds + startTimeSeconds
+      );
+      departureTime = formatTimeFromSeconds(
+        trackWaypoint.relativeTimes.departureSeconds + startTimeSeconds
+      );
+    }
+  }, [currentTrack, trackWaypoint, waypoint, startTimeSeconds]);
 
   let timeInfo;
   if (waypoint?.type === "start") {
@@ -104,7 +131,6 @@ const WaypointItem: React.FC<WaypointItemProps> = ({ index }) => {
               text={editableName}
               onTextChange={(newName) => {
                 setEditableName(newName);
-                localStorage.setItem(`waypointName_${index}`, newName);
                 dispatch({
                   type: "SET_WAYPOINT_NAME",
                   payload: { index, name: newName },
@@ -113,13 +139,14 @@ const WaypointItem: React.FC<WaypointItemProps> = ({ index }) => {
             />
           </div>
           <div className="waypoint-time-container">
-            {waypoint?.type !== "start" && waypoint?.type !== "destination" && (
-              <StopTimeSelector
-                key={`stop-selector-${index}-${stopTime}`}
-                stopTime={stopTime}
-                handleStopTimeChange={handleStopTimeChange}
-              />
-            )}
+            {waypoint?.type !== "start" &&
+              waypoint?.type !== "destination" && (
+                <StopTimeSelector
+                  key={`stop-selector-${index}-${stopTime}`}
+                  stopTime={stopTime}
+                  handleStopTimeChange={handleStopTimeChange}
+                />
+              )}
             <div className="timeinfo-wrapper">{timeInfo}</div>
           </div>
         </div>

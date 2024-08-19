@@ -43,9 +43,7 @@ function App() {
         throw new Error("Failed to fetch the GPX file");
       }
       const text = await response.text();
-      console.log("Fetched GPX File Content:", text);
 
-      // Check if the content is an HTML document
       if (text.startsWith("<!DOCTYPE html>")) {
         console.error("Fetched content is HTML, not a GPX file.");
         throw new Error("Fetched content is HTML, not a GPX file.");
@@ -53,7 +51,8 @@ function App() {
 
       dispatch(clearPreviousData());
       dispatch(setInProgress(true, "Processing GPX"));
-      const parsedGPXData = await parseGPX(text);
+
+      const parsedGPXData = await parseGPX(text, state.travelMode);
       dispatch({ type: "SET_GPX_DATA", payload: parsedGPXData });
     } catch (error) {
       console.error("Error loading GPX file:", error);

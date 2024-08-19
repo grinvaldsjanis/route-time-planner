@@ -1,4 +1,4 @@
-import { GPXData } from "../utils/types";
+import { Track, TrackPart, TrackWaypoint } from "../utils/types";
 import { minutesToSeconds, formatTimeFromSeconds } from "../utils/timeUtils";
 
 interface WaypointStatistics {
@@ -9,11 +9,11 @@ interface WaypointStatistics {
 }
 
 export default function calculateWaypointStatistics(
-  gpxData: GPXData,
+  track: Track,
   startTime: string | undefined
 ): WaypointStatistics {
-  if (!gpxData || !gpxData.trackParts || !gpxData.waypoints) {
-    console.warn("Insufficient GPX data provided.");
+  if (!track || !track.waypoints || !track.parts) {
+    console.warn("Insufficient track data provided.");
     return {
       totalDistance: 0,
       totalTravelTime: 0,
@@ -30,9 +30,13 @@ export default function calculateWaypointStatistics(
   const departureSeconds: number[] = [];
   let totalJourneySeconds = 0;
 
-  gpxData.waypoints.forEach((waypoint, index) => {
+  // Use only the current track's parts and waypoints
+  const trackParts: TrackPart[] = track.parts;
+  const trackWaypoints: TrackWaypoint[] = track.waypoints;
+
+  trackWaypoints.forEach((waypoint, index) => {
     if (index > 0) {
-      const trackPart = gpxData.trackParts[index - 1];
+      const trackPart = trackParts[index - 1]; // Get the previous part
       if (trackPart) {
         currentSeconds += (trackPart.travelTime ?? 0) * (trackPart.durationMultiplier ?? 1);
       }
@@ -50,8 +54,8 @@ export default function calculateWaypointStatistics(
   const finalArrivalSeconds = arrivalSeconds[arrivalSeconds.length - 1] + startTimeSeconds;
 
   return {
-    totalDistance: gpxData.trackParts.reduce((acc, part) => acc + (part?.distance ?? 0), 0),
-    totalTravelTime: gpxData.trackParts.reduce((acc, part) => acc + (part?.travelTime ?? 0), 0),
+    totalDistance: trackParts.reduce((acc, part) => acc + (part?.distance ?? 0), 0),
+    totalTravelTime: trackParts.reduce((acc, part) => acc + (part?.travelTime ?? 0), 0),
     totalJourneyTime: formatTimeFromSeconds(totalJourneySeconds),
     finalArrivalTime: formatTimeFromSeconds(finalArrivalSeconds),
   };

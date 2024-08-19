@@ -1,29 +1,36 @@
-import { GPXData, TrackPart } from "./types";
+import { Track, TrackPart } from "./types";
 import calculateTravelTime from "./calculateTravelTime";
 import travelModes from "../constants/travelModes";
 
 const calculateTravelTimes = (
-  gpxData: GPXData,
+  tracks: Track[],
   modeKey: keyof typeof travelModes
 ): TrackPart[] => {
-  if (!gpxData.trackParts) {
-    console.warn("trackParts is undefined");
-    return [];
-  }
+  const updatedTracks = tracks.map((track) => {
+    if (!track.parts) {
+      console.warn("track parts is undefined");
+      return track;
+    }
 
-  const updatedTrackParts = gpxData.trackParts.map((trackPart) => {
-    const travelTime = calculateTravelTime(
-      [trackPart],
-      gpxData.tracks,
-      modeKey
-    );
+    const updatedTrackParts = track.parts.map((trackPart) => {
+      const travelTime = calculateTravelTime(
+        trackPart,
+        track,
+        modeKey
+      );
+      return {
+        ...trackPart,
+        travelTime,
+      };
+    });
+
     return {
-      ...trackPart,
-      travelTime: travelTime[0],
+      ...track,
+      parts: updatedTrackParts,
     };
   });
 
-  return updatedTrackParts;
+  return updatedTracks.flatMap(track => track.parts);
 };
 
 export default calculateTravelTimes;

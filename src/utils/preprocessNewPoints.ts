@@ -1,3 +1,4 @@
+// preprocessTrackPoints.ts
 import calculateAngle from "./calculateAngle";
 import haversineDistance from "./haversineDistance";
 import { TrackPoint, Track } from "./types";

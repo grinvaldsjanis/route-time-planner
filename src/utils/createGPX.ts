@@ -2,7 +2,11 @@ import formatTimeToHHMM from "./formatTimeToHHMM";
 import { GPXData } from "./types";
 import { minutesToSeconds, formatTimeFromSeconds } from "./timeUtils";
 
-export default function createGPX(gpxData: GPXData, startTime: string, gpxName: string) {
+export default function createGPX(
+  gpxData: GPXData,
+  startTime: string,
+  gpxName: string
+) {
   const serializer = new XMLSerializer();
   const xmlDoc = document.implementation.createDocument(null, "gpx", null);
   const gpx = xmlDoc.documentElement;
@@ -28,25 +32,28 @@ export default function createGPX(gpxData: GPXData, startTime: string, gpxName: 
   const startTimeSeconds = minutesToSeconds(startHour * 60 + startMinute);
 
   let currentSeconds = 0;
-  const times = gpxData.waypoints.map((waypoint, index) => {
+  const times = gpxData.referenceWaypoints.map((waypoint, index) => {
     let arrivalSeconds = currentSeconds;
     let departureSeconds = currentSeconds;
 
     if (index > 0) {
-      const travelTime = gpxData.trackParts[index - 1].travelTime;
+      const travelTime = gpxData.tracks[0].parts[index - 1].travelTime;
       arrivalSeconds = currentSeconds += travelTime;
     }
 
-    const stopTimeSeconds = minutesToSeconds(waypoint.stopTime || 0);
+    const stopTimeSeconds = minutesToSeconds(
+      gpxData.tracks[0].waypoints.find((wp) => wp.referenceId === waypoint.id)
+        ?.stopTime || 0
+    );
     departureSeconds = currentSeconds += stopTimeSeconds;
 
     return {
       arrivalTime: formatTimeFromSeconds(arrivalSeconds + startTimeSeconds),
-      departureTime: formatTimeFromSeconds(departureSeconds + startTimeSeconds)
+      departureTime: formatTimeFromSeconds(departureSeconds + startTimeSeconds),
     };
   });
 
-  gpxData.waypoints.forEach((waypoint, index) => {
+  gpxData.referenceWaypoints.forEach((waypoint, index) => {
     const wpt = xmlDoc.createElement("wpt");
     wpt.setAttribute("lat", waypoint.lat);
     wpt.setAttribute("lon", waypoint.lon);
@@ -55,12 +62,17 @@ export default function createGPX(gpxData: GPXData, startTime: string, gpxName: 
 
     if (index === 0) {
       waypointName += ` (${formatTimeToHHMM(times[index].departureTime)})`;
-    } else if (waypoint.stopTime && waypoint.stopTime > 0) {
+    } else if (
+      gpxData.tracks[0].waypoints.find((wp) => wp.referenceId === waypoint.id)
+        ?.stopTime &&
+      gpxData.tracks[0].waypoints.find((wp) => wp.referenceId === waypoint.id)
+        ?.stopTime! > 0
+    ) {
       waypointName += ` (${formatTimeToHHMM(
         times[index].arrivalTime
       )} - ${formatTimeToHHMM(times[index].departureTime)})`;
     }
-    if (index === gpxData.waypoints.length - 1) {
+    if (index === gpxData.referenceWaypoints.length - 1) {
       waypointName += ` (${formatTimeToHHMM(times[index].arrivalTime)})`;
     }
 

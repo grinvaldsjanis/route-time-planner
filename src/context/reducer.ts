@@ -1,13 +1,17 @@
-// src/reducer.ts
+// reducer.ts
 import { Action } from "./actions";
 import { LatLngTuple } from "leaflet";
 import travelModes, { TravelMode } from "../constants/travelModes";
-import calculateTravelTimes from "../utils/calculateTravelTimes";
-import calculateAverageCoordinate from "../utils/calculateAverageCoordinate";
 import calculateWaypointStatistics from "../utils/calculateWaypointStatistics";
 import calculateRelativeTimes from "../utils/calculateRelativeTimes";
-import { GPXData } from "../utils/types";
-import { getLocalStorage, setLocalStorage, removeLocalStorage } from "../utils/localStorageUtils";
+import { GPXData, ReferenceWaypoint } from "../utils/types";
+import {
+  getLocalStorage,
+  setLocalStorage,
+  removeLocalStorage,
+} from "../utils/localStorageUtils";
+import calculateTravelTimes from "../utils/calculateTravelTimes";
+import calculateAverageCoordinate from "../utils/calculateAverageCoordinate";
 
 export interface GlobalState {
   gpxData: GPXData | null;
@@ -27,11 +31,13 @@ export interface GlobalState {
   progressText: string;
   highlightRange: [number, number];
   highlightMode: boolean;
+  currentTrackIndex: number | null;
 }
 
 export const initialState: GlobalState = {
   dataVersion: getLocalStorage("dataVersion", 0),
   gpxData: getLocalStorage("gpxData", null),
+  currentTrackIndex: getLocalStorage("currentTrackIndex", 0),
   mapMode: getLocalStorage("mapMode", "ele"),
   mapCenter: getLocalStorage("mapCenter", [0, 0]),
   mapZoom: getLocalStorage("mapZoom", 13),
@@ -50,14 +56,28 @@ export const initialState: GlobalState = {
   highlightMode: false,
 };
 
-if (initialState.gpxData) {
-  const { totalDistance, totalTravelTime, totalJourneyTime, finalArrivalTime } =
-    calculateWaypointStatistics(initialState.gpxData, initialState.startTime);
+if (initialState.gpxData && initialState.currentTrackIndex !== null) {
+  const currentTrack =
+    initialState.gpxData.tracks[initialState.currentTrackIndex];
 
-  initialState.totalDistance = totalDistance;
-  initialState.totalTravelTime = totalTravelTime;
-  initialState.totalJourneyTime = totalJourneyTime;
-  initialState.finalArrivalTime = finalArrivalTime;
+  // Check if currentTrack is valid and has waypoints and parts
+  if (currentTrack && currentTrack.waypoints && currentTrack.parts) {
+    const {
+      totalDistance,
+      totalTravelTime,
+      totalJourneyTime,
+      finalArrivalTime,
+    } = calculateWaypointStatistics(currentTrack, initialState.startTime);
+
+    initialState.totalDistance = totalDistance;
+    initialState.totalTravelTime = totalTravelTime;
+    initialState.totalJourneyTime = totalJourneyTime;
+    initialState.finalArrivalTime = finalArrivalTime;
+  } else {
+    console.warn(
+      "Skipping waypoint statistics calculation due to missing track data."
+    );
+  }
 }
 
 export const reducer = (state: GlobalState, action: Action): GlobalState => {
@@ -72,43 +92,118 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
 
     case "INITIALIZE_STATE": {
       const gpxData = action.payload.gpxData;
-      let waypointStats = {
-        totalDistance: 0,
-        totalTravelTime: 0,
-        totalJourneyTime: "0:00",
-        finalArrivalTime: "0:00",
+
+      // Reset local storage for current track index when new GPX data is loaded
+      removeLocalStorage("currentTrackIndex");
+
+      // Ensure GPX data and tracks are valid
+      if (!gpxData || !gpxData.tracks || gpxData.tracks.length === 0) {
+        console.error("No valid GPX data or tracks available");
+        return state;
+      }
+
+      // Safely determine the current track index, reset to 0 if not valid
+      const validTrackIndex = state.currentTrackIndex ?? 0;
+      const currentTrack = gpxData.tracks[validTrackIndex];
+
+      if (!currentTrack || !currentTrack.waypoints || !currentTrack.parts) {
+        console.error("Current track, waypoints, or parts are undefined");
+        return state;
+      }
+
+      // Ensure waypoints and parts are initialized before calculation
+      const { waypoints = [], parts = [] } = currentTrack;
+      if (waypoints.length === 0 || parts.length === 0) {
+        console.warn("No waypoints or track parts found for the current track");
+        return {
+          ...state,
+          gpxData,
+          currentTrackIndex: validTrackIndex,
+        };
+      }
+
+      // Calculate relative times for the waypoints in the current track
+      const updatedWaypointsWithTimes = calculateRelativeTimes(
+        waypoints,
+        parts
+      );
+
+      // Update the current track with the newly calculated relative times
+      const updatedTrackWithTimes = {
+        ...currentTrack,
+        waypoints: updatedWaypointsWithTimes,
       };
 
-      if (gpxData) {
-        waypointStats = calculateWaypointStatistics(gpxData, action.payload.startTime);
-      }
+      // Update the tracks with the updated current track
+      const updatedGPXData = {
+        ...gpxData,
+        tracks: gpxData.tracks.map((track, index) =>
+          index === validTrackIndex ? updatedTrackWithTimes : track
+        ),
+      };
+
+      // Calculate waypoint statistics
+      const waypointStats = calculateWaypointStatistics(
+        updatedTrackWithTimes,
+        action.payload.startTime
+      );
+
+      // Persist updated GPX data to local storage
+      setLocalStorage("gpxData", updatedGPXData);
 
       return {
         ...state,
         ...action.payload,
+        gpxData: updatedGPXData,
         ...waypointStats,
+        currentTrackIndex: validTrackIndex,
       };
     }
 
     case "SET_TRAVEL_MODE": {
       if (typeof action.payload === "string" && action.payload in travelModes) {
-        if (state.gpxData) {
-          const updatedTrackParts = calculateTravelTimes(state.gpxData, action.payload as TravelMode);
-          const updatedGPXData = { ...state.gpxData, trackParts: updatedTrackParts };
+        if (state.gpxData && state.currentTrackIndex !== null) {
+          const updatedTracks = state.gpxData.tracks.map((track, index) =>
+            index === state.currentTrackIndex
+              ? {
+                  ...track,
+                  parts: calculateTravelTimes(
+                    [track],
+                    action.payload as keyof typeof travelModes
+                  ),
+                }
+              : track
+          );
+
+          const updatedGPXData = { ...state.gpxData, tracks: updatedTracks };
 
           setLocalStorage("travelMode", action.payload);
           setLocalStorage("gpxData", updatedGPXData);
 
-          const updatedWaypointsWithTimes = calculateRelativeTimes(updatedGPXData.waypoints, updatedTrackParts);
-          const finalGPXDataWithTimes = { ...updatedGPXData, waypoints: updatedWaypointsWithTimes };
+          const updatedWaypointsWithTimes = calculateRelativeTimes(
+            updatedTracks[state.currentTrackIndex].waypoints,
+            updatedTracks[state.currentTrackIndex].parts
+          );
 
-          const { totalDistance, totalTravelTime, totalJourneyTime, finalArrivalTime } =
-            calculateWaypointStatistics(finalGPXDataWithTimes, state.startTime);
+          const updatedTrackWithTimes = {
+            ...updatedTracks[state.currentTrackIndex],
+            waypoints: updatedWaypointsWithTimes,
+          };
+
+          const {
+            totalDistance,
+            totalTravelTime,
+            totalJourneyTime,
+            finalArrivalTime,
+          } = calculateWaypointStatistics(
+            updatedTrackWithTimes,
+            state.startTime
+          );
 
           return {
             ...state,
             travelMode: action.payload as TravelMode,
-            gpxData: finalGPXDataWithTimes,
+            gpxData: updatedGPXData,
             totalDistance,
             totalTravelTime,
             totalJourneyTime,
@@ -126,45 +221,101 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
       removeLocalStorage("gpxData");
       removeLocalStorage("dataVersion");
       removeLocalStorage("stopTimes");
-      removeLocalStorage("waypointNames");
+      removeLocalStorage("currentTrackIndex");
 
       return {
         ...initialState,
         mapMode: state.mapMode,
         travelMode: state.travelMode,
         gpxData: null,
+        currentTrackIndex: 0, // Ensure the index is reset in the state as well
       };
 
     case "SET_GPX_DATA": {
-      const updatedTrackParts = calculateTravelTimes(action.payload, state.travelMode);
-      const updatedGPXData = { ...action.payload, trackParts: updatedTrackParts };
+      // Reset currentTrackIndex to 0 when new data is loaded
+      const updatedTracks = action.payload.tracks.map((track) => ({
+        ...track,
+        parts: calculateTravelTimes([track], state.travelMode),
+      }));
 
+      const updatedGPXData = { ...action.payload, tracks: updatedTracks };
+
+      const currentTrack = updatedTracks[0]; // Always start with track index 0
+
+      // Calculate relative times for the waypoints in the current track
+      const updatedWaypointsWithTimes = calculateRelativeTimes(
+        currentTrack.waypoints,
+        currentTrack.parts
+      );
+
+      // Update the current track with the newly calculated relative times
+      const finalTrackWithTimes = {
+        ...currentTrack,
+        waypoints: updatedWaypointsWithTimes,
+      };
+
+      // Filter reference waypoints associated with the current track's waypoints
+      const relatedReferenceWaypoints =
+        updatedGPXData.referenceWaypoints.filter((refWaypoint) =>
+          currentTrack.waypoints.some(
+            (waypoint) => waypoint.referenceId === refWaypoint.id
+          )
+        );
+
+      // Calculate the average coordinate based on the related reference waypoints
       const averageCoord = calculateAverageCoordinate(
-        updatedGPXData.waypoints.map((wp: { lat: string; lon: string }) => ({
+        relatedReferenceWaypoints.map((wp: ReferenceWaypoint) => ({
           lat: parseFloat(wp.lat),
           lon: parseFloat(wp.lon),
         }))
       );
 
-      const updatedWaypointsWithTimes = calculateRelativeTimes(updatedGPXData.waypoints, updatedTrackParts);
-      const updatedGPXDataWithTimes = { ...updatedGPXData, waypoints: updatedWaypointsWithTimes };
+      const finalReferenceWaypoints = updatedGPXData.referenceWaypoints.map(
+        (waypoint) => {
+          const updatedWaypoint = updatedWaypointsWithTimes.find(
+            (updatedWaypoint) => updatedWaypoint.referenceId === waypoint.id
+          );
+          return updatedWaypoint
+            ? {
+                ...waypoint,
+                relativeTimes: updatedWaypoint.relativeTimes,
+              }
+            : waypoint;
+        }
+      );
 
-      setLocalStorage("gpxData", updatedGPXDataWithTimes);
+      const finalGPXDataWithTimes = {
+        ...updatedGPXData,
+        referenceWaypoints: finalReferenceWaypoints,
+        tracks: updatedTracks.map((track, idx) =>
+          idx === 0 ? finalTrackWithTimes : track
+        ),
+      };
+
+      setLocalStorage("gpxData", finalGPXDataWithTimes);
       setLocalStorage("dataVersion", 0);
+      setLocalStorage("currentTrackIndex", 0); // Reset track index in local storage
 
-      const { totalDistance, totalTravelTime, totalJourneyTime, finalArrivalTime } =
-        calculateWaypointStatistics(updatedGPXDataWithTimes, state.startTime);
+      const {
+        totalDistance,
+        totalTravelTime,
+        totalJourneyTime,
+        finalArrivalTime,
+      } = calculateWaypointStatistics(finalTrackWithTimes, state.startTime);
 
       return {
         ...state,
-        gpxData: updatedGPXDataWithTimes,
-        mapCenter: averageCoord ? [averageCoord.lat, averageCoord.lon] : state.mapCenter,
+        gpxData: finalGPXDataWithTimes,
+        mapCenter: averageCoord
+          ? [averageCoord.lat, averageCoord.lon]
+          : state.mapCenter,
         isProgrammaticMove: true,
         dataVersion: 0,
         totalDistance,
         totalTravelTime,
         totalJourneyTime,
         finalArrivalTime,
+        currentTrackIndex: 0, // Reset track index in state
       };
     }
 
@@ -189,14 +340,19 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
         return state;
       }
 
-      const updatedWaypoints = state.gpxData.waypoints.map((waypoint, idx) => {
-        if (idx === action.payload.index) {
-          return { ...waypoint, name: action.payload.name };
+      const updatedWaypoints = state.gpxData.referenceWaypoints.map(
+        (waypoint, idx) => {
+          if (idx === action.payload.index) {
+            return { ...waypoint, name: action.payload.name };
+          }
+          return waypoint;
         }
-        return waypoint;
-      });
+      );
 
-      const updatedGPXData = { ...state.gpxData, waypoints: updatedWaypoints };
+      const updatedGPXData = {
+        ...state.gpxData,
+        referenceWaypoints: updatedWaypoints,
+      };
       setLocalStorage("gpxData", updatedGPXData);
 
       return {
@@ -206,24 +362,52 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
     }
 
     case "UPDATE_STOP_TIME": {
-      if (!state.gpxData || !state.gpxData.waypoints) return state;
+      if (!state.gpxData || state.currentTrackIndex === null) return state;
 
-      const updatedWaypointsWithStops = state.gpxData.waypoints.map((waypoint, idx) => {
+      const currentTrack = state.gpxData.tracks[state.currentTrackIndex];
+
+      const updatedWaypoints = currentTrack.waypoints.map((waypoint, idx) => {
         if (idx === action.payload.index) {
           return { ...waypoint, stopTime: action.payload.stopTime };
         }
         return waypoint;
       });
 
-      const updatedGPXDataWithStops = { ...state.gpxData, waypoints: updatedWaypointsWithStops };
-      setLocalStorage("gpxData", updatedGPXDataWithStops);
+      const updatedTrack = {
+        ...currentTrack,
+        waypoints: updatedWaypoints,
+      };
 
-      const { totalDistance, totalTravelTime, totalJourneyTime, finalArrivalTime } =
-        calculateWaypointStatistics(updatedGPXDataWithStops, state.startTime);
+      const updatedWaypointsWithTimes = calculateRelativeTimes(
+        updatedTrack.waypoints,
+        updatedTrack.parts
+      );
 
-      const updatedWaypointsWithTimes = calculateRelativeTimes(updatedGPXDataWithStops.waypoints, updatedGPXDataWithStops.trackParts);
-      const finalGPXDataWithTimes = { ...updatedGPXDataWithStops, waypoints: updatedWaypointsWithTimes };
+      const finalTrackWithTimes = {
+        ...updatedTrack,
+        waypoints: updatedWaypointsWithTimes,
+      };
 
+      // Update the tracks in gpxData with the updated current track
+      const updatedTracks = state.gpxData.tracks.map((track, idx) =>
+        idx === state.currentTrackIndex ? finalTrackWithTimes : track
+      );
+
+      // Recalculate statistics for the updated current track
+      const {
+        totalDistance,
+        totalTravelTime,
+        totalJourneyTime,
+        finalArrivalTime,
+      } = calculateWaypointStatistics(finalTrackWithTimes, state.startTime);
+
+      // Create the final GPX data object
+      const finalGPXDataWithTimes = {
+        ...state.gpxData,
+        tracks: updatedTracks,
+      };
+
+      // Persist the updated GPX data to local storage
       setLocalStorage("gpxData", finalGPXDataWithTimes);
 
       return {
@@ -237,26 +421,60 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
     }
 
     case "UPDATE_DURATION_MULTIPLIER": {
-      const { index, multiplier } = action.payload;
+      const { trackIndex, partIndex, multiplier } = action.payload;
 
-      if (!state.gpxData || !state.gpxData.trackParts) return state;
+      if (!state.gpxData || state.currentTrackIndex === null) return state;
 
-      const updatedTrackParts = state.gpxData.trackParts.map((part, idx) =>
-        idx === index ? { ...part, durationMultiplier: multiplier } : part
+      const updatedTracks = state.gpxData.tracks.map((track, idx) => {
+        if (idx === trackIndex) {
+          const updatedParts = track.parts.map((part, partIdx) =>
+            partIdx === partIndex
+              ? { ...part, durationMultiplier: multiplier }
+              : part
+          );
+          return { ...track, parts: updatedParts };
+        }
+        return track;
+      });
+
+      // Recalculate waypoints' relative times for the updated track
+      const updatedWaypointsWithTimes = calculateRelativeTimes(
+        updatedTracks[trackIndex].waypoints,
+        updatedTracks[trackIndex].parts
       );
 
-      const updatedTravelTimes = calculateTravelTimes({ ...state.gpxData, trackParts: updatedTrackParts }, state.travelMode);
-      const updatedWaypointsWithTimes = calculateRelativeTimes(state.gpxData.waypoints, updatedTravelTimes);
-      const updatedGPXDataWithTimes = { ...state.gpxData, trackParts: updatedTravelTimes, waypoints: updatedWaypointsWithTimes };
+      // Update the track with the recalculated waypoint times
+      const finalTrackWithTimes = {
+        ...updatedTracks[trackIndex],
+        waypoints: updatedWaypointsWithTimes,
+      };
 
-      const { totalDistance, totalTravelTime, totalJourneyTime, finalArrivalTime } =
-        calculateWaypointStatistics(updatedGPXDataWithTimes, state.startTime);
+      // Replace the updated track in the array of tracks
+      const finalTracksWithTimes = updatedTracks.map((track, idx) =>
+        idx === trackIndex ? finalTrackWithTimes : track
+      );
 
-      setLocalStorage("gpxData", updatedGPXDataWithTimes);
+      // Recalculate statistics for the current track (if it was updated)
+      const currentTrack = finalTracksWithTimes[state.currentTrackIndex];
+      const {
+        totalDistance,
+        totalTravelTime,
+        totalJourneyTime,
+        finalArrivalTime,
+      } = calculateWaypointStatistics(currentTrack, state.startTime);
 
+      // Update the GPX data and persist it to local storage
+      const finalGPXDataWithTimes = {
+        ...state.gpxData,
+        tracks: finalTracksWithTimes,
+      };
+
+      setLocalStorage("gpxData", finalGPXDataWithTimes);
+
+      // Return the updated state with recalculated statistics
       return {
         ...state,
-        gpxData: updatedGPXDataWithTimes,
+        gpxData: finalGPXDataWithTimes,
         totalDistance,
         totalTravelTime,
         totalJourneyTime,
@@ -265,24 +483,53 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
     }
 
     case "UPDATE_RELATIVE_TIMES": {
-      if (!state.gpxData || !state.gpxData.waypoints) return state;
+      if (!state.gpxData || state.currentTrackIndex === null) return state;
 
-      const updatedWaypointsWithTimes = state.gpxData.waypoints.map((waypoint, idx) => {
-        if (idx === action.payload.index) {
-          return { ...waypoint, relativeTimes: action.payload.relativeTimes };
+      // Get the current track based on the currentTrackIndex
+      const currentTrack = state.gpxData.tracks[state.currentTrackIndex];
+
+      // Update the relative times only for waypoints in the current track
+      const updatedWaypointsWithTimes = currentTrack.waypoints.map(
+        (waypoint, idx) => {
+          if (idx === action.payload.index) {
+            return { ...waypoint, relativeTimes: action.payload.relativeTimes };
+          }
+          return waypoint;
         }
-        return waypoint;
-      });
+      );
 
-      const updatedGPXDataWithTimes = { ...state.gpxData, waypoints: updatedWaypointsWithTimes };
-      setLocalStorage("gpxData", updatedGPXDataWithTimes);
+      // Assign the updated waypoints back to the track
+      const finalTrackWithTimes = {
+        ...currentTrack,
+        waypoints: updatedWaypointsWithTimes,
+      };
 
-      const { totalDistance, totalTravelTime, totalJourneyTime, finalArrivalTime } =
-        calculateWaypointStatistics(updatedGPXDataWithTimes, state.startTime);
+      // Update the tracks in gpxData with the updated current track
+      const updatedTracks = state.gpxData.tracks.map((track, idx) =>
+        idx === state.currentTrackIndex ? finalTrackWithTimes : track
+      );
 
+      // Recalculate statistics for the updated current track
+      const {
+        totalDistance,
+        totalTravelTime,
+        totalJourneyTime,
+        finalArrivalTime,
+      } = calculateWaypointStatistics(finalTrackWithTimes, state.startTime);
+
+      // Create the final GPX data object
+      const finalGPXDataWithTimes = {
+        ...state.gpxData,
+        tracks: updatedTracks,
+      };
+
+      // Persist the updated GPX data to local storage
+      setLocalStorage("gpxData", finalGPXDataWithTimes);
+
+      // Return the updated state with recalculated statistics
       return {
         ...state,
-        gpxData: updatedGPXDataWithTimes,
+        gpxData: finalGPXDataWithTimes,
         totalDistance,
         totalTravelTime,
         totalJourneyTime,
@@ -290,10 +537,78 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
       };
     }
 
-    case "INCREMENT_DATA_VERSION":
+    case "SET_CURRENT_TRACK_INDEX": {
+      const newCurrentTrackIndex = action.payload;
+      setLocalStorage("currentTrackIndex", newCurrentTrackIndex);
+
+      // Ensure GPX data is available and the new track index is valid
+      if (!state.gpxData || !state.gpxData.tracks[newCurrentTrackIndex]) {
+        console.error("Invalid track index or missing GPX data");
+        return state;
+      }
+
+      const currentTrack = state.gpxData.tracks[newCurrentTrackIndex];
+      if (!currentTrack) {
+        console.error("Current track is undefined");
+        return state;
+      }
+
+      // Safeguard for undefined waypoints or parts
+      const { waypoints = [], parts = [] } = currentTrack;
+
+      // Calculate relative times for the new current track
+      const updatedWaypointsWithTimes = calculateRelativeTimes(
+        waypoints,
+        parts
+      );
+
+      const updatedTrackWithTimes = {
+        ...currentTrack,
+        waypoints: updatedWaypointsWithTimes,
+      };
+
+      // Filter reference waypoints associated with the current track's waypoints
+      const relatedReferenceWaypoints = state.gpxData.referenceWaypoints.filter(
+        (refWaypoint) =>
+          currentTrack.waypoints.some(
+            (waypoint) => waypoint.referenceId === refWaypoint.id
+          )
+      );
+
+      // Calculate the average coordinate based on the related reference waypoints
+      const averageCoord = calculateAverageCoordinate(
+        relatedReferenceWaypoints.map((wp: ReferenceWaypoint) => ({
+          lat: parseFloat(wp.lat),
+          lon: parseFloat(wp.lon),
+        }))
+      );
+
+      const {
+        totalDistance,
+        totalTravelTime,
+        totalJourneyTime,
+        finalArrivalTime,
+      } = calculateWaypointStatistics(updatedTrackWithTimes, state.startTime);
+
+      return {
+        ...state,
+        currentTrackIndex: newCurrentTrackIndex,
+        totalDistance,
+        totalTravelTime,
+        totalJourneyTime,
+        finalArrivalTime,
+        mapCenter: averageCoord
+          ? [averageCoord.lat, averageCoord.lon]
+          : state.mapCenter, // Update map center
+        isProgrammaticMove: true, // Trigger map centering
+      };
+    }
+
+    case "INCREMENT_DATA_VERSION": {
       const updatedDataVersion = state.dataVersion + 1;
       setLocalStorage("dataVersion", updatedDataVersion);
       return { ...state, dataVersion: updatedDataVersion };
+    }
 
     case "SET_START_TIME":
       setLocalStorage("startTime", action.payload);
@@ -317,16 +632,14 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
     case "SET_FOCUSED_WAYPOINT":
       return { ...state, focusedWaypointIndex: action.payload };
 
-      case "SET_HIGHLIGHT":
-        // console.log("Highlight reducer active ", action.payload.range)
+    case "SET_HIGHLIGHT":
+      return {
+        ...state,
+        highlightRange: action.payload.range,
+        highlightMode: action.payload.isActive,
+      };
 
-        return {
-          ...state,
-          highlightRange: action.payload.range,
-          highlightMode: action.payload.isActive,
-        };
-    
-      default:
+    default:
       return state;
   }
 };
