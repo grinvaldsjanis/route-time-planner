@@ -1,4 +1,3 @@
-// WaypointList.tsx
 import React from "react";
 import "./WaypointList.css";
 import { useGlobalState } from "../../context/GlobalContext";
@@ -18,7 +17,11 @@ const WaypointList: React.FC = () => {
   const currentTrack = state.gpxData.tracks[state.currentTrackIndex];
 
   // Check if the current track and its waypoints are valid
-  if (!currentTrack || !currentTrack.waypoints || currentTrack.waypoints.length === 0) {
+  if (
+    !currentTrack ||
+    !currentTrack.waypoints ||
+    currentTrack.waypoints.length === 0
+  ) {
     return <div>No waypoints available for the current track.</div>;
   }
 
@@ -29,19 +32,29 @@ const WaypointList: React.FC = () => {
     <div className="outer-list-container">
       <div className="inner-list-container">
         <ul>
-          {waypoints.map((waypoint, index) => (
-            <React.Fragment key={`waypoint-${index}`}>
-              <WaypointItem index={index} currentTrack={currentTrack} />
-              {index < trackParts.length && state.currentTrackIndex !== null && (
-                <TrackPart
-                  key={`trackpart-${index}`}
-                  trackPart={trackParts[index]}
-                  trackIndex={state.currentTrackIndex!}
-                  partIndex={index}
+          {waypoints.map((trackWaypoint, index) => {
+            const referenceWaypoint = state.gpxData?.referenceWaypoints.find(
+              (refWaypoint) => refWaypoint.id === trackWaypoint.referenceId
+            );
+
+            return (
+              <React.Fragment>
+                <WaypointItem
+                  key={`waypoint-${index}`}
+                  index={index}
                 />
-              )}
-            </React.Fragment>
-          ))}
+                {index < trackParts.length &&
+                  state.currentTrackIndex !== null && (
+                    <TrackPart
+                      key={`trackpart-${index}`}
+                      trackPart={trackParts[index]}
+                      trackIndex={state.currentTrackIndex!}
+                      partIndex={index}
+                    />
+                  )}
+              </React.Fragment>
+            );
+          })}
         </ul>
       </div>
       <div className="resulting-info">

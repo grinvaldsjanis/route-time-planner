@@ -4,7 +4,6 @@ export interface GPXData {
   gpxName: string | null;
   referenceWaypoints: ReferenceWaypoint[];
   tracks: Track[];
-
 }
 
 export interface TrackPart {

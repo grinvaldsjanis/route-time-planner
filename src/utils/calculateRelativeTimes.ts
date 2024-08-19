@@ -22,6 +22,9 @@ const calculateRelativeTimes = (
     // Calculate the departure time (arrival time + stop time)
     const departureTime = arrivalTime + stopTimeInSeconds;
 
+    // Update the current time to include the stop time, so the next waypoint's arrival time takes this into account
+    currentTimeInSeconds = departureTime;
+
     // Return the updated waypoint with relative times
     return {
       ...waypoint,

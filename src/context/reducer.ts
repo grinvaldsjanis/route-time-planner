@@ -362,37 +362,36 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
     }
 
     case "UPDATE_STOP_TIME": {
+      console.log("New Stoptime is sent to globalstate reducer", action.payload.stopTime, "_", action.payload.index)
       if (!state.gpxData || state.currentTrackIndex === null) return state;
-
+    
       const currentTrack = state.gpxData.tracks[state.currentTrackIndex];
-
+    
+      // Update the stop time for the specific waypoint
       const updatedWaypoints = currentTrack.waypoints.map((waypoint, idx) => {
         if (idx === action.payload.index) {
           return { ...waypoint, stopTime: action.payload.stopTime };
         }
         return waypoint;
       });
-
-      const updatedTrack = {
-        ...currentTrack,
-        waypoints: updatedWaypoints,
-      };
-
+    
+      // Recalculate the relative times for all waypoints in the updated track
       const updatedWaypointsWithTimes = calculateRelativeTimes(
-        updatedTrack.waypoints,
-        updatedTrack.parts
+        updatedWaypoints,
+        currentTrack.parts
       );
-
+    
+      // Update the track with recalculated relative times
       const finalTrackWithTimes = {
-        ...updatedTrack,
+        ...currentTrack,
         waypoints: updatedWaypointsWithTimes,
       };
-
-      // Update the tracks in gpxData with the updated current track
+    
+      // Replace the updated track in the array of tracks
       const updatedTracks = state.gpxData.tracks.map((track, idx) =>
         idx === state.currentTrackIndex ? finalTrackWithTimes : track
       );
-
+    
       // Recalculate statistics for the updated current track
       const {
         totalDistance,
@@ -400,16 +399,16 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
         totalJourneyTime,
         finalArrivalTime,
       } = calculateWaypointStatistics(finalTrackWithTimes, state.startTime);
-
+    
       // Create the final GPX data object
       const finalGPXDataWithTimes = {
         ...state.gpxData,
         tracks: updatedTracks,
       };
-
+    
       // Persist the updated GPX data to local storage
       setLocalStorage("gpxData", finalGPXDataWithTimes);
-
+    
       return {
         ...state,
         gpxData: finalGPXDataWithTimes,

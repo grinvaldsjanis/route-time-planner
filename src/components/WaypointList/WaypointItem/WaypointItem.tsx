@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import StopTimeSelector from "../StopTimeSelector/StopTimeSelector";
 import { useGlobalState } from "../../../context/GlobalContext";
 import "./WaypointItem.css";
 import EditableText from "../../EditableText/EditableText";
-import { debounce } from "lodash";
 import { LatLngTuple } from "leaflet";
 import {
   setMapCenter,
@@ -12,67 +11,93 @@ import {
   setMapZoom,
 } from "../../../context/actions";
 import { formatTimeFromSeconds, minutesToSeconds } from "../../../utils/timeUtils";
-import { Track } from "../../../utils/types";
+import { TrackWaypoint, ReferenceWaypoint } from "../../../utils/types";
 
 interface WaypointItemProps {
   index: number;
-  currentTrack: Track;
 }
 
-const WaypointItem: React.FC<WaypointItemProps> = ({ index, currentTrack }) => {
+const WaypointItem: React.FC<WaypointItemProps> = ({ index }) => {
   const { state, dispatch } = useGlobalState();
 
-  // Get the waypoint from the current track using the provided index
-  const trackWaypoint = currentTrack.waypoints[index];
-
-  const waypoint = state.gpxData?.referenceWaypoints.find(
-    (refWaypoint) => refWaypoint.id === trackWaypoint?.referenceId
-  );
-
-  const [editableName, setEditableName] = useState<string>(
-    waypoint?.name || `Point ${index + 1}`
-  );
-
-  const stopTime = trackWaypoint?.stopTime ?? 0;
-
+  // Hooks must be placed at the top level
+  const [editableName, setEditableName] = useState<string>(`Point ${index + 1}`);
   const [startHour, startMinute] = state.startTime.split(":").map(Number);
   const startTimeSeconds = minutesToSeconds(startHour * 60 + startMinute);
 
-  let arrivalTime = formatTimeFromSeconds(startTimeSeconds);
-  let departureTime = formatTimeFromSeconds(startTimeSeconds);
+  // This is where we safely check if the data exists and use it accordingly
+  const currentTrack = state.gpxData && state.currentTrackIndex !== null
+    ? state.gpxData.tracks[state.currentTrackIndex]
+    : null;
 
-  if (trackWaypoint?.relativeTimes) {
-    arrivalTime = formatTimeFromSeconds(
-      trackWaypoint.relativeTimes.arrivalSeconds + startTimeSeconds
-    );
-    departureTime = formatTimeFromSeconds(
-      trackWaypoint.relativeTimes.departureSeconds + startTimeSeconds
-    );
+  const trackWaypoint = currentTrack?.waypoints[index] ?? null;
+
+  const referenceWaypoint = trackWaypoint
+    ? state.gpxData?.referenceWaypoints.find(
+        (refWaypoint) => refWaypoint.id === trackWaypoint.referenceId
+      )
+    : null;
+
+  // Set the editable name only if referenceWaypoint exists
+  useEffect(() => {
+    if (referenceWaypoint?.name) {
+      setEditableName(referenceWaypoint.name);
+    }
+  }, [referenceWaypoint]);
+
+  // Calculate arrival and departure times based on relative times
+  const arrivalTime = trackWaypoint
+    ? formatTimeFromSeconds(
+        (trackWaypoint.relativeTimes?.arrivalSeconds ?? 0) + startTimeSeconds
+      )
+    : formatTimeFromSeconds(startTimeSeconds);
+
+  const departureTime = trackWaypoint
+    ? formatTimeFromSeconds(
+        (trackWaypoint.relativeTimes?.departureSeconds ?? 0) + startTimeSeconds
+      )
+    : formatTimeFromSeconds(startTimeSeconds);
+
+  const stopTime = trackWaypoint?.stopTime ?? 0;
+
+  // Log to track re-rendering and state updates
+  useEffect(() => {
+    if (trackWaypoint) {
+      console.log(
+        `Waypoint ${index} - Arrival: ${arrivalTime}, Departure: ${departureTime}`
+      );
+    }
+  }, [arrivalTime, departureTime, stopTime, trackWaypoint]);
+
+  const handleStopTimeChange = (stopTime: number) => {
+    if (trackWaypoint) {
+      dispatch({ type: "UPDATE_STOP_TIME", payload: { index, stopTime } });
+    }
+  };
+
+  const handleSetMapCenter = () => {
+    if (referenceWaypoint) {
+      const newCenter = [
+        parseFloat(referenceWaypoint.lat),
+        parseFloat(referenceWaypoint.lon),
+      ] as LatLngTuple;
+      dispatch(setIsProgrammaticMove(true));
+      dispatch(setMapCenter(newCenter));
+      dispatch(setFocusedWaypoint(index));
+      dispatch(setMapZoom(15));
+    }
+  };
+
+  const isActive = state.focusedWaypointIndex === index;
+
+  if (!currentTrack || !trackWaypoint || !referenceWaypoint) {
+    return <div>No GPX data available.</div>;
   }
 
-  // Effect to update the name and time when the track or waypoint changes
-  useEffect(() => {
-    if (waypoint?.name) {
-      setEditableName(waypoint.name);
-    } else {
-      setEditableName(`Point ${index + 1}`);
-    }
-
-    // Recalculate arrival and departure times when track changes
-    if (trackWaypoint?.relativeTimes) {
-      arrivalTime = formatTimeFromSeconds(
-        trackWaypoint.relativeTimes.arrivalSeconds + startTimeSeconds
-      );
-      departureTime = formatTimeFromSeconds(
-        trackWaypoint.relativeTimes.departureSeconds + startTimeSeconds
-      );
-    }
-  }, [currentTrack, trackWaypoint, waypoint, startTimeSeconds]);
-
   let timeInfo;
-  if (waypoint?.type === "start") {
+  if (referenceWaypoint.type === "start") {
     timeInfo = <div>Departure: {departureTime}</div>;
-  } else if (waypoint?.type === "destination") {
+  } else if (referenceWaypoint.type === "destination") {
     timeInfo = <div>Arrival: {arrivalTime}</div>;
   } else {
     timeInfo =
@@ -85,29 +110,6 @@ const WaypointItem: React.FC<WaypointItemProps> = ({ index, currentTrack }) => {
         <div>Pass: {arrivalTime}</div>
       );
   }
-
-  const debouncedHandleStopTimeChange = debounce((stopTime: number) => {
-    dispatch({ type: "UPDATE_STOP_TIME", payload: { index, stopTime } });
-  }, 300);
-
-  const handleStopTimeChange = (stopTime: number) => {
-    debouncedHandleStopTimeChange(stopTime);
-  };
-
-  const handleSetMapCenter = () => {
-    if (waypoint) {
-      const newCenter = [
-        parseFloat(waypoint.lat),
-        parseFloat(waypoint.lon),
-      ] as LatLngTuple;
-      dispatch(setIsProgrammaticMove(true));
-      dispatch(setMapCenter(newCenter));
-      dispatch(setFocusedWaypoint(index));
-      dispatch(setMapZoom(15));
-    }
-  };
-
-  const isActive = state.focusedWaypointIndex === index;
 
   return (
     <li
@@ -139,8 +141,8 @@ const WaypointItem: React.FC<WaypointItemProps> = ({ index, currentTrack }) => {
             />
           </div>
           <div className="waypoint-time-container">
-            {waypoint?.type !== "start" &&
-              waypoint?.type !== "destination" && (
+            {referenceWaypoint.type !== "start" &&
+              referenceWaypoint.type !== "destination" && (
                 <StopTimeSelector
                   key={`stop-selector-${index}-${stopTime}`}
                   stopTime={stopTime}

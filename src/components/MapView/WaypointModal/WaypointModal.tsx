@@ -17,7 +17,6 @@ const WaypointModal: React.FC<WaypointModalProps> = ({
   const modalContentRef = useRef<HTMLDivElement | null>(null);
   const { state, dispatch } = useGlobalState();
 
-  // Moved useEffect above the conditional returns
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -37,7 +36,6 @@ const WaypointModal: React.FC<WaypointModalProps> = ({
     };
   }, [isOpen, handleClose]);
 
-  // Now handle conditional rendering below the hooks
   if (!state.gpxData || state.currentTrackIndex === null) {
     return <div>No GPX data available.</div>;
   }
@@ -46,14 +44,20 @@ const WaypointModal: React.FC<WaypointModalProps> = ({
 
   const currentTrack = state.gpxData.tracks[state.currentTrackIndex];
 
+  // Retrieve the specific trackWaypoint and referenceWaypoint using the waypointIndex
+  const trackWaypoint = currentTrack.waypoints[waypointIndex];
+  const referenceWaypoint = state.gpxData.referenceWaypoints.find(
+    (refWaypoint) => refWaypoint.id === trackWaypoint.referenceId
+  );
+
   return (
     <div className="modal-overlay">
       <div className="modal-content" ref={modalContentRef}>
-        <WaypointItem index={waypointIndex} currentTrack={currentTrack}/>
-        {/* Optional close button */}
-        {/* <button onClick={handleClose} className="modal-close-button">
-          X
-        </button> */}
+        {trackWaypoint && referenceWaypoint && (
+          <WaypointItem
+            index={waypointIndex}
+          />
+        )}
       </div>
     </div>
   );
