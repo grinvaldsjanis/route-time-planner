@@ -38,9 +38,11 @@ export default function calculateWaypointStatistics(
     if (index > 0) {
       const trackPart = trackParts[index - 1]; // Get the previous part
       if (trackPart) {
-        currentSeconds += (trackPart.travelTime ?? 0) * (trackPart.durationMultiplier ?? 1);
+        currentSeconds += Math.round((trackPart.travelTime ?? 0) * (trackPart.durationMultiplier ?? 1));
       }
     }
+
+
     arrivalSeconds.push(currentSeconds);
 
     const stopTimeSeconds = minutesToSeconds(waypoint.stopTime || 0);

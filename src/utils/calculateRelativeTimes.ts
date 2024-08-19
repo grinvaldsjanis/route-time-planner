@@ -10,7 +10,10 @@ const calculateRelativeTimes = (
     // For waypoints with index > 0, calculate the travel time from the previous waypoint
     if (waypointIndex > 0) {
       const correspondingTrackPart = trackParts[waypointIndex - 1]; // Get the track part for the previous waypoint
-      currentTimeInSeconds += correspondingTrackPart.travelTime * (correspondingTrackPart.durationMultiplier ?? 1);
+      currentTimeInSeconds += Math.round(
+        correspondingTrackPart.travelTime *
+          (correspondingTrackPart.durationMultiplier ?? 1)
+      );
     }
 
     // Calculate the arrival time for the current waypoint
