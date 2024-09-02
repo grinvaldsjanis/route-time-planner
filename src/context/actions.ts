@@ -18,10 +18,11 @@ export const UPDATE_RELATIVE_TIMES = "UPDATE_RELATIVE_TIMES";
 export const SET_IS_PROGRAMMATIC_MOVE = "SET_IS_PROGRAMMATIC_MOVE";
 export const SET_MAP_CENTER = "SET_MAP_CENTER";
 export const SET_MAP_ZOOM = "SET_MAP_ZOOM";
-export const UPDATE_DURATION_MULTIPLIER = "UPDATE_DURATION_MULTIPLIER"; // Added definition
+export const UPDATE_DURATION_MULTIPLIER = "UPDATE_DURATION_MULTIPLIER"; 
 export const SET_IN_PROGRESS = "SET_IN_PROGRESS";
 export const SET_HIGHLIGHT = "SET_HIGHLIGHT";
 export const SET_CURRENT_TRACK_INDEX = "SET_CURRENT_TRACK_INDEX";
+export const SET_VALUE_RANGES = "SET_VALUE_RANGES"; // Added new action type
 
 export interface SetHighlightAction {
   type: typeof SET_HIGHLIGHT;
@@ -30,6 +31,7 @@ export interface SetHighlightAction {
     isActive: boolean;
   };
 }
+
 export interface SetGPXNameAction {
   type: typeof SET_GPX_NAME;
   payload: string;
@@ -137,6 +139,15 @@ export interface SetCurrentTrackIndex {
   payload: number;
 }
 
+export interface SetValueRangesAction { // New interface for value ranges action
+  type: typeof SET_VALUE_RANGES;
+  payload: {
+    modeKey: string;
+    minValue: number;
+    maxValue: number;
+  };
+}
+
 export type Action =
   | SetGPXDataAction
   | UpdateRelativeTimesAction
@@ -156,7 +167,10 @@ export type Action =
   | UpdateDurationMultiplierAction
   | SetInProgressAction
   | SetHighlightAction
-  | SetCurrentTrackIndex;
+  | SetCurrentTrackIndex
+  | SetValueRangesAction; // Add the new action type
+
+// Action creators
 
 export const setHighlight = (
   range: [number, number],
@@ -191,7 +205,6 @@ export const updateDurationMultiplier = (
   payload: { trackIndex, partIndex, multiplier },
 });
 
-
 export const setMapMode = (
   mode: "ele" | "curve" | "slope"
 ): SetMapModeAction => ({
@@ -221,7 +234,7 @@ export const setGPXName = (name: string): SetGPXNameAction => ({
   payload: name,
 });
 
-export const setCurrentTrackIndex = (index: number) => ({
+export const setCurrentTrackIndex = (index: number): SetCurrentTrackIndex => ({
   type: SET_CURRENT_TRACK_INDEX,
   payload: index,
 });
@@ -268,4 +281,14 @@ export const setInProgress = (
     inProgress,
     text,
   },
+});
+
+// New action creator for setting value ranges
+export const setValueRanges = (
+  modeKey: string,
+  minValue: number,
+  maxValue: number
+): SetValueRangesAction => ({
+  type: SET_VALUE_RANGES,
+  payload: { modeKey, minValue, maxValue },
 });

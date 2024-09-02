@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef, CSSProperties, useCallback } from "
 import { useGlobalState } from "../../context/GlobalContext";
 import { calculateValueRange } from "../../utils/calculateValueRange";
 import getColorForValue from "../../utils/getColorForValue";
-import { setHighlight } from "../../context/actions";
+import { setHighlight, setValueRanges } from "../../context/actions";
 import "./ScaleStrip.css";
 
 const debounce = (func: Function, wait: number) => {
@@ -12,6 +12,7 @@ const debounce = (func: Function, wait: number) => {
     timeout = setTimeout(() => func(...args), wait);
   };
 };
+
 
 const ScaleStrip: React.FC = () => {
   const { state, dispatch } = useGlobalState();
@@ -49,7 +50,10 @@ const ScaleStrip: React.FC = () => {
     });
 
     setLocalHighlightRange([minValue, maxValue]);
-  }, [mapMode, gpxData, currentTrackIndex]);
+
+    // Dispatch updated value ranges to the global state
+    dispatch(setValueRanges(modeKey, minValue, maxValue));
+  }, [mapMode, gpxData, currentTrackIndex, dispatch]);
 
   const debouncedUpdateHighlight = useRef(
     debounce((value: number, tolerance: number) => {
@@ -57,7 +61,7 @@ const ScaleStrip: React.FC = () => {
         const highlightRange: [number, number] = [value - tolerance, value + tolerance];
         dispatch(setHighlight(highlightRange, true));
       }
-    }, 200)
+    }, 100)
   ).current;
 
   const updateHighlight = (value: number) => {

@@ -32,7 +32,13 @@ export interface GlobalState {
   highlightRange: [number, number];
   highlightMode: boolean;
   currentTrackIndex: number | null;
+  valueRanges: { // Add this property
+    ele: { minValue: number; maxValue: number };
+    curve: { minValue: number; maxValue: number };
+    slope: { minValue: number; maxValue: number };
+  };
 }
+
 
 export const initialState: GlobalState = {
   dataVersion: getLocalStorage("dataVersion", 0),
@@ -45,7 +51,6 @@ export const initialState: GlobalState = {
   focusedWaypointIndex: null,
   isProgrammaticMove: false,
   startTime: getLocalStorage("startTime", "08:00:00"),
-
   totalDistance: 0,
   totalTravelTime: 0,
   totalJourneyTime: "0:00",
@@ -54,6 +59,11 @@ export const initialState: GlobalState = {
   progressText: "",
   highlightRange: [0, 100],
   highlightMode: false,
+  valueRanges: { // Initialize valueRanges
+    ele: { minValue: 0, maxValue: 100 },
+    curve: { minValue: 0, maxValue: 100 },
+    slope: { minValue: 0, maxValue: 100 },
+  },
 };
 
 if (initialState.gpxData && initialState.currentTrackIndex !== null) {
@@ -362,11 +372,16 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
     }
 
     case "UPDATE_STOP_TIME": {
-      console.log("New Stoptime is sent to globalstate reducer", action.payload.stopTime, "_", action.payload.index)
+      console.log(
+        "New Stoptime is sent to globalstate reducer",
+        action.payload.stopTime,
+        "_",
+        action.payload.index
+      );
       if (!state.gpxData || state.currentTrackIndex === null) return state;
-    
+
       const currentTrack = state.gpxData.tracks[state.currentTrackIndex];
-    
+
       // Update the stop time for the specific waypoint
       const updatedWaypoints = currentTrack.waypoints.map((waypoint, idx) => {
         if (idx === action.payload.index) {
@@ -374,24 +389,24 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
         }
         return waypoint;
       });
-    
+
       // Recalculate the relative times for all waypoints in the updated track
       const updatedWaypointsWithTimes = calculateRelativeTimes(
         updatedWaypoints,
         currentTrack.parts
       );
-    
+
       // Update the track with recalculated relative times
       const finalTrackWithTimes = {
         ...currentTrack,
         waypoints: updatedWaypointsWithTimes,
       };
-    
+
       // Replace the updated track in the array of tracks
       const updatedTracks = state.gpxData.tracks.map((track, idx) =>
         idx === state.currentTrackIndex ? finalTrackWithTimes : track
       );
-    
+
       // Recalculate statistics for the updated current track
       const {
         totalDistance,
@@ -399,16 +414,16 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
         totalJourneyTime,
         finalArrivalTime,
       } = calculateWaypointStatistics(finalTrackWithTimes, state.startTime);
-    
+
       // Create the final GPX data object
       const finalGPXDataWithTimes = {
         ...state.gpxData,
         tracks: updatedTracks,
       };
-    
+
       // Persist the updated GPX data to local storage
       setLocalStorage("gpxData", finalGPXDataWithTimes);
-    
+
       return {
         ...state,
         gpxData: finalGPXDataWithTimes,
@@ -631,12 +646,30 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
     case "SET_FOCUSED_WAYPOINT":
       return { ...state, focusedWaypointIndex: action.payload };
 
-    case "SET_HIGHLIGHT":
-      return {
-        ...state,
-        highlightRange: action.payload.range,
-        highlightMode: action.payload.isActive,
-      };
+      case "SET_HIGHLIGHT":
+        console.log(
+          "Range: ",
+          action.payload.range,
+          "isActive: ",
+          action.payload.isActive
+        );
+      
+        return {
+          ...state,
+          highlightRange: action.payload.range,
+          highlightMode: action.payload.isActive,
+        };
+  
+        case "SET_VALUE_RANGES": {
+          const { modeKey, minValue, maxValue } = action.payload;
+          return {
+            ...state,
+            valueRanges: {
+              ...state.valueRanges,
+              [modeKey]: { minValue, maxValue },
+            },
+          };
+        }
 
     default:
       return state;
