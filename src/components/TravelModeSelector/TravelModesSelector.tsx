@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import travelModes from "../../constants/travelModes";
 import { useGlobalState } from "../../context/GlobalContext";
 import { setGPXName } from "../../context/actions";
@@ -16,7 +16,7 @@ const getTravelModeDetails = (
 
 const TravelModeSelector = React.memo(() => {
   const { state, dispatch } = useGlobalState();
-
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const selectedMode = getTravelModeDetails(state.travelMode);
   const gpxName = state.gpxData?.gpxName || "My Journey";
   const tracks = state.gpxData?.tracks || [];
@@ -33,12 +33,16 @@ const TravelModeSelector = React.memo(() => {
     if (travelModes[newMode]) {
       dispatch({ type: "SET_TRAVEL_MODE", payload: newMode });
     }
+    setIsDropdownOpen(false); // Close dropdown after selection
   };
 
   const handleTrackChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedTrackIndex = parseInt(e.target.value, 10);
     if (!isNaN(selectedTrackIndex)) {
-      dispatch({ type: "SET_CURRENT_TRACK_INDEX", payload: selectedTrackIndex });
+      dispatch({
+        type: "SET_CURRENT_TRACK_INDEX",
+        payload: selectedTrackIndex,
+      });
     }
   };
 
@@ -50,7 +54,6 @@ const TravelModeSelector = React.memo(() => {
       {/* Track Selector */}
       {tracks.length > 1 && (
         <div className="track-selector">
-          {/* <label htmlFor="trackSelector">Select Track:</label> */}
           <select
             id="trackSelector"
             value={currentTrackIndex}
@@ -65,21 +68,38 @@ const TravelModeSelector = React.memo(() => {
         </div>
       )}
 
-      {/* Travel Mode Selector */}
+      {/* Custom Travel Mode Selector */}
       <div className="travel-settings">
         <div className="travel-mode-selector">
-          <select
-            value={state.travelMode}
-            onChange={(e) =>
-              handleChangeMode(e.target.value as keyof typeof travelModes)
-            }
+          <button
+            onClick={() => setIsDropdownOpen((prev) => !prev)}
+            className="dropdown-toggle"
           >
-            {Object.keys(travelModes).map((mode) => (
-              <option key={mode} value={mode}>
-                {mode}
-              </option>
-            ))}
-          </select>
+            {React.createElement(selectedMode.IconComponent, {
+              color: selectedMode.iconColor,
+              style: { marginRight: "8px", verticalAlign: "middle" },
+            })}
+            {state.travelMode}{" "}
+          </button>
+          {isDropdownOpen && (
+            <div className="dropdown-menu">
+              {Object.entries(travelModes).map(([mode, details]) => (
+                <div
+                  key={mode}
+                  className="dropdown-item"
+                  onClick={() => handleChangeMode(mode as TravelModeKey)}
+                >
+                  {React.createElement(details.IconComponent, {
+                    color: details.iconColor,
+                    style: { marginRight: "8px", verticalAlign: "middle" },
+                  })}
+                  {mode}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Mode details */}
           <div className="description">
             <ul>
               <li>Max Speed: {selectedMode.maxSpeed} km/h</li>

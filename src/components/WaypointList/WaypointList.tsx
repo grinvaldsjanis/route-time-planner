@@ -33,16 +33,13 @@ const WaypointList: React.FC = () => {
       <div className="inner-list-container">
         <ul>
           {waypoints.map((trackWaypoint, index) => {
-            const referenceWaypoint = state.gpxData?.referenceWaypoints.find(
-              (refWaypoint) => refWaypoint.id === trackWaypoint.referenceId
-            );
+            // const referenceWaypoint = state.gpxData?.referenceWaypoints.find(
+            //   (refWaypoint) => refWaypoint.id === trackWaypoint.referenceId
+            // );
 
             return (
-              <React.Fragment>
-                <WaypointItem
-                  key={`waypoint-${index}`}
-                  index={index}
-                />
+              <React.Fragment key={`waypoint-${index}`}>
+                <WaypointItem index={index} />
                 {index < trackParts.length &&
                   state.currentTrackIndex !== null && (
                     <TrackPart

@@ -15,7 +15,7 @@ const WaypointModal: React.FC<WaypointModalProps> = ({
   handleClose,
 }) => {
   const modalContentRef = useRef<HTMLDivElement | null>(null);
-  const { state, dispatch } = useGlobalState();
+  const { state } = useGlobalState();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -54,9 +54,7 @@ const WaypointModal: React.FC<WaypointModalProps> = ({
     <div className="modal-overlay">
       <div className="modal-content" ref={modalContentRef}>
         {trackWaypoint && referenceWaypoint && (
-          <WaypointItem
-            index={waypointIndex}
-          />
+          <WaypointItem index={waypointIndex} />
         )}
       </div>
     </div>

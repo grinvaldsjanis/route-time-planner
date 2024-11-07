@@ -1,3 +1,5 @@
+import { FaWalking, FaRunning, FaBicycle, FaMotorcycle, FaCarSide } from "react-icons/fa";
+
 export type TravelMode = keyof typeof travelModes;
 
 const travelModes = {
@@ -7,6 +9,8 @@ const travelModes = {
     powerFactor: 0.1,
     terrain: "flat",
     description: "Leisurely walking",
+    IconComponent: FaWalking,
+    iconColor: "#4CAF50",
   },
   "Brisk Walking": {
     maxSpeed: 6.5,
@@ -14,6 +18,8 @@ const travelModes = {
     powerFactor: 0.15,
     terrain: "flat",
     description: "Fast walking",
+    IconComponent: FaWalking,
+    iconColor: "#388E3C",
   },
   "Casual Running": {
     maxSpeed: 8,
@@ -21,6 +27,8 @@ const travelModes = {
     powerFactor: 0.15,
     terrain: "flat",
     description: "Jogging",
+    IconComponent: FaRunning,
+    iconColor: "#FF9800",
   },
   "Competitive Running": {
     maxSpeed: 20,
@@ -28,6 +36,8 @@ const travelModes = {
     powerFactor: 0.2,
     terrain: "varied",
     description: "Marathon running",
+    IconComponent: FaRunning,
+    iconColor: "#F57C00",
   },
   "Leisure Cycling": {
     maxSpeed: 25,
@@ -35,6 +45,8 @@ const travelModes = {
     powerFactor: 0.4,
     terrain: "urban",
     description: "Using city bikes for casual riding",
+    IconComponent: FaBicycle,
+    iconColor: "#2196F3",
   },
   "Sport Cycling": {
     maxSpeed: 35,
@@ -42,6 +54,8 @@ const travelModes = {
     powerFactor: 0.6,
     terrain: "road",
     description: "Using road bikes for more fit individuals",
+    IconComponent: FaBicycle,
+    iconColor: "#1976D2",
   },
   "Professional Cycling": {
     maxSpeed: 40,
@@ -49,6 +63,8 @@ const travelModes = {
     powerFactor: 0.8,
     terrain: "road",
     description: "Competitive cycling",
+    IconComponent: FaBicycle,
+    iconColor: "#0D47A1",
   },
   "Standard Motorcycling": {
     maxSpeed: 100,
@@ -56,6 +72,8 @@ const travelModes = {
     powerFactor: 0.6,
     terrain: "road",
     description: "Regular motorcycles",
+    IconComponent: FaMotorcycle,
+    iconColor: "#9E9E9E",
   },
   "Sport Motorcycling": {
     maxSpeed: 160,
@@ -63,6 +81,8 @@ const travelModes = {
     powerFactor: 1.3,
     terrain: "road",
     description: "High-performance motorcycles",
+    IconComponent: FaMotorcycle,
+    iconColor: "#757575",
   },
   "Off-road Motorcycling": {
     maxSpeed: 80,
@@ -70,6 +90,8 @@ const travelModes = {
     powerFactor: 1.3,
     terrain: "off-road",
     description: "Dirt bikes for rough terrain",
+    IconComponent: FaMotorcycle,
+    iconColor: "#795548",
   },
   "Moderate Gravel Ride": {
     maxSpeed: 90,
@@ -77,6 +99,8 @@ const travelModes = {
     powerFactor: 0.7,
     terrain: "road",
     description: "Smaller, less powerful cars",
+    IconComponent: FaMotorcycle,
+    iconColor: "#8D6E63",
   },
   "Standard Driving": {
     maxSpeed: 110,
@@ -84,6 +108,8 @@ const travelModes = {
     powerFactor: 0.8,
     terrain: "road",
     description: "Average family cars",
+    IconComponent: FaCarSide,
+    iconColor: "#3F51B5",
   },
   "Performance Driving": {
     maxSpeed: 190,
@@ -91,6 +117,8 @@ const travelModes = {
     powerFactor: 1.3,
     terrain: "road",
     description: "Sports cars with high acceleration and top speeds",
+    IconComponent: FaCarSide,
+    iconColor: "#1A237E",
   },
 };
 

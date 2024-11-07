@@ -1,5 +1,11 @@
 // src/components/MapView/MapView.tsx
-import React, { useEffect, useState, useMemo, useCallback, useRef } from "react";
+import React, {
+  useEffect,
+  useState,
+  useMemo,
+  useCallback,
+  useRef,
+} from "react";
 import {
   MapContainer,
   TileLayer,
@@ -11,7 +17,6 @@ import {
 import type { LatLngTuple, Map } from "leaflet";
 import "./MapView.css";
 import { createMarkerIcon } from "../../utils/markerStyles";
-import { calculateValueRange } from "../../utils/calculateValueRange";
 import { useGlobalState } from "../../context/GlobalContext";
 import {
   setFocusedWaypoint,
@@ -37,23 +42,12 @@ const MapView: React.FC = () => {
   const mapRef = useRef<Map | null>(null);
   const isProgrammaticMoveRef = useRef(false);
   const { state, dispatch } = useGlobalState();
-  const {
-    gpxData,
-    mapCenter,
-    mapZoom,
-    mapMode,
-    highlightMode, // Include highlightMode from state
-    highlightRange, // Include highlightRange from state
-    currentTrackIndex,
-  } = state;
+  const { gpxData, mapCenter, mapZoom, mapMode, currentTrackIndex } = state;
 
-  const [selectedWaypointIndex, setSelectedWaypointIndex] = useState<number | null>(null);
+  const [selectedWaypointIndex, setSelectedWaypointIndex] = useState<
+    number | null
+  >(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [valueRanges, setValueRanges] = useState({
-    ele: { minValue: 0, maxValue: 100 },
-    curve: { minValue: 0, maxValue: 100 },
-    slope: { minValue: 0, maxValue: 100 },
-  });
 
   const handleMapMove = useCallback(
     (center: LatLngTuple, zoom: number) => {
@@ -64,17 +58,6 @@ const MapView: React.FC = () => {
     },
     [dispatch]
   );
-
-  useEffect(() => {
-    if (gpxData?.tracks && gpxData.tracks.length > 0) {
-      const newRanges = {
-        ele: calculateValueRange(gpxData.tracks, "ele", 0),
-        curve: calculateValueRange(gpxData.tracks, "curve", 1000),
-        slope: calculateValueRange(gpxData.tracks, "slope", 0),
-      };
-      setValueRanges(newRanges);
-    }
-  }, [gpxData, mapMode]);
 
   useEffect(() => {
     if (mapRef.current && state.isProgrammaticMove) {
@@ -97,7 +80,10 @@ const MapView: React.FC = () => {
     }
   };
 
-  const currentTrack = currentTrackIndex !== null && gpxData?.tracks ? gpxData.tracks[currentTrackIndex] : null;
+  const currentTrack =
+    currentTrackIndex !== null && gpxData?.tracks
+      ? gpxData.tracks[currentTrackIndex]
+      : null;
 
   const renderTracks = useMemo(() => {
     if (!gpxData || !gpxData.tracks || gpxData.tracks.length === 0) return null;
@@ -111,54 +97,64 @@ const MapView: React.FC = () => {
       const isActive = trackIdx === currentTrackIndex;
 
       return (
-        <LayerGroup key={`${trackIdx}`}>
-          <Polyline
-          key={"polyline"}
-            positions={outlinePositions}
-            color={isActive ? "#000000" : "#FF0000"}
-            opacity={0.5}
-            weight={isActive ? 10 : 2}
-          />
-          {isActive && (
-            <ColorizedPolyline
-            key={"colorized-polyline"}
+        <LayerGroup key={`track-layer-${trackIdx}`}>
+          {isActive ? (
+            <ColorizedPolyline />
+          ) : (
+            // Red polyline for inactive tracks
+            <Polyline
+              positions={outlinePositions}
+              color="#FF0000"
+              opacity={0.5}
+              weight={2}
             />
           )}
         </LayerGroup>
       );
     });
-  }, [gpxData, currentTrackIndex, mapMode, highlightMode, highlightRange, valueRanges]);
+  }, [gpxData, currentTrackIndex]);
 
   const renderMarkers = useMemo(() => {
     if (!gpxData || !currentTrack) return null;
 
-    return currentTrack.waypoints.map((waypoint: TrackWaypoint, idx: number) => {
-      const refWaypoint = gpxData.referenceWaypoints.find(ref => ref.id === waypoint.referenceId);
-      if (!refWaypoint) return null;
+    return currentTrack.waypoints.map(
+      (waypoint: TrackWaypoint, idx: number) => {
+        const refWaypoint = gpxData.referenceWaypoints.find(
+          (ref) => ref.id === waypoint.referenceId
+        );
+        if (!refWaypoint) return null;
 
-      // Determine the icon type for the waypoint
-      let iconType = refWaypoint.type || "via"; // Default to "via" if no type is set
+        let iconType = refWaypoint.type || "via";
 
-      // Ensure the first waypoint gets the "start" icon and the last gets the "destination" icon
-      if (idx === 0) {
-        iconType = "start";
-      } else if (idx === currentTrack.waypoints.length - 1) {
-        iconType = "destination";
-      } else if (iconType !== "start" && iconType !== "destination" && mapZoom < 11) {
-        iconType = "small";
+        if (idx === 0) {
+          iconType = "start";
+        } else if (idx === currentTrack.waypoints.length - 1) {
+          iconType = "destination";
+        } else if (
+          iconType !== "start" &&
+          iconType !== "destination" &&
+          mapZoom < 11
+        ) {
+          iconType = "small";
+        }
+
+        return (
+          <Marker
+            key={idx}
+            position={[
+              parseFloat(refWaypoint.lat),
+              parseFloat(refWaypoint.lon),
+            ]}
+            icon={createMarkerIcon(iconType, idx + 1)}
+            eventHandlers={{ click: () => handleMarkerClick(idx) }}
+          >
+            <Tooltip sticky>
+              {refWaypoint.name || `Waypoint ${idx + 1}`}
+            </Tooltip>
+          </Marker>
+        );
       }
-
-      return (
-        <Marker
-          key={idx}
-          position={[parseFloat(refWaypoint.lat), parseFloat(refWaypoint.lon)]}
-          icon={createMarkerIcon(iconType, idx + 1)}
-          eventHandlers={{ click: () => handleMarkerClick(idx) }}
-        >
-          <Tooltip sticky>{refWaypoint.name || `Waypoint ${idx + 1}`}</Tooltip>
-        </Marker>
-      );
-    });
+    );
   }, [gpxData, currentTrack, mapZoom]);
 
   if (!gpxData || currentTrackIndex === null) {

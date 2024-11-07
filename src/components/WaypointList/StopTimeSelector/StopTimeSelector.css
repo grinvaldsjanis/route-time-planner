@@ -14,14 +14,14 @@
 
 input[type="range"] {
   font-size: 2.7rem;
-width: 100%;
+  width: 100%;
 }
 
 input[type="range"] {
   color: #6eef23;
   --thumb-height: 0.5em;
   --track-height: 0.125em;
-  --track-color: rgba(255, 255, 255, 1);
+  --track-color: rgb(220, 220, 220);
   --brightness-hover: 120%;
   --brightness-down: 90%;
   --clip-edges: 0.125em;
@@ -38,7 +38,7 @@ input[type="range"].win10-thumb {
 /* === range commons === */
 input[type="range"] {
   position: relative;
-  background: rgba(255, 255, 255, 0);
+  background: rgba(158, 83, 83, 0);
   overflow: hidden;
 }
 
@@ -125,7 +125,7 @@ input[type="range"]::-moz-range-thumb {
 input[type="range"]::-moz-range-track,
 input[type="range"]::-moz-range-thumb,
 input[type="range"]::-moz-range-progress {
-  background: #fff0;
+  background: rgba(165, 95, 95, 0);
 }
 
 input[type="range"]::-moz-range-thumb {

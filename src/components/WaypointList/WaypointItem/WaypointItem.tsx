@@ -1,8 +1,14 @@
 import React, { useState, useEffect } from "react";
-import StopTimeSelector from "../StopTimeSelector/StopTimeSelector";
 import { useGlobalState } from "../../../context/GlobalContext";
 import "./WaypointItem.css";
+import {
+  LuArrowDownFromLine,
+  LuArrowDownToLine,
+  LuClock,
+  LuArrowRightFromLine,
+} from "react-icons/lu";
 import EditableText from "../../EditableText/EditableText";
+import StopTimeSelector from "../StopTimeSelector/StopTimeSelector";
 import { LatLngTuple } from "leaflet";
 import {
   setMapCenter,
@@ -10,8 +16,10 @@ import {
   setIsProgrammaticMove,
   setMapZoom,
 } from "../../../context/actions";
-import { formatTimeFromSeconds, minutesToSeconds } from "../../../utils/timeUtils";
-import { TrackWaypoint, ReferenceWaypoint } from "../../../utils/types";
+import {
+  formatTimeFromSeconds,
+  minutesToSeconds,
+} from "../../../utils/timeUtils";
 
 interface WaypointItemProps {
   index: number;
@@ -20,32 +28,30 @@ interface WaypointItemProps {
 const WaypointItem: React.FC<WaypointItemProps> = ({ index }) => {
   const { state, dispatch } = useGlobalState();
 
-  // Hooks must be placed at the top level
-  const [editableName, setEditableName] = useState<string>(`Point ${index + 1}`);
+  const [editableName, setEditableName] = useState<string>(
+    `Point ${index + 1}`
+  );
   const [startHour, startMinute] = state.startTime.split(":").map(Number);
   const startTimeSeconds = minutesToSeconds(startHour * 60 + startMinute);
 
-  // This is where we safely check if the data exists and use it accordingly
-  const currentTrack = state.gpxData && state.currentTrackIndex !== null
-    ? state.gpxData.tracks[state.currentTrackIndex]
-    : null;
+  const currentTrack =
+    state.gpxData && state.currentTrackIndex !== null
+      ? state.gpxData.tracks[state.currentTrackIndex]
+      : null;
 
   const trackWaypoint = currentTrack?.waypoints[index] ?? null;
-
   const referenceWaypoint = trackWaypoint
     ? state.gpxData?.referenceWaypoints.find(
         (refWaypoint) => refWaypoint.id === trackWaypoint.referenceId
       )
     : null;
 
-  // Set the editable name only if referenceWaypoint exists
   useEffect(() => {
-    if (referenceWaypoint?.name) {
-      setEditableName(referenceWaypoint.name);
+    if (trackWaypoint) {
+      setEditableName(referenceWaypoint?.name || `Point ${index + 1}`);
     }
-  }, [referenceWaypoint]);
+  }, [referenceWaypoint, index, state.gpxData]);
 
-  // Calculate arrival and departure times based on relative times
   const arrivalTime = trackWaypoint
     ? formatTimeFromSeconds(
         (trackWaypoint.relativeTimes?.arrivalSeconds ?? 0) + startTimeSeconds
@@ -60,14 +66,14 @@ const WaypointItem: React.FC<WaypointItemProps> = ({ index }) => {
 
   const stopTime = trackWaypoint?.stopTime ?? 0;
 
-  // Log to track re-rendering and state updates
-  useEffect(() => {
-    if (trackWaypoint) {
-      console.log(
-        `Waypoint ${index} - Arrival: ${arrivalTime}, Departure: ${departureTime}`
-      );
-    }
-  }, [arrivalTime, departureTime, stopTime, trackWaypoint]);
+  const formatDistance = (distance: number) => {
+    return distance >= 10 ? Math.round(distance) : distance.toFixed(1);
+  };
+
+  const distanceFromStart = formatDistance(
+    trackWaypoint?.distanceFromStart ?? 0
+  );
+  const distanceToEnd = formatDistance(trackWaypoint?.distanceToEnd ?? 0);
 
   const handleStopTimeChange = (stopTime: number) => {
     if (trackWaypoint) {
@@ -96,18 +102,32 @@ const WaypointItem: React.FC<WaypointItemProps> = ({ index }) => {
 
   let timeInfo;
   if (referenceWaypoint.type === "start") {
-    timeInfo = <div>Departure: {departureTime}</div>;
+    timeInfo = (
+      <div>
+        <LuArrowDownFromLine /> {departureTime}
+      </div>
+    );
   } else if (referenceWaypoint.type === "destination") {
-    timeInfo = <div>Arrival: {arrivalTime}</div>;
+    timeInfo = (
+      <div>
+        <LuArrowDownToLine /> {arrivalTime}
+      </div>
+    );
   } else {
     timeInfo =
       stopTime > 0 ? (
         <div className="arrival-departure">
-          <div>Arrival: {arrivalTime}</div>
-          <div>Departure: {departureTime}</div>
+          <div className="time-info-row">
+            <LuArrowDownToLine /> {arrivalTime}
+          </div>
+          <div className="time-info-row">
+            <LuArrowDownFromLine /> {departureTime}
+          </div>
         </div>
       ) : (
-        <div>Pass: {arrivalTime}</div>
+        <div className="time-info-row">
+          <LuClock /> {arrivalTime}
+        </div>
       );
   }
 
@@ -119,7 +139,10 @@ const WaypointItem: React.FC<WaypointItemProps> = ({ index }) => {
       onClick={handleSetMapCenter}
     >
       <div className="waypoint-container">
-        <div className="item-order-number">{index + 1}</div>
+        <div className="waypoint-front-container">
+          <div className="item-order-number">{index + 1}</div>
+        </div>
+
         <div
           className={`waypoint-info-container ${isActive ? "active" : ""}`}
           id={`waypoint-info-${index}`}
@@ -128,21 +151,25 @@ const WaypointItem: React.FC<WaypointItemProps> = ({ index }) => {
               stopTime > 0 ? "rgb(214, 245, 161)" : "rgb(241, 241, 241)",
           }}
         >
-          <div className="item-top-row">
-            <EditableText
-              text={editableName}
-              onTextChange={(newName) => {
-                setEditableName(newName);
-                dispatch({
-                  type: "SET_WAYPOINT_NAME",
-                  payload: { index, name: newName },
-                });
-              }}
-            />
-          </div>
+          {referenceWaypoint.type !== "shaping" && (
+            <div className="item-top-row">
+              <EditableText
+                text={editableName}
+                onTextChange={(newName) => {
+                  setEditableName(newName);
+                  dispatch({
+                    type: "SET_WAYPOINT_NAME",
+                    payload: { index, name: newName },
+                  });
+                }}
+              />
+            </div>
+          )}
+
           <div className="waypoint-time-container">
             {referenceWaypoint.type !== "start" &&
-              referenceWaypoint.type !== "destination" && (
+              referenceWaypoint.type !== "destination" &&
+              referenceWaypoint.type !== "shaping" && (
                 <StopTimeSelector
                   key={`stop-selector-${index}-${stopTime}`}
                   stopTime={stopTime}
@@ -150,6 +177,22 @@ const WaypointItem: React.FC<WaypointItemProps> = ({ index }) => {
                 />
               )}
             <div className="timeinfo-wrapper">{timeInfo}</div>
+          </div>
+          <div className="waypoint-distance-container">
+            {referenceWaypoint.type !== "start" &&
+              referenceWaypoint.type !== "shaping" && (
+                <div className="item-distance">
+                  <LuArrowRightFromLine />
+                  {distanceFromStart} km
+                </div>
+              )}
+            {referenceWaypoint.type !== "destination" &&
+              referenceWaypoint.type !== "shaping" && (
+                <div className="item-distance">
+                  - {distanceToEnd} km
+                  <LuArrowRightFromLine />
+                </div>
+              )}
           </div>
         </div>
       </div>

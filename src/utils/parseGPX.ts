@@ -131,6 +131,10 @@ export default async function parseGPX(
 
   // Match reference waypoints to the closest track points and create track waypoints
   referenceWaypoints.forEach((refWaypoint) => {
+    if (refWaypoint.type === "shaping") {
+      return;
+    }
+
     let closestTrackIndex = -1;
     let minDistance = Infinity;
     let closestTrackPointIndex = -1;
@@ -162,11 +166,12 @@ export default async function parseGPX(
       parsedTracks[closestTrackIndex].waypoints.push({
         referenceId: refWaypoint.id,
         closestTrackPointIndex,
+        distanceFromStart: 0,
+        distanceToEnd: 0,
       });
     }
   });
 
-  // Calculate track parts based on waypoints
   // Calculate track parts based on waypoints
   parsedTracks.forEach((track) => {
     track.waypoints.sort(
@@ -176,8 +181,26 @@ export default async function parseGPX(
     );
 
     const trackParts = calculateTrackParts(track.waypoints, track, modeKey);
-
     track.parts = trackParts;
+
+    let cumulativeDistanceFromStart = 0;
+
+    track.waypoints.forEach((waypoint, index) => {
+      // Assign rounded distance for display without affecting cumulative precision
+      waypoint.distanceFromStart =
+        Math.round(cumulativeDistanceFromStart * 10) / 10;
+
+      if (index < track.parts.length) {
+        cumulativeDistanceFromStart += track.parts[index].distance;
+      }
+
+      // Calculate distance to end by summing remaining track parts with rounded result
+      const distanceToEnd = track.parts
+        .slice(index)
+        .reduce((acc, part) => acc + part.distance, 0);
+
+      waypoint.distanceToEnd = Math.round(distanceToEnd * 10) / 10;
+    });
   });
 
   // Process elevation data if needed
@@ -242,7 +265,7 @@ function parseReferenceWaypoint(element: Element): ReferenceWaypoint | null {
     return { id: `${lat}-${lon}`, lat, lon, name, desc, sym, type };
   }
 
-  console.warn("Skipping point with missing lat or lon");
+  // console.warn("Skipping point with missing lat or lon");
   return null;
 }
 

@@ -8,7 +8,7 @@
 </link>
 <time>2024-03-12T16:20:41Z</time>
 </metadata>
-<wpt lat="57.067382" lon="22.817489"><name>Continue</name><desc>Continue</desc><sym>Flag, Green</sym><type>start</type></wpt>
+<wpt lat="57.067382" lon="22.817489"><name>Start</name><desc>Continue</desc><sym>Flag, Green</sym><type>start</type></wpt>
 <wpt lat="57.10816" lon="22.868115"><name>Cēres muiža</name><desc>Waypoint 1</desc><sym>Flag, Blue</sym><type>via</type></wpt>
 <wpt lat="57.115642" lon="22.871104"><name>Waypoint 2</name><desc>Waypoint 2</desc><sym>Waypoint</sym><type>shaping</type></wpt>
 <wpt lat="57.159693" lon="22.853716"><name>Galtenes muiža</name><desc>Waypoint 3</desc><sym>Waypoint</sym><type>shaping</type></wpt>

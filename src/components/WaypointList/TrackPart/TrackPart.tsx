@@ -29,7 +29,7 @@ const TrackPart: React.FC<TrackPartProps> = ({ trackPart, trackIndex, partIndex 
         <FaArrowsUpDown />
       </div>
       <div className="track-part-info">
-        <div>Distance: {trackPart.distance.toFixed(1)} km</div>
+        <div>{trackPart.distance.toFixed(1)} km</div>
         <SegmentedControl
           key={partIndex}
           options={multipliers}

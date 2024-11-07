@@ -1,4 +1,3 @@
-// reducer.ts
 import { Action } from "./actions";
 import { LatLngTuple } from "leaflet";
 import travelModes, { TravelMode } from "../constants/travelModes";
@@ -12,6 +11,7 @@ import {
 } from "../utils/localStorageUtils";
 import calculateTravelTimes from "../utils/calculateTravelTimes";
 import calculateAverageCoordinate from "../utils/calculateAverageCoordinate";
+import { calculateValueRange } from "../utils/calculateValueRange";
 
 export interface GlobalState {
   gpxData: GPXData | null;
@@ -32,13 +32,13 @@ export interface GlobalState {
   highlightRange: [number, number];
   highlightMode: boolean;
   currentTrackIndex: number | null;
-  valueRanges: { // Add this property
+  valueRanges: {
+    // Add this property
     ele: { minValue: number; maxValue: number };
     curve: { minValue: number; maxValue: number };
     slope: { minValue: number; maxValue: number };
   };
 }
-
 
 export const initialState: GlobalState = {
   dataVersion: getLocalStorage("dataVersion", 0),
@@ -59,7 +59,8 @@ export const initialState: GlobalState = {
   progressText: "",
   highlightRange: [0, 100],
   highlightMode: false,
-  valueRanges: { // Initialize valueRanges
+  valueRanges: {
+    // Initialize valueRanges
     ele: { minValue: 0, maxValue: 100 },
     curve: { minValue: 0, maxValue: 100 },
     slope: { minValue: 0, maxValue: 100 },
@@ -173,6 +174,7 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
     case "SET_TRAVEL_MODE": {
       if (typeof action.payload === "string" && action.payload in travelModes) {
         if (state.gpxData && state.currentTrackIndex !== null) {
+          // Update travel times for the current track.
           const updatedTracks = state.gpxData.tracks.map((track, index) =>
             index === state.currentTrackIndex
               ? {
@@ -185,11 +187,7 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
               : track
           );
 
-          const updatedGPXData = { ...state.gpxData, tracks: updatedTracks };
-
-          setLocalStorage("travelMode", action.payload);
-          setLocalStorage("gpxData", updatedGPXData);
-
+          // Recalculate waypoints with updated travel mode
           const updatedWaypointsWithTimes = calculateRelativeTimes(
             updatedTracks[state.currentTrackIndex].waypoints,
             updatedTracks[state.currentTrackIndex].parts
@@ -200,6 +198,18 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
             waypoints: updatedWaypointsWithTimes,
           };
 
+          const updatedGPXData = {
+            ...state.gpxData,
+            tracks: updatedTracks.map((track, index) =>
+              index === state.currentTrackIndex ? updatedTrackWithTimes : track
+            ),
+          };
+
+          // Persist the updated state
+          setLocalStorage("travelMode", action.payload);
+          setLocalStorage("gpxData", updatedGPXData);
+
+          // Recalculate statistics for updated current track
           const {
             totalDistance,
             totalTravelTime,
@@ -242,69 +252,34 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
       };
 
     case "SET_GPX_DATA": {
-      // Reset currentTrackIndex to 0 when new data is loaded
       const updatedTracks = action.payload.tracks.map((track) => ({
         ...track,
         parts: calculateTravelTimes([track], state.travelMode),
       }));
 
       const updatedGPXData = { ...action.payload, tracks: updatedTracks };
-
       const currentTrack = updatedTracks[0]; // Always start with track index 0
 
-      // Calculate relative times for the waypoints in the current track
+      // Calculate new value ranges for the current track
+      const newValueRanges = {
+        ele: calculateValueRange([currentTrack], "ele", 0),
+        curve: calculateValueRange([currentTrack], "curve", 1000),
+        slope: calculateValueRange([currentTrack], "slope", 0),
+      };
+
+      setLocalStorage("gpxData", updatedGPXData);
+      setLocalStorage("dataVersion", 0);
+      setLocalStorage("currentTrackIndex", 0); // Reset track index in local storage
+
       const updatedWaypointsWithTimes = calculateRelativeTimes(
         currentTrack.waypoints,
         currentTrack.parts
       );
 
-      // Update the current track with the newly calculated relative times
       const finalTrackWithTimes = {
         ...currentTrack,
         waypoints: updatedWaypointsWithTimes,
       };
-
-      // Filter reference waypoints associated with the current track's waypoints
-      const relatedReferenceWaypoints =
-        updatedGPXData.referenceWaypoints.filter((refWaypoint) =>
-          currentTrack.waypoints.some(
-            (waypoint) => waypoint.referenceId === refWaypoint.id
-          )
-        );
-
-      // Calculate the average coordinate based on the related reference waypoints
-      const averageCoord = calculateAverageCoordinate(
-        relatedReferenceWaypoints.map((wp: ReferenceWaypoint) => ({
-          lat: parseFloat(wp.lat),
-          lon: parseFloat(wp.lon),
-        }))
-      );
-
-      const finalReferenceWaypoints = updatedGPXData.referenceWaypoints.map(
-        (waypoint) => {
-          const updatedWaypoint = updatedWaypointsWithTimes.find(
-            (updatedWaypoint) => updatedWaypoint.referenceId === waypoint.id
-          );
-          return updatedWaypoint
-            ? {
-                ...waypoint,
-                relativeTimes: updatedWaypoint.relativeTimes,
-              }
-            : waypoint;
-        }
-      );
-
-      const finalGPXDataWithTimes = {
-        ...updatedGPXData,
-        referenceWaypoints: finalReferenceWaypoints,
-        tracks: updatedTracks.map((track, idx) =>
-          idx === 0 ? finalTrackWithTimes : track
-        ),
-      };
-
-      setLocalStorage("gpxData", finalGPXDataWithTimes);
-      setLocalStorage("dataVersion", 0);
-      setLocalStorage("currentTrackIndex", 0); // Reset track index in local storage
 
       const {
         totalDistance,
@@ -315,17 +290,13 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
 
       return {
         ...state,
-        gpxData: finalGPXDataWithTimes,
-        mapCenter: averageCoord
-          ? [averageCoord.lat, averageCoord.lon]
-          : state.mapCenter,
-        isProgrammaticMove: true,
-        dataVersion: 0,
+        gpxData: updatedGPXData,
+        valueRanges: newValueRanges, // Ensure valueRanges are updated
         totalDistance,
         totalTravelTime,
         totalJourneyTime,
         finalArrivalTime,
-        currentTrackIndex: 0, // Reset track index in state
+        currentTrackIndex: 0,
       };
     }
 
@@ -551,11 +522,11 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
       };
     }
 
+    // Update the "SET_CURRENT_TRACK_INDEX" case to recalculate valueRanges
     case "SET_CURRENT_TRACK_INDEX": {
       const newCurrentTrackIndex = action.payload;
       setLocalStorage("currentTrackIndex", newCurrentTrackIndex);
 
-      // Ensure GPX data is available and the new track index is valid
       if (!state.gpxData || !state.gpxData.tracks[newCurrentTrackIndex]) {
         console.error("Invalid track index or missing GPX data");
         return state;
@@ -581,21 +552,12 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
         waypoints: updatedWaypointsWithTimes,
       };
 
-      // Filter reference waypoints associated with the current track's waypoints
-      const relatedReferenceWaypoints = state.gpxData.referenceWaypoints.filter(
-        (refWaypoint) =>
-          currentTrack.waypoints.some(
-            (waypoint) => waypoint.referenceId === refWaypoint.id
-          )
-      );
-
-      // Calculate the average coordinate based on the related reference waypoints
-      const averageCoord = calculateAverageCoordinate(
-        relatedReferenceWaypoints.map((wp: ReferenceWaypoint) => ({
-          lat: parseFloat(wp.lat),
-          lon: parseFloat(wp.lon),
-        }))
-      );
+      // Calculate value ranges for the new track based on mapMode
+      const newValueRanges = {
+        ele: calculateValueRange([currentTrack], "ele", 0),
+        curve: calculateValueRange([currentTrack], "curve", 1000),
+        slope: calculateValueRange([currentTrack], "slope", 0),
+      };
 
       const {
         totalDistance,
@@ -611,9 +573,7 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
         totalTravelTime,
         totalJourneyTime,
         finalArrivalTime,
-        mapCenter: averageCoord
-          ? [averageCoord.lat, averageCoord.lon]
-          : state.mapCenter, // Update map center
+        valueRanges: newValueRanges, // Update valueRanges for the active track
         isProgrammaticMove: true, // Trigger map centering
       };
     }
@@ -628,9 +588,26 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
       setLocalStorage("startTime", action.payload);
       return { ...state, startTime: action.payload };
 
-    case "SET_MAP_MODE":
+    case "SET_MAP_MODE": {
       setLocalStorage("mapMode", action.payload);
+
+      if (state.gpxData && state.currentTrackIndex !== null) {
+        const currentTrack = state.gpxData.tracks[state.currentTrackIndex];
+        const newValueRanges = {
+          ele: calculateValueRange([currentTrack], "ele", 0),
+          curve: calculateValueRange([currentTrack], "curve", 1000),
+          slope: calculateValueRange([currentTrack], "slope", 0),
+        };
+
+        return {
+          ...state,
+          mapMode: action.payload,
+          valueRanges: newValueRanges,
+        };
+      }
+
       return { ...state, mapMode: action.payload };
+    }
 
     case "SET_MAP_CENTER":
       setLocalStorage("mapCenter", action.payload);
@@ -646,30 +623,30 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
     case "SET_FOCUSED_WAYPOINT":
       return { ...state, focusedWaypointIndex: action.payload };
 
-      case "SET_HIGHLIGHT":
-        console.log(
-          "Range: ",
-          action.payload.range,
-          "isActive: ",
-          action.payload.isActive
-        );
-      
-        return {
-          ...state,
-          highlightRange: action.payload.range,
-          highlightMode: action.payload.isActive,
-        };
-  
-        case "SET_VALUE_RANGES": {
-          const { modeKey, minValue, maxValue } = action.payload;
-          return {
-            ...state,
-            valueRanges: {
-              ...state.valueRanges,
-              [modeKey]: { minValue, maxValue },
-            },
-          };
-        }
+    case "SET_HIGHLIGHT":
+      console.log(
+        "Range: ",
+        action.payload.range,
+        "isActive: ",
+        action.payload.isActive
+      );
+
+      return {
+        ...state,
+        highlightRange: action.payload.range,
+        highlightMode: action.payload.isActive,
+      };
+
+    case "SET_VALUE_RANGES": {
+      const { modeKey, minValue, maxValue } = action.payload;
+      return {
+        ...state,
+        valueRanges: {
+          ...state.valueRanges,
+          [modeKey]: { minValue, maxValue },
+        },
+      };
+    }
 
     default:
       return state;

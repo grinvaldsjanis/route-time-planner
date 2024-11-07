@@ -29,6 +29,8 @@ export interface TrackWaypoint {
   stopTime?: number;
   relativeTimes?: { arrivalSeconds: number; departureSeconds: number };
   closestTrackPointIndex?: number;
+  distanceFromStart?: number;
+  distanceToEnd?: number;
 }
 
 export interface TrackPoint {
