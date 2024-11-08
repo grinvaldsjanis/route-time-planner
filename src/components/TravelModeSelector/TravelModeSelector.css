@@ -35,7 +35,7 @@
 
 .dropdown-menu {
   position: absolute;
-  top: calc(100%-40px); /* Adjust for precise alignment */
+  /* top: calc(100%-40px); */
   left: 0;
   width: 100%;
   background-color: #fff;
