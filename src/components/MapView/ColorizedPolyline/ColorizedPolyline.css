@@ -1,9 +1,15 @@
 .directional-marker-icon {
-    color: rgb(71, 71, 71);
-    font-size: 14px;
-    opacity: 60%;
+  color: rgb(71, 71, 71);
+  font-size: 14px;
+  opacity: 60%;
 }
 
 .polyline-transition {
-    transition: opacity 0.6s ease-in-out;
-  }
+  transition: opacity 0.6s ease-in-out;
+}
+
+.tooltip-transition {
+  font-size: 1rem;
+  transition: opacity 0.3s ease-out;
+  border-radius: 10px;
+}

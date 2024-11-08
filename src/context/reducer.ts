@@ -624,12 +624,12 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
       return { ...state, focusedWaypointIndex: action.payload };
 
     case "SET_HIGHLIGHT":
-      console.log(
-        "Range: ",
-        action.payload.range,
-        "isActive: ",
-        action.payload.isActive
-      );
+      // console.log(
+      //   "Range: ",
+      //   action.payload.range,
+      //   "isActive: ",
+      //   action.payload.isActive
+      // );
 
       return {
         ...state,

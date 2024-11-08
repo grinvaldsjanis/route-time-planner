@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Polyline, LayerGroup, Marker, useMap } from "react-leaflet";
+import { Polyline, LayerGroup, Marker, Tooltip, useMap } from "react-leaflet";
 import { DivIcon, LatLngTuple } from "leaflet";
 import getColorForValue from "../../../utils/getColorForValue";
 import haversineDistance from "../../../utils/haversineDistance";
@@ -95,7 +95,6 @@ const ColorizedPolyline: React.FC = () => {
           : getColorForValue(value, minValue, maxValue, mapMode === "curve");
       let opacity = 1;
 
-      // Check and log if highlight conditions are met
       if (
         highlightMode &&
         (value < highlightRange[0] || value > highlightRange[1])
@@ -115,8 +114,17 @@ const ColorizedPolyline: React.FC = () => {
           color={color}
           weight={6}
           pathOptions={{ opacity }}
-          className="polyline-transition"
-        />
+        >
+          <Tooltip
+            key={`tooltip-${pointIdx}`}
+            direction="auto"
+            sticky
+            opacity={1}
+            className="tooltip-transition"
+          >
+            <div>{value.toFixed(2)}</div>
+          </Tooltip>
+        </Polyline>
       );
 
       if (distanceSinceLastMarker >= markerSpacingKm) {
@@ -147,7 +155,6 @@ const ColorizedPolyline: React.FC = () => {
 
   if (!coloredSegmentsWithMarkers) return null;
 
-  // Render dark background polyline
   const darkPolyline = (
     <Polyline
       positions={fullTrackPositions}

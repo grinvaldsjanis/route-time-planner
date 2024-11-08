@@ -148,7 +148,7 @@ const MapView: React.FC = () => {
             icon={createMarkerIcon(iconType, idx + 1)}
             eventHandlers={{ click: () => handleMarkerClick(idx) }}
           >
-            <Tooltip sticky>
+            <Tooltip key={`tooltip-${idx}`} sticky className="waypoint-tooltip">
               {refWaypoint.name || `Waypoint ${idx + 1}`}
             </Tooltip>
           </Marker>
