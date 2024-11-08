@@ -38,7 +38,6 @@
 
 .waypoint-info-container:hover {
   border-color: rgb(131, 186, 35);
-  /* background-color: rgba(131, 186, 35, 0.1); */
 }
 
 .waypoint-info-container.active {
@@ -52,7 +51,7 @@
 }
 
 .item-top-row {
-  height: 40px;
+  /* height: 40px; */
   width: 100%;
   font-size: 20px;
   display: flex;
@@ -129,4 +128,15 @@
   display: flex;
   gap: 5px;
   flex-direction: column;
+}
+
+.wikipedia-link {
+  color: black;
+  opacity: 0.4;
+  transition: opacity 0.3s ease;
+  font-size: 1rem;
+}
+
+.wikipedia-link:hover {
+  opacity: 1;
 }

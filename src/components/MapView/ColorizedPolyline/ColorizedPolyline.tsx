@@ -69,7 +69,7 @@ const ColorizedPolyline: React.FC = () => {
       (point) => [parseFloat(point.lat), parseFloat(point.lon)] as LatLngTuple
     );
 
-    const { minValue, maxValue } = valueRanges[mapMode]; // Ensure correct access to valueRanges
+    const { minValue, maxValue } = valueRanges[mapMode];
     const markerSpacingKm = getMarkerSpacingByZoom(zoomLevel);
     let distanceSinceLastMarker = 0;
 
@@ -95,6 +95,7 @@ const ColorizedPolyline: React.FC = () => {
           : getColorForValue(value, minValue, maxValue, mapMode === "curve");
       let opacity = 1;
 
+      // Check and log if highlight conditions are met
       if (
         highlightMode &&
         (value < highlightRange[0] || value > highlightRange[1])
@@ -112,8 +113,8 @@ const ColorizedPolyline: React.FC = () => {
           key={`colored-segment-${pointIdx}-${mapMode}`}
           positions={[startPos, endPos]}
           color={color}
-          opacity={opacity}
           weight={6}
+          pathOptions={{ opacity }}
           className="polyline-transition"
         />
       );
@@ -138,7 +139,7 @@ const ColorizedPolyline: React.FC = () => {
   }, [
     currentTrack,
     mapMode,
-    valueRanges, // Include this to ensure changes trigger recalculation
+    valueRanges,
     zoomLevel,
     highlightMode,
     highlightRange,
@@ -151,7 +152,7 @@ const ColorizedPolyline: React.FC = () => {
     <Polyline
       positions={fullTrackPositions}
       color="#000000"
-      opacity={0.5}
+      opacity={0.7}
       weight={12}
     />
   );

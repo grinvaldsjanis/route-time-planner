@@ -20,6 +20,7 @@ import {
   formatTimeFromSeconds,
   minutesToSeconds,
 } from "../../../utils/timeUtils";
+import { FaGoogle, FaWikipediaW } from "react-icons/fa6";
 
 interface WaypointItemProps {
   index: number;
@@ -100,6 +101,9 @@ const WaypointItem: React.FC<WaypointItemProps> = ({ index }) => {
     return <div>No GPX data available.</div>;
   }
 
+  const wikipediaLink = `https://wikinearby.toolforge.org/?lang=en&q=${referenceWaypoint.lat},${referenceWaypoint.lon}`;
+  const googlePlacesLink = `https://www.google.com/maps/search/?api=1&query=${referenceWaypoint.lat},${referenceWaypoint.lon}`;
+
   let timeInfo;
   if (referenceWaypoint.type === "start") {
     timeInfo = (
@@ -163,6 +167,22 @@ const WaypointItem: React.FC<WaypointItemProps> = ({ index }) => {
                   });
                 }}
               />
+              <a
+                href={wikipediaLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="wikipedia-link"
+              >
+                <FaWikipediaW />
+              </a>
+              <a
+                href={googlePlacesLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="wikipedia-link"
+              >
+                <FaGoogle />
+              </a>
             </div>
           )}
 
