@@ -31,6 +31,9 @@ export function calculateValueRange(
         case "slope":
           sampleValue = point.slope ?? defaultValue;
           break;
+        case "speedLimit":
+          sampleValue = point.speedLimit ?? defaultValue;
+          break;
         default:
           sampleValue = defaultValue;
       }

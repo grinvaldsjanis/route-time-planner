@@ -40,6 +40,9 @@ export interface TrackPoint {
   ele: number | null;
   curve: number | null;
   slope: number | null;
+  surface?: string | null;
+  roadCategory?: string | null;
+  speedLimit?: number | null;
 }
 
 export interface Track {
@@ -47,4 +50,9 @@ export interface Track {
   points: TrackPoint[];
   waypoints: TrackWaypoint[];
   parts: TrackPart[];
+}
+
+export interface Coordinate {
+  lat: number;
+  lon: number;
 }

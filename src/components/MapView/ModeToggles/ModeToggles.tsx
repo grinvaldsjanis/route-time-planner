@@ -1,7 +1,7 @@
 import React from "react";
 import "./ModeToggles.css";
 
-type ModeKeys = "ele" | "curve" | "slope";
+type ModeKeys = "ele" | "curve" | "slope" | "speedLimit";
 
 interface ModeTogglesProps {
   currentMode: ModeKeys;
@@ -43,6 +43,12 @@ const ModeToggles: React.FC<ModeTogglesProps> = ({
       >
         Slope
       </button>
+      {/* <button
+        onClick={() => onModeChange("speedLimit")}
+        className={currentMode === "speedLimit" ? "button-active" : ""}
+      >
+        Speed
+      </button> */}
     </div>
   );
 };

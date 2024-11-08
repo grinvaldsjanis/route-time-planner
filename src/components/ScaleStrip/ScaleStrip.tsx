@@ -1,4 +1,10 @@
-import React, { useEffect, useState, useRef, CSSProperties, useCallback } from "react";
+import React, {
+  useEffect,
+  useState,
+  useRef,
+  CSSProperties,
+  useCallback,
+} from "react";
 import { useGlobalState } from "../../context/GlobalContext";
 import { calculateValueRange } from "../../utils/calculateValueRange";
 import getColorForValue from "../../utils/getColorForValue";
@@ -13,7 +19,6 @@ const debounce = (func: Function, wait: number) => {
   };
 };
 
-
 const ScaleStrip: React.FC = () => {
   const { state, dispatch } = useGlobalState();
   const { gpxData, mapMode, currentTrackIndex } = state;
@@ -22,7 +27,9 @@ const ScaleStrip: React.FC = () => {
 
   const [range, setRange] = useState({ minValue: 0, maxValue: 100 });
   const [hasNoRange, setHasNoRange] = useState(false);
-  const [localHighlightRange, setLocalHighlightRange] = useState<[number, number]>([0, 0]);
+  const [localHighlightRange, setLocalHighlightRange] = useState<
+    [number, number]
+  >([0, 0]);
 
   useEffect(() => {
     if (!gpxData || currentTrackIndex === null || !mapMode) {
@@ -33,15 +40,45 @@ const ScaleStrip: React.FC = () => {
 
     const currentTrack = gpxData.tracks[currentTrackIndex];
 
-    if (!currentTrack || !currentTrack.points || currentTrack.points.length === 0) {
+    if (
+      !currentTrack ||
+      !currentTrack.points ||
+      currentTrack.points.length === 0
+    ) {
       setRange({ minValue: 0, maxValue: 100 });
       setHasNoRange(true);
       return;
     }
 
-    const modeKey = mapMode === "curve" ? "curve" : mapMode === "slope" ? "slope" : "ele";
-    const defaultValue = modeKey === "curve" ? 1000 : 0;
-    const { minValue, maxValue } = calculateValueRange([currentTrack], modeKey, defaultValue);
+    // Determine the modeKey and default value for the current map mode
+    let modeKey: "curve" | "slope" | "ele" | "speedLimit";
+    let defaultValue: number;
+
+    switch (mapMode) {
+      case "curve":
+        modeKey = "curve";
+        defaultValue = 1000;
+        break;
+      case "slope":
+        modeKey = "slope";
+        defaultValue = 0;
+        break;
+      case "speedLimit":
+        modeKey = "speedLimit";
+        defaultValue = 0;
+        break;
+      default:
+        modeKey = "ele";
+        defaultValue = 0;
+        break;
+    }
+
+    // Calculate value range based on the modeKey
+    const { minValue, maxValue } = calculateValueRange(
+      [currentTrack],
+      modeKey,
+      defaultValue
+    );
 
     setHasNoRange(minValue === maxValue);
     setRange({
@@ -58,7 +95,10 @@ const ScaleStrip: React.FC = () => {
   const debouncedUpdateHighlight = useRef(
     debounce((value: number, tolerance: number) => {
       if (isMouseInsideRef.current) {
-        const highlightRange: [number, number] = [value - tolerance, value + tolerance];
+        const highlightRange: [number, number] = [
+          value - tolerance,
+          value + tolerance,
+        ];
         dispatch(setHighlight(highlightRange, true));
       }
     }, 100)
@@ -87,21 +127,35 @@ const ScaleStrip: React.FC = () => {
     const rect = stripRef.current.getBoundingClientRect();
     const offsetX = e.clientX - rect.left;
     const stripWidth = rect.width;
-    const value = range.minValue + (offsetX / stripWidth) * (range.maxValue - range.minValue);
+    const value =
+      range.minValue +
+      (offsetX / stripWidth) * (range.maxValue - range.minValue);
 
     const tolerance = (range.maxValue - range.minValue) * 0.1;
-    const newHighlightRange: [number, number] = [value - tolerance, value + tolerance];
+    const newHighlightRange: [number, number] = [
+      value - tolerance,
+      value + tolerance,
+    ];
 
     setLocalHighlightRange(newHighlightRange);
     updateHighlight(value);
   };
 
   const getForegroundStyle = (): CSSProperties => {
-    const left = ((localHighlightRange[0] - range.minValue) / (range.maxValue - range.minValue)) * 100;
-    const right = 100 - ((localHighlightRange[1] - range.minValue) / (range.maxValue - range.minValue)) * 100;
+    const left =
+      ((localHighlightRange[0] - range.minValue) /
+        (range.maxValue - range.minValue)) *
+      100;
+    const right =
+      100 -
+      ((localHighlightRange[1] - range.minValue) /
+        (range.maxValue - range.minValue)) *
+        100;
 
     return {
-      clipPath: `polygon(${left}% 0%, ${100 - right}% 0%, ${100 - right}% 100%, ${left}% 100%)`,
+      clipPath: `polygon(${left}% 0%, ${100 - right}% 0%, ${
+        100 - right
+      }% 100%, ${left}% 100%)`,
     };
   };
 
@@ -112,7 +166,12 @@ const ScaleStrip: React.FC = () => {
       const value = range.minValue + stepValue * i;
       return {
         value: Math.round(value),
-        color: getColorForValue(value, range.minValue, range.maxValue, mapMode === "curve"),
+        color: getColorForValue(
+          value,
+          range.minValue,
+          range.maxValue,
+          mapMode === "curve"
+        ),
       };
     });
   };
@@ -122,7 +181,8 @@ const ScaleStrip: React.FC = () => {
     .map(
       (label) =>
         `${label.color} ${
-          ((label.value - range.minValue) / (range.maxValue - range.minValue)) * 100
+          ((label.value - range.minValue) / (range.maxValue - range.minValue)) *
+          100
         }%`
     )
     .join(", ");
@@ -142,8 +202,14 @@ const ScaleStrip: React.FC = () => {
         <div className="no-range">There's no range for the data</div>
       ) : (
         <>
-          <div className="gradient-strip background" style={gradientStyle}></div>
-          <div className="gradient-strip foreground" style={{ ...gradientStyle, ...getForegroundStyle() }}></div>
+          <div
+            className="gradient-strip background"
+            style={gradientStyle}
+          ></div>
+          <div
+            className="gradient-strip foreground"
+            style={{ ...gradientStyle, ...getForegroundStyle() }}
+          ></div>
           <div className="scale-labels">
             {labels.map((label, index) => (
               <span key={index}>{label.value}</span>

@@ -87,7 +87,7 @@ export interface SetGPXDataAction {
 
 export interface SetMapModeAction {
   type: typeof SET_MAP_MODE;
-  payload: "ele" | "curve" | "slope";
+  payload: "ele" | "curve" | "slope" | "speedLimit";
 }
 
 export interface SetTravelModeAction {
@@ -139,7 +139,7 @@ export interface SetCurrentTrackIndex {
   payload: number;
 }
 
-export interface SetValueRangesAction { // New interface for value ranges action
+export interface SetValueRangesAction {
   type: typeof SET_VALUE_RANGES;
   payload: {
     modeKey: string;
@@ -206,7 +206,7 @@ export const updateDurationMultiplier = (
 });
 
 export const setMapMode = (
-  mode: "ele" | "curve" | "slope"
+  mode: "ele" | "curve" | "slope" | "speedLimit"
 ): SetMapModeAction => ({
   type: SET_MAP_MODE,
   payload: mode,

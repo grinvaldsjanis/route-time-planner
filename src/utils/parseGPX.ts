@@ -12,8 +12,10 @@ import {
 } from "./types";
 import haversineDistance from "./haversineDistance";
 import travelModes from "../constants/travelModes";
-import fetchCommonsImage from "./fetchCommonsImage";
 import { setInProgress } from "../context/actions";
+import { fetchRoadDetailData } from "./fetchRoadDetailData";
+import { fetchSpeedLimitData } from "./fetchSpeedLimitData";
+import fetchCommonsImages from "./fetchCommonsImage";
 
 export default async function parseGPX(
   gpxContent: string,
@@ -241,6 +243,37 @@ export default async function parseGPX(
     }
   });
 
+  // dispatch(setInProgress(true, "Fetching road surface and category data..."));
+  // for (const track of parsedTracks) {
+  //   for (const point of track.points) {
+  //     const coordinate = { lat: parseFloat(point.lat), lon: parseFloat(point.lon) };
+  //     const roadDetail = await fetchRoadDetailData(coordinate);
+
+  //     if (roadDetail) {
+  //       point.surface = roadDetail.surface;
+  //       point.roadCategory = roadDetail.roadCategory;
+  //     }
+  //   }
+  // }
+
+  // Fetch and apply speed limit data in bulk for efficiency
+  // dispatch(setInProgress(true, "Fetching speed limit data..."));
+  // const allCoordinates = parsedTracks.flatMap(track => track.points.map(point => ({
+  //   lat: parseFloat(point.lat),
+  //   lon: parseFloat(point.lon),
+  // })));
+  // const speedLimits = await fetchSpeedLimitData(allCoordinates);
+  // let speedIndex = 0;
+
+  // parsedTracks.forEach(track => {
+  //   track.points.forEach(point => {
+  //     const speedData = speedLimits[speedIndex++];
+  //     if (speedData) {
+  //       point.speedLimit = speedData.speedLimit;
+  //     }
+  //   });
+  // });
+
   parsedTracks.forEach((track) => {
     for (let k = 1; k < track.points.length; k++) {
       const prevPt = track.points[k - 1];
@@ -258,31 +291,41 @@ export default async function parseGPX(
   });
 
   dispatch(setInProgress(true, "Fetching geolocated images..."));
-  for (const track of parsedTracks) {
-    for (const waypoint of track.waypoints) {
-      const refWaypoint = referenceWaypoints.find(
-        (ref) => ref.id === waypoint.referenceId
-      );
-      if (refWaypoint && !refWaypoint.imageUrl) {
+
+  const bulkCoordinates = referenceWaypoints
+    .filter((ref) => !ref.imageUrl)
+    .map((ref) => ({ lat: ref.lat.toString(), lon: ref.lon.toString() }));
+
+  const imageResults = await fetchCommonsImages(
+    bulkCoordinates,
+    800,
+    5,
+    dispatch
+  );
+
+  referenceWaypoints.forEach((refWaypoint) => {
+    if (!refWaypoint.imageUrl) {
+      const coordKey = `${refWaypoint.lat},${refWaypoint.lon}`;
+      refWaypoint.imageUrl = imageResults[coordKey] || undefined;
+
+      if (refWaypoint.imageUrl) {
         dispatch(
-          setInProgress(true, `Searching for image at:\n(${refWaypoint.lat}, ${refWaypoint.lon})...`)
+          setInProgress(
+            true,
+            `Image found for waypoint at:\n(${refWaypoint.lat}, ${refWaypoint.lon}).`
+          )
         );
-  
-        const imageUrl = await fetchCommonsImage(refWaypoint.lat, refWaypoint.lon);
-        if (imageUrl !== null) {
-          refWaypoint.imageUrl = imageUrl;
-          dispatch(
-            setInProgress(true, `Image found for waypoint at:\n(${refWaypoint.lat}, ${refWaypoint.lon}).`)
-          );
-        } else {
-          dispatch(
-            setInProgress(true, `No image found for waypoint at:\n(${refWaypoint.lat}, ${refWaypoint.lon}).`)
-          );
-          refWaypoint.imageUrl = undefined;
-        }
+      } else {
+        dispatch(
+          setInProgress(
+            true,
+            `No image found for waypoint at:\n(${refWaypoint.lat}, ${refWaypoint.lon}).`
+          )
+        );
       }
     }
-  }
+  });
+
   dispatch(setInProgress(false, ""));
 
   return {

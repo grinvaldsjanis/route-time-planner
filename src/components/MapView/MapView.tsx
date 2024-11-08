@@ -30,12 +30,13 @@ import MapEvents from "./MapEvents";
 import { TrackPoint, TrackWaypoint } from "../../utils/types";
 import ColorizedPolyline from "./ColorizedPolyline/ColorizedPolyline";
 
-type ModeKeys = "ele" | "curve" | "slope";
+type ModeKeys = "ele" | "curve" | "slope" | "speedLimit";
 
 const modeMap: { [key: string]: ModeKeys } = {
   ele: "ele",
   curve: "curve",
   slope: "slope",
+  speedLimit: "speedLimit",
 };
 
 const MapView: React.FC = () => {

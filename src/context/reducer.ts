@@ -10,12 +10,11 @@ import {
   removeLocalStorage,
 } from "../utils/localStorageUtils";
 import calculateTravelTimes from "../utils/calculateTravelTimes";
-import calculateAverageCoordinate from "../utils/calculateAverageCoordinate";
 import { calculateValueRange } from "../utils/calculateValueRange";
 
 export interface GlobalState {
   gpxData: GPXData | null;
-  mapMode: "ele" | "curve" | "slope";
+  mapMode: "ele" | "curve" | "slope" | "speedLimit";
   mapCenter: LatLngTuple;
   mapZoom: number;
   dataVersion: number;
@@ -37,6 +36,7 @@ export interface GlobalState {
     ele: { minValue: number; maxValue: number };
     curve: { minValue: number; maxValue: number };
     slope: { minValue: number; maxValue: number };
+    speedLimit: { minValue: number; maxValue: number };
   };
 }
 
@@ -64,6 +64,7 @@ export const initialState: GlobalState = {
     ele: { minValue: 0, maxValue: 100 },
     curve: { minValue: 0, maxValue: 100 },
     slope: { minValue: 0, maxValue: 100 },
+    speedLimit: { minValue: 0, maxValue: 200 },
   },
 };
 
@@ -265,6 +266,7 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
         ele: calculateValueRange([currentTrack], "ele", 0),
         curve: calculateValueRange([currentTrack], "curve", 1000),
         slope: calculateValueRange([currentTrack], "slope", 0),
+        speedLimit: calculateValueRange([currentTrack], "speedLimit", 90),
       };
 
       setLocalStorage("gpxData", updatedGPXData);
@@ -291,7 +293,7 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
       return {
         ...state,
         gpxData: updatedGPXData,
-        valueRanges: newValueRanges, // Ensure valueRanges are updated
+        valueRanges: newValueRanges,
         totalDistance,
         totalTravelTime,
         totalJourneyTime,
@@ -557,6 +559,7 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
         ele: calculateValueRange([currentTrack], "ele", 0),
         curve: calculateValueRange([currentTrack], "curve", 1000),
         slope: calculateValueRange([currentTrack], "slope", 0),
+        speedLimit: calculateValueRange([currentTrack], "speedLimit", 0),
       };
 
       const {
@@ -597,6 +600,7 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
           ele: calculateValueRange([currentTrack], "ele", 0),
           curve: calculateValueRange([currentTrack], "curve", 1000),
           slope: calculateValueRange([currentTrack], "slope", 0),
+          speedLimit: calculateValueRange([currentTrack], "speedLimit", 0),
         };
 
         return {
