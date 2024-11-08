@@ -52,7 +52,7 @@ function App() {
       dispatch(clearPreviousData());
       dispatch(setInProgress(true, "Processing GPX"));
 
-      const parsedGPXData = await parseGPX(text, state.travelMode);
+      const parsedGPXData = await parseGPX(text, state.travelMode, dispatch);
       dispatch({ type: "SET_GPX_DATA", payload: parsedGPXData });
     } catch (error) {
       console.error("Error loading GPX file:", error);

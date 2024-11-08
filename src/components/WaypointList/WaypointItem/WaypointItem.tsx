@@ -135,6 +135,8 @@ const WaypointItem: React.FC<WaypointItemProps> = ({ index }) => {
       );
   }
 
+  const imageUrl = referenceWaypoint.imageUrl;
+
   return (
     <li
       className="list-item"
@@ -153,8 +155,27 @@ const WaypointItem: React.FC<WaypointItemProps> = ({ index }) => {
           style={{
             backgroundColor:
               stopTime > 0 ? "rgb(214, 245, 161)" : "rgb(241, 241, 241)",
+            position: "relative",
           }}
         >
+          {" "}
+          {imageUrl && (
+            <div
+              className="background-image-overlay"
+              style={{
+                backgroundImage: `linear-gradient(to right, rgba(255, 255, 255, 0) 20%, rgba(255, 255, 255, 1)), url(${imageUrl})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                opacity: 0.3,
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                zIndex: 0,
+              }}
+            />
+          )}
           {referenceWaypoint.type !== "shaping" && (
             <div className="item-top-row">
               <EditableText
@@ -185,7 +206,6 @@ const WaypointItem: React.FC<WaypointItemProps> = ({ index }) => {
               </a>
             </div>
           )}
-
           <div className="waypoint-time-container">
             {referenceWaypoint.type !== "start" &&
               referenceWaypoint.type !== "destination" &&

@@ -12,16 +12,22 @@ import {
 } from "./types";
 import haversineDistance from "./haversineDistance";
 import travelModes from "../constants/travelModes";
+import fetchCommonsImage from "./fetchCommonsImage";
+import { setInProgress } from "../context/actions";
 
 export default async function parseGPX(
   gpxContent: string,
-  modeKey: keyof typeof travelModes
+  modeKey: keyof typeof travelModes,
+  dispatch: (action: any) => void
 ): Promise<GPXData> {
   const maxProximityDistance = 1000; // Maximum distance in meters (1 km)
+  dispatch(setInProgress(true, "Parsing GPX content..."));
+
   const parser = new DOMParser();
   const xmlDoc = parser.parseFromString(gpxContent, "application/xml");
 
   if (xmlDoc.getElementsByTagName("parsererror").length > 0) {
+    dispatch(setInProgress(false, ""));
     throw new Error("Error parsing XML");
   }
 
@@ -42,6 +48,7 @@ export default async function parseGPX(
   const tracks = xmlDoc.getElementsByTagNameNS(gpxNamespaceURI, "trk");
 
   if (tracks.length === 0) {
+    dispatch(setInProgress(false, ""));
     throw new Error("No tracks found in the GPX file.");
   }
 
@@ -49,7 +56,7 @@ export default async function parseGPX(
   const parsedTracks: Track[] = [];
   const pointsWithoutElevation: { lat: number; lon: number }[] = [];
 
-  // Parse reference waypoints
+  dispatch(setInProgress(true, "Parsing waypoints..."));
   for (let i = 0; i < waypoints.length; i++) {
     const wpt = waypoints[i];
     const referenceWpt = parseReferenceWaypoint(wpt);
@@ -58,7 +65,7 @@ export default async function parseGPX(
     }
   }
 
-  // Parse tracks
+  dispatch(setInProgress(true, "Parsing tracks..."));
   for (let i = 0; i < tracks.length; i++) {
     const trk = tracks[i];
     const name =
@@ -130,6 +137,7 @@ export default async function parseGPX(
   }
 
   // Match reference waypoints to the closest track points and create track waypoints
+  dispatch(setInProgress(true, "Matching waypoints to track points..."));
   referenceWaypoints.forEach((refWaypoint) => {
     if (refWaypoint.type === "shaping") {
       return;
@@ -173,6 +181,7 @@ export default async function parseGPX(
   });
 
   // Calculate track parts based on waypoints
+  dispatch(setInProgress(true, "Calculating track parts..."));
   parsedTracks.forEach((track) => {
     track.waypoints.sort(
       (a, b) =>
@@ -205,6 +214,7 @@ export default async function parseGPX(
 
   // Process elevation data if needed
   if (pointsWithoutElevation.length > 0) {
+    dispatch(setInProgress(true, "Fetching elevation data..."));
     const elevations = await fetchElevationData(pointsWithoutElevation);
     let elevationIndex = 0;
 
@@ -218,6 +228,7 @@ export default async function parseGPX(
   }
 
   // Calculate curve and slope for track points
+  dispatch(setInProgress(true, "Calculating curvature and slope..."));
   parsedTracks.forEach((track) => {
     preprocessTrackPoints([track]);
     for (let k = 0; k < track.points.length; k++) {
@@ -245,6 +256,34 @@ export default async function parseGPX(
       delete waypoint.closestTrackPointIndex;
     });
   });
+
+  dispatch(setInProgress(true, "Fetching geolocated images..."));
+  for (const track of parsedTracks) {
+    for (const waypoint of track.waypoints) {
+      const refWaypoint = referenceWaypoints.find(
+        (ref) => ref.id === waypoint.referenceId
+      );
+      if (refWaypoint && !refWaypoint.imageUrl) {
+        dispatch(
+          setInProgress(true, `Searching for image at:\n(${refWaypoint.lat}, ${refWaypoint.lon})...`)
+        );
+  
+        const imageUrl = await fetchCommonsImage(refWaypoint.lat, refWaypoint.lon);
+        if (imageUrl !== null) {
+          refWaypoint.imageUrl = imageUrl;
+          dispatch(
+            setInProgress(true, `Image found for waypoint at:\n(${refWaypoint.lat}, ${refWaypoint.lon}).`)
+          );
+        } else {
+          dispatch(
+            setInProgress(true, `No image found for waypoint at:\n(${refWaypoint.lat}, ${refWaypoint.lon}).`)
+          );
+          refWaypoint.imageUrl = undefined;
+        }
+      }
+    }
+  }
+  dispatch(setInProgress(false, ""));
 
   return {
     gpxName,

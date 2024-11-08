@@ -22,6 +22,7 @@ export interface ReferenceWaypoint {
   desc: string | null;
   sym: string | null;
   type: string | null;
+  imageUrl?: string | null;
 }
 
 export interface TrackWaypoint {

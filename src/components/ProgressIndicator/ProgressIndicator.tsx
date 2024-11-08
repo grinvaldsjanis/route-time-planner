@@ -20,7 +20,7 @@ const ProgressIndicator: React.FC<ProgressIndicatorProps> = ({ text }) => {
     <div className={`progress-indicator-overlay ${visible ? "visible" : ""}`}>
       <div className="progress-indicator-content">
         <div className="loader"></div>
-        <div>{text}</div>
+        <div className="loader-text">{text}</div>
       </div>
     </div>
   );

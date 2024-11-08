@@ -24,10 +24,11 @@
   flex-direction: column;
   width: 300px;
   align-items: center;
+  justify-content: center;
+  justify-items: center;
   background-color: white;
-  line-height: 0.5rem;
+  line-height: 1.3rem;
   font-weight: 500;
-  font-size: 1.5rem;
   padding: 20px 40px;
   border-radius: 8px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
@@ -91,4 +92,11 @@
   to {
     clip-path: inset(0 0 0 100%);
   }
+}
+
+.loader-text {
+  text-align: center;
+  word-wrap: break-word; /* Allows text to wrap onto the next line */
+  word-break: break-all; /* Forces long words to break and wrap */
+  white-space: pre-wrap; /* Maintains whitespace and breaks lines as necessary */
 }
