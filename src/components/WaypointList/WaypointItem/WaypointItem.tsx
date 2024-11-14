@@ -163,10 +163,10 @@ const WaypointItem: React.FC<WaypointItemProps> = ({ index }) => {
             <div
               className="background-image-overlay"
               style={{
-                backgroundImage: `linear-gradient(to right, rgba(255, 255, 255, 0) 20%, rgba(255, 255, 255, 1)), url(${imageUrl})`,
+                backgroundImage: `linear-gradient(to right, rgba(214, 245, 161, 0.2) 20%, rgba(214, 245, 161, 1)), url(${imageUrl})`,
                 backgroundSize: "cover",
                 backgroundPosition: "center",
-                opacity: 0.3,
+                opacity: 0.6, // Increased opacity for better text contrast
                 position: "absolute",
                 top: 0,
                 left: 0,

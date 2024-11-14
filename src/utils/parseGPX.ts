@@ -12,10 +12,11 @@ import {
 } from "./types";
 import haversineDistance from "./haversineDistance";
 import travelModes from "../constants/travelModes";
-import { setInProgress } from "../context/actions";
-import { fetchRoadDetailData } from "./fetchRoadDetailData";
-import { fetchSpeedLimitData } from "./fetchSpeedLimitData";
+import { setInProgress, setMapBounds } from "../context/actions";
+// import { fetchRoadDetailData } from "./fetchRoadDetailData";
+// import { fetchSpeedLimitData } from "./fetchSpeedLimitData";
 import fetchCommonsImages from "./fetchCommonsImage";
+import { calculateBoundsFromTrack } from "./calculateBoundsFromTrack";
 
 export default async function parseGPX(
   gpxContent: string,
@@ -73,7 +74,6 @@ export default async function parseGPX(
     const name =
       trk.getElementsByTagNameNS(gpxNamespaceURI, "name")[0]?.textContent ||
       null;
-
     const trksegs = trk.getElementsByTagNameNS(gpxNamespaceURI, "trkseg");
 
     const points: TrackPoint[] = [];
@@ -87,22 +87,27 @@ export default async function parseGPX(
         const pt = parseTrackPoint(trkpts[k]);
         if (pt) {
           points.push(pt);
-          if (pt.ele === null) {
-            pointsWithoutElevation.push({
-              lat: parseFloat(pt.lat),
-              lon: parseFloat(pt.lon),
-            });
-          }
         }
       }
     }
 
-    parsedTracks.push({
+    const track: Track = {
       name,
       points,
       waypoints: [],
       parts: trackParts,
-    });
+    };
+
+    parsedTracks.push(track);
+
+    // Set map bounds on the first track only
+    if (i === 0) {
+      const bounds = calculateBoundsFromTrack(points);
+      console.log("Calculated map bounds:", bounds);
+      if (bounds) {
+        dispatch(setMapBounds(bounds));
+      }
+    }
   }
 
   // If there are no reference waypoints, create artificial start and destination waypoints
@@ -257,7 +262,7 @@ export default async function parseGPX(
   // }
 
   // Fetch and apply speed limit data in bulk for efficiency
-  // dispatch(setInProgress(true, "Fetching speed limit data..."));
+  dispatch(setInProgress(true, "Fetching speed limit data..."));
   // const allCoordinates = parsedTracks.flatMap(track => track.points.map(point => ({
   //   lat: parseFloat(point.lat),
   //   lon: parseFloat(point.lon),
@@ -294,7 +299,11 @@ export default async function parseGPX(
 
   const bulkCoordinates = referenceWaypoints
     .filter((ref) => !ref.imageUrl)
-    .map((ref) => ({ lat: ref.lat.toString(), lon: ref.lon.toString() }));
+    .map((ref, index) => ({
+      lat: ref.lat.toString(),
+      lon: ref.lon.toString(),
+      index, // Include the index of the waypoint
+    }));
 
   const imageResults = await fetchCommonsImages(
     bulkCoordinates,

@@ -1,7 +1,10 @@
 import { setInProgress } from "../context/actions";
 
 // Utility function to construct URL with parameters
-function constructUrl(baseUrl: string, params: { [key: string]: string | number }): string {
+function constructUrl(
+  baseUrl: string,
+  params: { [key: string]: string | number }
+): string {
   let url = `${baseUrl}?origin=*`;
   Object.keys(params).forEach((key) => {
     url += `&${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`;
@@ -11,7 +14,7 @@ function constructUrl(baseUrl: string, params: { [key: string]: string | number 
 
 // Function to fetch image for a given coordinate with dispatch
 async function fetchImageForCoordinate(
-  coord: { lat: string; lon: string },
+  coord: { lat: string; lon: string; index: number }, // Include index in the parameter
   maxSize: number,
   dispatch: (action: any) => void
 ): Promise<{ key: string; imageUrl: string | null }> {
@@ -29,9 +32,11 @@ async function fetchImageForCoordinate(
   };
 
   const url = constructUrl("https://commons.wikimedia.org/w/api.php", params);
-  console.log(`Querying URL: ${url}`);
+  // console.log(`Querying URL: ${url}`);
 
-  dispatch(setInProgress(true, `Fetching image for coordinate\n(${coord.lat}, ${coord.lon})...`));
+  dispatch(
+    setInProgress(true, `Fetching image for waypoint #${coord.index + 1}...`)
+  );
 
   try {
     const response = await fetch(url);
@@ -41,33 +46,49 @@ async function fetchImageForCoordinate(
       const pageKey = Object.keys(data.query.pages)[0];
       const page = data.query.pages[pageKey];
       if (page.imageinfo) {
-        dispatch(setInProgress(true, `Image found for coordinate\n(${coord.lat}, ${coord.lon}).`));
+        dispatch(
+          setInProgress(true, `Image found for waypoint #${coord.index + 1}.`)
+        );
         return {
           key: `${coord.lat},${coord.lon}`,
           imageUrl: page.imageinfo[0].thumburl,
         };
       }
     }
-    dispatch(setInProgress(true, `No image found for coordinate\n(${coord.lat}, ${coord.lon}).`));
+    dispatch(
+      setInProgress(true, `No image found for waypoint #${coord.index + 1}.`)
+    );
     return { key: `${coord.lat},${coord.lon}`, imageUrl: null };
   } catch (error) {
-    console.error(`Error fetching image for ${coord.lat},${coord.lon}:`, error);
-    dispatch(setInProgress(true, `Error fetching image for coordinate\n(${coord.lat}, ${coord.lon}).`));
+    console.error(
+      `Error fetching image for waypoint #${coord.index + 1}:`,
+      error
+    );
+    dispatch(
+      setInProgress(
+        true,
+        `Error fetching image for waypoint #${coord.index + 1}.`
+      )
+    );
     return { key: `${coord.lat},${coord.lon}`, imageUrl: null };
   }
 }
 
 // Main function to fetch images for all coordinates with dispatch
 async function fetchCommonsImages(
-  coordinates: { lat: string; lon: string }[],
+  coordinates: { lat: string; lon: string; index: number }[], // Include index in input
   maxSize: number = 800,
   maxConcurrentRequests: number = 5, // Limit for concurrent requests
   dispatch: (action: any) => void
 ): Promise<{ [key: string]: string | null }> {
   const results: { [key: string]: string | null } = {};
 
-  const fetchBatch = async (batch: { lat: string; lon: string }[]) => {
-    const promises = batch.map((coord) => fetchImageForCoordinate(coord, maxSize, dispatch));
+  const fetchBatch = async (
+    batch: { lat: string; lon: string; index: number }[]
+  ) => {
+    const promises = batch.map((coord) =>
+      fetchImageForCoordinate(coord, maxSize, dispatch)
+    );
     const batchResults = await Promise.all(promises);
 
     batchResults.forEach(({ key, imageUrl }) => {
@@ -78,7 +99,12 @@ async function fetchCommonsImages(
   // Handle limited concurrency
   for (let i = 0; i < coordinates.length; i += maxConcurrentRequests) {
     const batch = coordinates.slice(i, i + maxConcurrentRequests);
-    dispatch(setInProgress(true, `Fetching batch\n${i / maxConcurrentRequests + 1}...`));
+    dispatch(
+      setInProgress(
+        true,
+        `Fetching batch ${Math.floor(i / maxConcurrentRequests) + 1}...`
+      )
+    );
     await fetchBatch(batch);
   }
 

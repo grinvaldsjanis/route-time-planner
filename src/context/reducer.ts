@@ -14,6 +14,7 @@ import { calculateValueRange } from "../utils/calculateValueRange";
 
 export interface GlobalState {
   gpxData: GPXData | null;
+  mapBounds?: [LatLngTuple, LatLngTuple];
   mapMode: "ele" | "curve" | "slope" | "speedLimit";
   mapCenter: LatLngTuple;
   mapZoom: number;
@@ -628,13 +629,6 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
       return { ...state, focusedWaypointIndex: action.payload };
 
     case "SET_HIGHLIGHT":
-      // console.log(
-      //   "Range: ",
-      //   action.payload.range,
-      //   "isActive: ",
-      //   action.payload.isActive
-      // );
-
       return {
         ...state,
         highlightRange: action.payload.range,
@@ -651,6 +645,12 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
         },
       };
     }
+    case "SET_MAP_BOUNDS":
+      return {
+        ...state,
+        mapBounds: action.payload,
+        isProgrammaticMove: true,
+      };
 
     default:
       return state;

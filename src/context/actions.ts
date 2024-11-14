@@ -18,11 +18,12 @@ export const UPDATE_RELATIVE_TIMES = "UPDATE_RELATIVE_TIMES";
 export const SET_IS_PROGRAMMATIC_MOVE = "SET_IS_PROGRAMMATIC_MOVE";
 export const SET_MAP_CENTER = "SET_MAP_CENTER";
 export const SET_MAP_ZOOM = "SET_MAP_ZOOM";
-export const UPDATE_DURATION_MULTIPLIER = "UPDATE_DURATION_MULTIPLIER"; 
+export const UPDATE_DURATION_MULTIPLIER = "UPDATE_DURATION_MULTIPLIER";
 export const SET_IN_PROGRESS = "SET_IN_PROGRESS";
 export const SET_HIGHLIGHT = "SET_HIGHLIGHT";
 export const SET_CURRENT_TRACK_INDEX = "SET_CURRENT_TRACK_INDEX";
-export const SET_VALUE_RANGES = "SET_VALUE_RANGES"; // Added new action type
+export const SET_VALUE_RANGES = "SET_VALUE_RANGES";
+export const SET_MAP_BOUNDS = "SET_MAP_BOUNDS";
 
 export interface SetHighlightAction {
   type: typeof SET_HIGHLIGHT;
@@ -35,6 +36,11 @@ export interface SetHighlightAction {
 export interface SetGPXNameAction {
   type: typeof SET_GPX_NAME;
   payload: string;
+}
+
+export interface SetMapBoundsAction {
+  type: typeof SET_MAP_BOUNDS;
+  payload: [LatLngTuple, LatLngTuple];
 }
 
 export interface SetInProgressAction {
@@ -168,9 +174,8 @@ export type Action =
   | SetInProgressAction
   | SetHighlightAction
   | SetCurrentTrackIndex
-  | SetValueRangesAction; // Add the new action type
-
-// Action creators
+  | SetValueRangesAction
+  | SetMapBoundsAction;
 
 export const setHighlight = (
   range: [number, number],
@@ -181,6 +186,13 @@ export const setHighlight = (
     range,
     isActive,
   },
+});
+
+export const setMapBounds = (
+  bounds: [LatLngTuple, LatLngTuple]
+): SetMapBoundsAction => ({
+  type: SET_MAP_BOUNDS,
+  payload: bounds,
 });
 
 export const setGPXData = (data: GPXData): SetGPXDataAction => ({
