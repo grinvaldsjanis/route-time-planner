@@ -12,11 +12,10 @@ import {
 } from "./types";
 import haversineDistance from "./haversineDistance";
 import travelModes from "../constants/travelModes";
-import { setInProgress, setMapBounds } from "../context/actions";
+import { setInProgress } from "../context/actions";
 // import { fetchRoadDetailData } from "./fetchRoadDetailData";
 // import { fetchSpeedLimitData } from "./fetchSpeedLimitData";
 import fetchCommonsImages from "./fetchCommonsImage";
-import { calculateBoundsFromTrack } from "./calculateBoundsFromTrack";
 
 export default async function parseGPX(
   gpxContent: string,
@@ -99,15 +98,6 @@ export default async function parseGPX(
     };
 
     parsedTracks.push(track);
-
-    // Set map bounds on the first track only
-    if (i === 0) {
-      const bounds = calculateBoundsFromTrack(points);
-      console.log("Calculated map bounds:", bounds);
-      if (bounds) {
-        dispatch(setMapBounds(bounds));
-      }
-    }
   }
 
   // If there are no reference waypoints, create artificial start and destination waypoints

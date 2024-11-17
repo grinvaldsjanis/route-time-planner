@@ -15,6 +15,7 @@ import {
   setFocusedWaypoint,
   setIsProgrammaticMove,
   setMapZoom,
+  setProgrammaticAction,
 } from "../../../context/actions";
 import {
   formatTimeFromSeconds,
@@ -53,6 +54,10 @@ const WaypointItem: React.FC<WaypointItemProps> = ({ index }) => {
     }
   }, [referenceWaypoint, index, state.gpxData]);
 
+  useEffect(() => {
+    console.log("Global State:", state);
+  }, [state]);
+
   const arrivalTime = trackWaypoint
     ? formatTimeFromSeconds(
         (trackWaypoint.relativeTimes?.arrivalSeconds ?? 0) + startTimeSeconds
@@ -88,12 +93,14 @@ const WaypointItem: React.FC<WaypointItemProps> = ({ index }) => {
         parseFloat(referenceWaypoint.lat),
         parseFloat(referenceWaypoint.lon),
       ] as LatLngTuple;
-      dispatch(setIsProgrammaticMove(true));
-      dispatch(setMapCenter(newCenter));
       dispatch(setFocusedWaypoint(index));
+      dispatch(setProgrammaticAction("focusWaypoint"));
+      dispatch(setMapCenter(newCenter));
       dispatch(setMapZoom(15));
+      dispatch(setIsProgrammaticMove(true));
     }
   };
+  
 
   const isActive = state.focusedWaypointIndex === index;
 

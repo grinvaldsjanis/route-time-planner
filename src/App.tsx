@@ -13,6 +13,7 @@ import AboutContent from "./components/Modal/AboutContent";
 import parseGPX from "./utils/parseGPX";
 import ProgressIndicator from "./components/ProgressIndicator/ProgressIndicator";
 import ErrorBoundary from "./components/ErrorBoundary/ErrorBoundary";
+import { calculateBoundsFromTrack } from "./utils/calculateBoundsFromTrack";
 
 function App() {
   const { state, dispatch } = useGlobalState();
@@ -54,6 +55,22 @@ function App() {
 
       const parsedGPXData = await parseGPX(text, state.travelMode, dispatch);
       dispatch({ type: "SET_GPX_DATA", payload: parsedGPXData });
+      if (parsedGPXData.tracks?.length) {
+        const allTrackPoints = parsedGPXData.tracks.flatMap(
+          (track) => track.points
+        );
+
+        const calculatedBounds = calculateBoundsFromTrack(allTrackPoints);
+
+        if (calculatedBounds) {
+          console.log("Dispatching calculated bounds:", calculatedBounds);
+          dispatch({ type: "SET_MAP_BOUNDS", payload: calculatedBounds });
+
+          if (!state.programmaticAction) {
+            dispatch({ type: "SET_PROGRAMMATIC_ACTION", payload: "fitBounds" });
+          }
+        }
+      }
     } catch (error) {
       console.error("Error loading GPX file:", error);
     } finally {

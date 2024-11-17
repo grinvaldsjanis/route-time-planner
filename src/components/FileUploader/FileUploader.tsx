@@ -3,10 +3,8 @@ import "./FileUploader.css";
 import { FaUpload } from "react-icons/fa";
 import { useGlobalState } from "../../context/GlobalContext";
 import parseGPX from "../../utils/parseGPX";
-import {
-  clearPreviousData,
-  setInProgress,
-} from "../../context/actions";
+import { clearPreviousData, setInProgress } from "../../context/actions";
+import { calculateBoundsFromTrack } from "../../utils/calculateBoundsFromTrack";
 
 const FileUploader: React.FC = () => {
   const { state, dispatch } = useGlobalState();
@@ -23,7 +21,9 @@ const FileUploader: React.FC = () => {
       reader.onload = async (e: ProgressEvent<FileReader>) => {
         try {
           const text = e.target?.result as string;
-          dispatch(setInProgress(true, "Processing GPX data"));
+          dispatch(clearPreviousData());
+          dispatch(setInProgress(true, "Processing GPX"));
+
           const parsedGPXData = await parseGPX(
             text,
             state.travelMode,
@@ -31,6 +31,26 @@ const FileUploader: React.FC = () => {
           );
 
           dispatch({ type: "SET_GPX_DATA", payload: parsedGPXData });
+
+          if (parsedGPXData.tracks?.length) {
+            const allTrackPoints = parsedGPXData.tracks.flatMap(
+              (track) => track.points
+            );
+
+            const calculatedBounds = calculateBoundsFromTrack(allTrackPoints);
+
+            if (calculatedBounds) {
+              console.log("Dispatching calculated bounds:", calculatedBounds);
+              dispatch({ type: "SET_MAP_BOUNDS", payload: calculatedBounds });
+
+              if (!state.programmaticAction) {
+                dispatch({
+                  type: "SET_PROGRAMMATIC_ACTION",
+                  payload: "fitBounds",
+                });
+              }
+            }
+          }
           setUploadError(null);
         } catch (error) {
           console.error("Error parsing GPX file:", error);

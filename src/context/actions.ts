@@ -24,6 +24,7 @@ export const SET_HIGHLIGHT = "SET_HIGHLIGHT";
 export const SET_CURRENT_TRACK_INDEX = "SET_CURRENT_TRACK_INDEX";
 export const SET_VALUE_RANGES = "SET_VALUE_RANGES";
 export const SET_MAP_BOUNDS = "SET_MAP_BOUNDS";
+export const SET_PROGRAMMATIC_ACTION = "SET_PROGRAMMATIC_ACTION";
 
 export interface SetHighlightAction {
   type: typeof SET_HIGHLIGHT;
@@ -154,6 +155,11 @@ export interface SetValueRangesAction {
   };
 }
 
+export interface SetProgrammaticAction {
+  type: typeof SET_PROGRAMMATIC_ACTION;
+  payload: "fitBounds" | "focusWaypoint" | null;
+}
+
 export type Action =
   | SetGPXDataAction
   | UpdateRelativeTimesAction
@@ -175,7 +181,22 @@ export type Action =
   | SetHighlightAction
   | SetCurrentTrackIndex
   | SetValueRangesAction
-  | SetMapBoundsAction;
+  | SetMapBoundsAction
+  | SetProgrammaticAction;
+
+export const setProgrammaticAction = (
+  programmaticAction: "fitBounds" | "focusWaypoint" | null
+): SetProgrammaticAction => ({
+  type: SET_PROGRAMMATIC_ACTION,
+  payload: programmaticAction,
+});
+
+export const setMapMode = (
+  mode: "ele" | "curve" | "slope" | "speedLimit"
+): SetMapModeAction => ({
+  type: SET_MAP_MODE,
+  payload: mode,
+});
 
 export const setHighlight = (
   range: [number, number],
@@ -215,13 +236,6 @@ export const updateDurationMultiplier = (
 ): UpdateDurationMultiplierAction => ({
   type: UPDATE_DURATION_MULTIPLIER,
   payload: { trackIndex, partIndex, multiplier },
-});
-
-export const setMapMode = (
-  mode: "ele" | "curve" | "slope" | "speedLimit"
-): SetMapModeAction => ({
-  type: SET_MAP_MODE,
-  payload: mode,
 });
 
 export const setTravelMode = (mode: TravelMode): SetTravelModeAction => ({

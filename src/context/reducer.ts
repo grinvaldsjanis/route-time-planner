@@ -1,9 +1,9 @@
 import { Action } from "./actions";
-import { LatLngTuple } from "leaflet";
+import L, { LatLngTuple } from "leaflet";
 import travelModes, { TravelMode } from "../constants/travelModes";
 import calculateWaypointStatistics from "../utils/calculateWaypointStatistics";
 import calculateRelativeTimes from "../utils/calculateRelativeTimes";
-import { GPXData, ReferenceWaypoint } from "../utils/types";
+import { GPXData } from "../utils/types";
 import {
   getLocalStorage,
   setLocalStorage,
@@ -11,6 +11,8 @@ import {
 } from "../utils/localStorageUtils";
 import calculateTravelTimes from "../utils/calculateTravelTimes";
 import { calculateValueRange } from "../utils/calculateValueRange";
+import { SET_PROGRAMMATIC_ACTION } from "./actions";
+import calculateCenterFromBounds from "../utils/calculateCenterFromBonds";
 
 export interface GlobalState {
   gpxData: GPXData | null;
@@ -27,13 +29,13 @@ export interface GlobalState {
   focusedWaypointIndex: number | null;
   startTime: string;
   isProgrammaticMove: boolean;
+  programmaticAction: "fitBounds" | "focusWaypoint" | null;
   inProgress: boolean;
   progressText: string;
   highlightRange: [number, number];
   highlightMode: boolean;
   currentTrackIndex: number | null;
   valueRanges: {
-    // Add this property
     ele: { minValue: number; maxValue: number };
     curve: { minValue: number; maxValue: number };
     slope: { minValue: number; maxValue: number };
@@ -50,7 +52,8 @@ export const initialState: GlobalState = {
   mapZoom: getLocalStorage("mapZoom", 13),
   travelMode: getLocalStorage("travelMode", "Casual Walking"),
   focusedWaypointIndex: null,
-  isProgrammaticMove: false,
+  isProgrammaticMove: true,
+  programmaticAction: null,
   startTime: getLocalStorage("startTime", "08:00:00"),
   totalDistance: 0,
   totalTravelTime: 0,
@@ -61,7 +64,6 @@ export const initialState: GlobalState = {
   highlightRange: [0, 100],
   highlightMode: false,
   valueRanges: {
-    // Initialize valueRanges
     ele: { minValue: 0, maxValue: 100 },
     curve: { minValue: 0, maxValue: 100 },
     slope: { minValue: 0, maxValue: 100 },
@@ -106,16 +108,13 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
     case "INITIALIZE_STATE": {
       const gpxData = action.payload.gpxData;
 
-      // Reset local storage for current track index when new GPX data is loaded
       removeLocalStorage("currentTrackIndex");
 
-      // Ensure GPX data and tracks are valid
       if (!gpxData || !gpxData.tracks || gpxData.tracks.length === 0) {
         console.error("No valid GPX data or tracks available");
         return state;
       }
 
-      // Safely determine the current track index, reset to 0 if not valid
       const validTrackIndex = state.currentTrackIndex ?? 0;
       const currentTrack = gpxData.tracks[validTrackIndex];
 
@@ -124,7 +123,6 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
         return state;
       }
 
-      // Ensure waypoints and parts are initialized before calculation
       const { waypoints = [], parts = [] } = currentTrack;
       if (waypoints.length === 0 || parts.length === 0) {
         console.warn("No waypoints or track parts found for the current track");
@@ -135,19 +133,16 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
         };
       }
 
-      // Calculate relative times for the waypoints in the current track
       const updatedWaypointsWithTimes = calculateRelativeTimes(
         waypoints,
         parts
       );
 
-      // Update the current track with the newly calculated relative times
       const updatedTrackWithTimes = {
         ...currentTrack,
         waypoints: updatedWaypointsWithTimes,
       };
 
-      // Update the tracks with the updated current track
       const updatedGPXData = {
         ...gpxData,
         tracks: gpxData.tracks.map((track, index) =>
@@ -155,13 +150,11 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
         ),
       };
 
-      // Calculate waypoint statistics
       const waypointStats = calculateWaypointStatistics(
         updatedTrackWithTimes,
         action.payload.startTime
       );
 
-      // Persist updated GPX data to local storage
       setLocalStorage("gpxData", updatedGPXData);
 
       return {
@@ -525,7 +518,6 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
       };
     }
 
-    // Update the "SET_CURRENT_TRACK_INDEX" case to recalculate valueRanges
     case "SET_CURRENT_TRACK_INDEX": {
       const newCurrentTrackIndex = action.payload;
       setLocalStorage("currentTrackIndex", newCurrentTrackIndex);
@@ -578,7 +570,7 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
         totalJourneyTime,
         finalArrivalTime,
         valueRanges: newValueRanges, // Update valueRanges for the active track
-        isProgrammaticMove: true, // Trigger map centering
+        isProgrammaticMove: true,
       };
     }
 
@@ -614,16 +606,37 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
       return { ...state, mapMode: action.payload };
     }
 
-    case "SET_MAP_CENTER":
+    case "SET_MAP_CENTER": {
       setLocalStorage("mapCenter", action.payload);
-      return { ...state, mapCenter: action.payload };
+      return {
+        ...state,
+        mapCenter: action.payload,
+      };
+    }
 
-    case "SET_IS_PROGRAMMATIC_MOVE":
-      return { ...state, isProgrammaticMove: action.payload };
-
-    case "SET_MAP_ZOOM":
+    case "SET_MAP_ZOOM": {
       setLocalStorage("mapZoom", action.payload);
-      return { ...state, mapZoom: action.payload };
+      return {
+        ...state,
+        mapZoom: action.payload,
+      };
+    }
+
+    case "SET_IS_PROGRAMMATIC_MOVE": {
+      return { ...state, isProgrammaticMove: action.payload };
+    }
+
+    case "SET_MAP_ZOOM": {
+      if (state.isProgrammaticMove) {
+        return state;
+      }
+
+      setLocalStorage("mapZoom", action.payload);
+      return {
+        ...state,
+        mapZoom: action.payload,
+      };
+    }
 
     case "SET_FOCUSED_WAYPOINT":
       return { ...state, focusedWaypointIndex: action.payload };
@@ -645,12 +658,52 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
         },
       };
     }
-    case "SET_MAP_BOUNDS":
-      return {
-        ...state,
-        mapBounds: action.payload,
-        isProgrammaticMove: true,
-      };
+
+    case "SET_MAP_BOUNDS": {
+      console.log(
+        "Reducer: Received SET_MAP_BOUNDS with payload:",
+        action.payload
+      );
+      const bounds = L.latLngBounds(action.payload);
+      if (bounds.isValid()) {
+        console.log("Bounds validated:", bounds.toBBoxString());
+        const updatedState = {
+          ...state,
+          mapBounds: action.payload,
+          isProgrammaticMove: true,
+        };
+        console.log("Reducer state after action:", action.type, updatedState);
+        return updatedState;
+      }
+      console.warn("SET_MAP_BOUNDS: Invalid bounds, ignoring update.");
+      console.log(
+        "Reducer state after action (unchanged):",
+        action.type,
+        state
+      );
+      return state;
+    }
+
+    case "SET_PROGRAMMATIC_ACTION": {
+      if (action.payload === "fitBounds" && state.mapBounds) {
+        const center = calculateCenterFromBounds(state.mapBounds); // Utility to calculate center
+        setLocalStorage("mapCenter", center);
+        setLocalStorage("mapZoom", state.mapZoom); // Assuming zoom is adjusted programmatically
+      }
+      if (
+        action.payload === "focusWaypoint" &&
+        state.focusedWaypointIndex !== null
+      ) {
+        const waypoint =
+          state.gpxData?.referenceWaypoints[state.focusedWaypointIndex];
+        if (waypoint) {
+          const center = [parseFloat(waypoint.lat), parseFloat(waypoint.lon)];
+          setLocalStorage("mapCenter", center);
+          setLocalStorage("mapZoom", 15); // Assuming a specific zoom level
+        }
+      }
+      return { ...state, programmaticAction: action.payload };
+    }
 
     default:
       return state;

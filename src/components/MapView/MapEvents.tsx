@@ -1,29 +1,21 @@
-import { useMapEvents } from "react-leaflet";
-import { setIsProgrammaticMove } from "../../context/actions";
-import { useGlobalState } from "../../context/GlobalContext";
-import { LatLngTuple } from "leaflet";
+import { useEffect } from "react";
+import { useMap } from "react-leaflet";
 
-interface MapEventsProps {
-  onMapMove: (center: LatLngTuple, zoom: number) => void;
-}
+const MapEvents = ({ onMapMove }: { onMapMove: () => void }) => {
+  const map = useMap();
 
-function MapEvents({ onMapMove }: MapEventsProps) {
-  const { state, dispatch } = useGlobalState();
+  useEffect(() => {
+    const handleMove = () => onMapMove();
+    map.on("moveend", handleMove);
+    map.on("zoomend", handleMove);
 
-  useMapEvents({
-    moveend: (e) => {
-      const center = e.target.getCenter();
-      const zoom = e.target.getZoom();
-      onMapMove(center, zoom);
-    },
-    movestart: () => {
-      if (state.isProgrammaticMove) {
-        dispatch(setIsProgrammaticMove(false));
-      }
-    },
-  });
+    return () => {
+      map.off("moveend", handleMove);
+      map.off("zoomend", handleMove);
+    };
+  }, [map, onMapMove]);
 
   return null;
-}
+};
 
 export default MapEvents;
