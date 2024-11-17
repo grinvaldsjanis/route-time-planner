@@ -346,7 +346,6 @@ function parseReferenceWaypoint(element: Element): ReferenceWaypoint | null {
     return { id: `${lat}-${lon}`, lat, lon, name, desc, sym, type };
   }
 
-  // console.warn("Skipping point with missing lat or lon");
   return null;
 }
 

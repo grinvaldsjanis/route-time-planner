@@ -60,19 +60,49 @@ const MapView: React.FC = () => {
     }
   }, [dispatch]);
 
-  const debouncedFitBounds = debounce(() => {
-    if (!mapRef.current || !mapBounds) {
-      console.warn("Cannot fit bounds: Map or bounds are not ready.");
-      return;
-    }
+  // const handleFitActiveTrack = useCallback(() => {
+  //   if (!mapRef.current || !currentTrackIndex || !gpxData) {
+  //     console.warn("Cannot fit active track: map or data is not ready.");
+  //     return;
+  //   }
 
-    const bounds = L.latLngBounds(mapBounds);
-    if (bounds.isValid()) {
-      console.log("Debounced fitting bounds:", bounds);
-      mapRef.current.fitBounds(bounds, { animate: true, padding: [50, 50] });
-      dispatch({ type: "SET_PROGRAMMATIC_ACTION", payload: null });
-    }
-  }, 300);
+  //   const activeTrack = gpxData.tracks[currentTrackIndex];
+  //   if (!activeTrack || !activeTrack.points.length) {
+  //     console.warn("Active track has no points to calculate bounds.");
+  //     return;
+  //   }
+
+  //   const bounds = L.latLngBounds(
+  //     activeTrack.points.map((point) => [
+  //       parseFloat(point.lat),
+  //       parseFloat(point.lon),
+  //     ])
+  //   );
+
+  //   if (bounds.isValid()) {
+  //     mapRef.current.fitBounds(bounds, { animate: true, padding: [50, 50] });
+  //   }
+  // }, [currentTrackIndex, gpxData]);
+
+  const debouncedFitBounds = useMemo(
+    () =>
+      debounce(() => {
+        if (!mapRef.current || !mapBounds) {
+          console.warn("Cannot fit bounds: Map or bounds are not ready.");
+          return;
+        }
+
+        const bounds = L.latLngBounds(mapBounds);
+        if (bounds.isValid()) {
+          console.log("Debounced fitting bounds:", bounds);
+          mapRef.current.fitBounds(bounds, {
+            animate: true,
+            padding: [50, 50],
+          });
+        }
+      }, 300),
+    [mapBounds]
+  );
 
   useEffect(() => {
     if (programmaticAction === "fitBounds") {
@@ -124,11 +154,14 @@ const MapView: React.FC = () => {
     ) {
       console.log("Triggering centerOnWaypoint...");
       centerOnWaypoint();
-    } else {
-      console.warn("Unhandled programmatic action or missing dependencies.");
+    } else if (programmaticAction) {
+      console.warn("Unhandled programmatic action:", programmaticAction);
     }
 
-    dispatch({ type: "SET_PROGRAMMATIC_ACTION", payload: null });
+    // Clear programmaticAction only after handling
+    if (programmaticAction) {
+      dispatch({ type: "SET_PROGRAMMATIC_ACTION", payload: null });
+    }
   }, [
     programmaticAction,
     mapBounds,
@@ -150,10 +183,11 @@ const MapView: React.FC = () => {
     }
   };
 
-  const currentTrack =
-    currentTrackIndex !== null && gpxData?.tracks
+  const currentTrack = useMemo(() => {
+    return currentTrackIndex !== null && gpxData?.tracks
       ? gpxData.tracks[currentTrackIndex]
       : null;
+  }, [currentTrackIndex, gpxData]);
 
   const renderTracks = useMemo(() => {
     if (!gpxData || !gpxData.tracks || gpxData.tracks.length === 0) return null;
@@ -259,6 +293,10 @@ const MapView: React.FC = () => {
         {renderMarkers}
         <MapEvents onMapMove={handleMapMove} />
       </MapContainer>
+
+      {/* <div className="controls">
+        <button onClick={handleFitActiveTrack}>Fit Active Track</button>
+      </div> */}
 
       {isModalOpen && focusedWaypointIndex !== null && (
         <WaypointModal

@@ -607,6 +607,9 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
     }
 
     case "SET_MAP_CENTER": {
+      if (state.isProgrammaticMove) {
+        return state;
+      }
       setLocalStorage("mapCenter", action.payload);
       return {
         ...state,
@@ -615,6 +618,9 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
     }
 
     case "SET_MAP_ZOOM": {
+      if (state.isProgrammaticMove) {
+        return state;
+      }
       setLocalStorage("mapZoom", action.payload);
       return {
         ...state,
@@ -702,6 +708,7 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
           setLocalStorage("mapZoom", 15); // Assuming a specific zoom level
         }
       }
+      console.log("Handling programmatic action:", action.payload);
       return { ...state, programmaticAction: action.payload };
     }
 
