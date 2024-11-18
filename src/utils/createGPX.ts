@@ -32,26 +32,29 @@ export default function createGPX(
   const startTimeSeconds = minutesToSeconds(startHour * 60 + startMinute);
 
   let currentSeconds = 0;
-  const times = gpxData.referenceWaypoints.map((waypoint, index) => {
-    let arrivalSeconds = currentSeconds;
-    let departureSeconds = currentSeconds;
 
-    if (index > 0) {
-      const travelTime = gpxData.tracks[0].parts[index - 1].travelTime;
-      arrivalSeconds = currentSeconds += travelTime;
-    }
+ const times = gpxData.referenceWaypoints.map((waypoint, index) => {
+  let arrivalSeconds = currentSeconds;
+  let departureSeconds = currentSeconds;
 
-    const stopTimeSeconds = minutesToSeconds(
-      gpxData.tracks[0].waypoints.find((wp) => wp.referenceId === waypoint.id)
-        ?.stopTime || 0
-    );
-    departureSeconds = currentSeconds += stopTimeSeconds;
+  if (index > 0) {
+    const travelTime =
+      gpxData.tracks[0].parts[index - 1]?.travelTime || 0;
+    arrivalSeconds = currentSeconds += travelTime;
+  }
 
-    return {
-      arrivalTime: formatTimeFromSeconds(arrivalSeconds + startTimeSeconds),
-      departureTime: formatTimeFromSeconds(departureSeconds + startTimeSeconds),
-    };
-  });
+  const stopTimeSeconds = minutesToSeconds(
+    gpxData.tracks[0].waypoints.find((wp) => wp.referenceId === waypoint.id)
+      ?.stopTime || 0
+  );
+  departureSeconds = currentSeconds += stopTimeSeconds;
+
+  return {
+    arrivalTime: formatTimeFromSeconds(arrivalSeconds + startTimeSeconds),
+    departureTime: formatTimeFromSeconds(departureSeconds + startTimeSeconds),
+  };
+});
+
 
   gpxData.referenceWaypoints.forEach((waypoint, index) => {
     const wpt = xmlDoc.createElement("wpt");

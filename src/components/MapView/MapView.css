@@ -47,3 +47,43 @@
   transition: opacity 0.3s ease-out;
   border-radius: 10px;
 }
+
+.fit-bounds-button {
+  position: absolute;
+  top: 80px; /* Adjust positioning as needed */
+  left: 12px; /* Adjust positioning as needed */
+  background: white;
+  border: none;
+  border-radius: 2px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  z-index: 400;
+  margin: 0;
+  padding: 0;
+}
+
+.fit-bounds-button:hover {
+  background-color: #f0f0f0;
+}
+
+.fit-bounds-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.5);
+}
+
+.fit-bounds-button svg {
+  width: 30px;
+  height: 30px;
+  fill: #333; /* Icon color */
+  transition: fill 0.3s ease;
+}
+
+.fit-bounds-button:hover svg {
+  fill: #7a7a7a; /* Change icon color on hover */
+}

@@ -26,6 +26,7 @@ import { TrackPoint, TrackWaypoint } from "../../utils/types";
 import ColorizedPolyline from "./ColorizedPolyline/ColorizedPolyline";
 import L from "leaflet";
 import { debounce } from "lodash";
+import { MdOutlineFitScreen } from "react-icons/md";
 
 type ModeKeys = "ele" | "curve" | "slope" | "speedLimit";
 
@@ -50,6 +51,7 @@ const MapView: React.FC = () => {
   } = state;
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isMapInitialized, setIsMapInitialized] = useState(false);
 
   const handleMapMove = useCallback(() => {
     if (mapRef.current) {
@@ -60,29 +62,42 @@ const MapView: React.FC = () => {
     }
   }, [dispatch]);
 
-  // const handleFitActiveTrack = useCallback(() => {
-  //   if (!mapRef.current || !currentTrackIndex || !gpxData) {
-  //     console.warn("Cannot fit active track: map or data is not ready.");
-  //     return;
-  //   }
+  const handleFitActiveTrack = useCallback(() => {
+    if (!mapRef.current) {
+      console.warn("Map reference is not set.");
+      return;
+    }
+    if (!gpxData) {
+      console.warn("GPX data is not available.");
+      return;
+    }
+    if (currentTrackIndex === null || currentTrackIndex < 0) {
+      console.warn("Invalid track index:", currentTrackIndex);
+      return;
+    }
 
-  //   const activeTrack = gpxData.tracks[currentTrackIndex];
-  //   if (!activeTrack || !activeTrack.points.length) {
-  //     console.warn("Active track has no points to calculate bounds.");
-  //     return;
-  //   }
+    const activeTrack = gpxData.tracks[currentTrackIndex];
+    if (
+      !activeTrack ||
+      !activeTrack.points ||
+      activeTrack.points.length === 0
+    ) {
+      console.warn("Active track has no points to calculate bounds.");
+      return;
+    }
 
-  //   const bounds = L.latLngBounds(
-  //     activeTrack.points.map((point) => [
-  //       parseFloat(point.lat),
-  //       parseFloat(point.lon),
-  //     ])
-  //   );
+    const bounds = L.latLngBounds(
+      activeTrack.points.map((point) => [
+        parseFloat(point.lat),
+        parseFloat(point.lon),
+      ])
+    );
 
-  //   if (bounds.isValid()) {
-  //     mapRef.current.fitBounds(bounds, { animate: true, padding: [50, 50] });
-  //   }
-  // }, [currentTrackIndex, gpxData]);
+    if (bounds.isValid()) {
+      mapRef.current.fitBounds(bounds, { animate: true, padding: [50, 50] });
+      console.log("Fitted bounds to active track.");
+    }
+  }, [mapRef, gpxData, currentTrackIndex]);
 
   const debouncedFitBounds = useMemo(
     () =>
@@ -225,6 +240,7 @@ const MapView: React.FC = () => {
       if (!mapRef.current) {
         console.log("Initializing map reference...");
         mapRef.current = map;
+        setIsMapInitialized(true); // Mark the map as initialized
       }
     }, [map]);
 
@@ -241,17 +257,13 @@ const MapView: React.FC = () => {
         );
         if (!refWaypoint) return null;
 
+        // Determine the icon type based on zoom level
         let iconType = refWaypoint.type || "via";
-
         if (idx === 0) {
           iconType = "start";
         } else if (idx === currentTrack.waypoints.length - 1) {
           iconType = "destination";
-        } else if (
-          iconType !== "start" &&
-          iconType !== "destination" &&
-          mapZoom < 11
-        ) {
+        } else if (mapZoom < 11) {
           iconType = "small";
         }
 
@@ -265,7 +277,7 @@ const MapView: React.FC = () => {
             icon={createMarkerIcon(iconType, idx + 1)}
             eventHandlers={{ click: () => handleMarkerClick(idx) }}
           >
-            <Tooltip key={`tooltip-${idx}`} sticky className="waypoint-tooltip">
+            <Tooltip sticky className="waypoint-tooltip">
               {refWaypoint.name || `Waypoint ${idx + 1}`}
             </Tooltip>
           </Marker>
@@ -288,15 +300,18 @@ const MapView: React.FC = () => {
       >
         <MapRefSetter />
         <TileLayer url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png" />
+        <button
+          className="fit-bounds-button"
+          onClick={handleFitActiveTrack}
+          aria-label="Fit Active Track"
+        >
+          <MdOutlineFitScreen size={24} />
+        </button>
         <ModeToggles currentMode={mapMode} onModeChange={handleModeChange} />
         {renderTracks}
         {renderMarkers}
         <MapEvents onMapMove={handleMapMove} />
       </MapContainer>
-
-      {/* <div className="controls">
-        <button onClick={handleFitActiveTrack}>Fit Active Track</button>
-      </div> */}
 
       {isModalOpen && focusedWaypointIndex !== null && (
         <WaypointModal

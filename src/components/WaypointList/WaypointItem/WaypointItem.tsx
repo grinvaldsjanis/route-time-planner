@@ -54,9 +54,9 @@ const WaypointItem: React.FC<WaypointItemProps> = ({ index }) => {
     }
   }, [referenceWaypoint, index, state.gpxData]);
 
-  useEffect(() => {
-    console.log("Global State:", state);
-  }, [state]);
+  // useEffect(() => {
+  //   console.log("Global State:", state);
+  // }, [state]);
 
   const arrivalTime = trackWaypoint
     ? formatTimeFromSeconds(
