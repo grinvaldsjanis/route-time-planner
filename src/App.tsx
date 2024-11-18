@@ -10,10 +10,9 @@ import { clearPreviousData, setInProgress } from "./context/actions";
 import Modal from "./components/Modal/Modal";
 import TravelModeSelector from "./components/TravelModeSelector/TravelModesSelector";
 import AboutContent from "./components/Modal/AboutContent";
-import parseGPX from "./utils/parseGPX";
 import ProgressIndicator from "./components/ProgressIndicator/ProgressIndicator";
 import ErrorBoundary from "./components/ErrorBoundary/ErrorBoundary";
-import { calculateBoundsFromTrack } from "./utils/calculateBoundsFromTrack";
+import { processGPXData } from "./utils/processGPX";
 
 function App() {
   const { state, dispatch } = useGlobalState();
@@ -50,27 +49,7 @@ function App() {
         throw new Error("Fetched content is HTML, not a GPX file.");
       }
 
-      dispatch(clearPreviousData());
-      dispatch(setInProgress(true, "Processing GPX"));
-
-      const parsedGPXData = await parseGPX(text, state.travelMode, dispatch);
-      dispatch({ type: "SET_GPX_DATA", payload: parsedGPXData });
-      if (parsedGPXData.tracks?.length) {
-        const allTrackPoints = parsedGPXData.tracks.flatMap(
-          (track) => track.points
-        );
-
-        const calculatedBounds = calculateBoundsFromTrack(allTrackPoints);
-
-        if (calculatedBounds) {
-          console.log("Dispatching calculated bounds:", calculatedBounds);
-          dispatch({ type: "SET_MAP_BOUNDS", payload: calculatedBounds });
-
-          if (!state.programmaticAction) {
-            dispatch({ type: "SET_PROGRAMMATIC_ACTION", payload: "fitBounds" });
-          }
-        }
-      }
+      await processGPXData(text, state.travelMode, dispatch);
     } catch (error) {
       console.error("Error loading GPX file:", error);
     } finally {

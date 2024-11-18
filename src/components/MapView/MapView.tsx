@@ -51,7 +51,6 @@ const MapView: React.FC = () => {
   } = state;
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isMapInitialized, setIsMapInitialized] = useState(false);
 
   const handleMapMove = useCallback(() => {
     if (mapRef.current) {
@@ -188,7 +187,8 @@ const MapView: React.FC = () => {
 
   const handleMarkerClick = (index: number) => {
     dispatch({ type: "SET_FOCUSED_WAYPOINT", payload: index });
-    dispatch({ type: "SET_PROGRAMMATIC_ACTION", payload: "focusWaypoint" }); // Trigger waypoint focus
+    dispatch({ type: "SET_PROGRAMMATIC_ACTION", payload: "focusWaypoint" });
+    setIsModalOpen(true);
   };
 
   const handleModeChange = (modeKey: string) => {
@@ -240,7 +240,6 @@ const MapView: React.FC = () => {
       if (!mapRef.current) {
         console.log("Initializing map reference...");
         mapRef.current = map;
-        setIsMapInitialized(true); // Mark the map as initialized
       }
     }, [map]);
 
@@ -297,6 +296,9 @@ const MapView: React.FC = () => {
         zoom={state.mapZoom}
         scrollWheelZoom={true}
         className="map-container"
+        whenReady={() => {
+          console.log("Map is ready.");
+        }}
       >
         <MapRefSetter />
         <TileLayer url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png" />
