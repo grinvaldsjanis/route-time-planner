@@ -22,6 +22,7 @@ import {
   minutesToSeconds,
 } from "../../../utils/timeUtils";
 import { FaGoogle, FaWikipediaW } from "react-icons/fa6";
+import { imageService } from "../../../utils/globalImageService";
 
 interface WaypointItemProps {
   index: number;
@@ -33,6 +34,10 @@ const WaypointItem: React.FC<WaypointItemProps> = ({ index }) => {
   const [editableName, setEditableName] = useState<string>(
     `Point ${index + 1}`
   );
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [isImageUnavailable, setIsImageUnavailable] = useState(false);
+  const [isPending, setIsPending] = useState(true);
+
   const [startHour, startMinute] = state.startTime.split(":").map(Number);
   const startTimeSeconds = minutesToSeconds(startHour * 60 + startMinute);
 
@@ -54,9 +59,59 @@ const WaypointItem: React.FC<WaypointItemProps> = ({ index }) => {
     }
   }, [referenceWaypoint, index, state.gpxData]);
 
-  // useEffect(() => {
-  //   console.log("Global State:", state);
-  // }, [state]);
+  useEffect(() => {
+    let isMounted = true; // Prevent state updates after unmounting
+    const fetchImage = async () => {
+      if (
+        referenceWaypoint &&
+        referenceWaypoint.lat &&
+        referenceWaypoint.lon &&
+        !imageUrl &&
+        !isImageUnavailable
+      ) {
+        setIsPending(true); // Mark as pending
+        try {
+          const response = await imageService.fetchImage(
+            { lat: referenceWaypoint.lat, lon: referenceWaypoint.lon },
+            800,
+            3, // 3 retries
+            2000 // 2-second delay between retries
+          );
+
+          if (isMounted) {
+            if (response.imageUrl) {
+              setImageUrl(response.imageUrl);
+              dispatch({
+                type: "SET_WAYPOINT_IMAGE",
+                payload: {
+                  index,
+                  imageUrl: response.imageUrl,
+                },
+              });
+            } else {
+              setIsImageUnavailable(true);
+            }
+          }
+        } catch (error) {
+          if (isMounted) {
+            setIsImageUnavailable(true);
+          }
+        } finally {
+          if (isMounted) {
+            setIsPending(false); // Mark as complete
+          }
+        }
+      } else {
+        setIsPending(false); // No need to fetch
+      }
+    };
+
+    fetchImage();
+
+    return () => {
+      isMounted = false; // Cleanup on unmount
+    };
+  }, [referenceWaypoint, imageUrl, isImageUnavailable, index, dispatch]);
 
   const arrivalTime = trackWaypoint
     ? formatTimeFromSeconds(
@@ -100,7 +155,6 @@ const WaypointItem: React.FC<WaypointItemProps> = ({ index }) => {
       dispatch(setIsProgrammaticMove(true));
     }
   };
-  
 
   const isActive = state.focusedWaypointIndex === index;
 
@@ -142,8 +196,6 @@ const WaypointItem: React.FC<WaypointItemProps> = ({ index }) => {
       );
   }
 
-  const imageUrl = referenceWaypoint.imageUrl;
-
   return (
     <li
       className="list-item"
@@ -157,7 +209,15 @@ const WaypointItem: React.FC<WaypointItemProps> = ({ index }) => {
         </div>
 
         <div
-          className={`waypoint-info-container ${isActive ? "active" : ""}`}
+          className={`waypoint-info-container ${isActive ? "active" : ""} ${
+            isPending
+              ? "waypoint-pending"
+              : !imageUrl && !isImageUnavailable
+              ? "waypoint-awaiting-image"
+              : isImageUnavailable
+              ? "waypoint-no-image"
+              : ""
+          }`}
           id={`waypoint-info-${index}`}
           style={{
             backgroundColor:
@@ -165,33 +225,24 @@ const WaypointItem: React.FC<WaypointItemProps> = ({ index }) => {
             position: "relative",
           }}
         >
-          {" "}
           {imageUrl && (
             <div
-              className="background-image-overlay"
+              className={`background-image-overlay image-appearing`}
               style={{
                 backgroundImage: `linear-gradient(to right, rgba(214, 245, 161, 0.2) 20%, rgba(214, 245, 161, 1)), url(${imageUrl})`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-                opacity: 0.6, // Increased opacity for better text contrast
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                zIndex: 0,
               }}
             />
           )}
           {referenceWaypoint.type !== "shaping" && (
             <div className="item-top-row">
               <EditableText
+                className={"item-name"}
                 text={editableName}
                 onTextChange={(newName) => {
                   setEditableName(newName);
                   dispatch({
                     type: "SET_WAYPOINT_NAME",
-                    payload: { index, name: newName },
+                    payload: { index, name: newName }, // Update global state
                   });
                 }}
               />
@@ -226,19 +277,31 @@ const WaypointItem: React.FC<WaypointItemProps> = ({ index }) => {
             <div className="timeinfo-wrapper">{timeInfo}</div>
           </div>
           <div className="waypoint-distance-container">
+            {referenceWaypoint.type === "start" && (
+              <div className="item-distance">
+                <LuArrowRightFromLine />
+                {distanceToEnd} km
+              </div>
+            )}
+            {referenceWaypoint.type === "destination" && (
+              <div className="item-distance">
+                {distanceFromStart} km
+                <LuArrowRightFromLine />
+              </div>
+            )}
             {referenceWaypoint.type !== "start" &&
+              referenceWaypoint.type !== "destination" &&
               referenceWaypoint.type !== "shaping" && (
-                <div className="item-distance">
-                  <LuArrowRightFromLine />
-                  {distanceFromStart} km
-                </div>
-              )}
-            {referenceWaypoint.type !== "destination" &&
-              referenceWaypoint.type !== "shaping" && (
-                <div className="item-distance">
-                  - {distanceToEnd} km
-                  <LuArrowRightFromLine />
-                </div>
+                <>
+                  <div className="item-distance">
+                    <LuArrowRightFromLine />
+                    {distanceFromStart} km
+                  </div>
+                  <div className="item-distance">
+                    - {distanceToEnd} km
+                    <LuArrowRightFromLine />
+                  </div>
+                </>
               )}
           </div>
         </div>

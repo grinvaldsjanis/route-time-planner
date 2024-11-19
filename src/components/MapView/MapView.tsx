@@ -150,13 +150,13 @@ const MapView: React.FC = () => {
   }, [focusedWaypointIndex, currentTrackIndex, gpxData, dispatch]);
 
   useEffect(() => {
-    console.log("Global State Updated:", state);
+    // console.log("Global State Updated:", state);
   }, [state]);
   //
-  useEffect(() => {
-    console.log("Bounds updated:", mapBounds);
-    console.log("Programmatic action:", programmaticAction);
-  }, [mapBounds, programmaticAction]);
+  // useEffect(() => {
+  //   console.log("Bounds updated:", mapBounds);
+  //   console.log("Programmatic action:", programmaticAction);
+  // }, [mapBounds, programmaticAction]);
 
   useEffect(() => {
     if (programmaticAction === "fitBounds" && mapBounds && mapRef.current) {

@@ -9,14 +9,12 @@ import formatTimeToHHMM from "../../utils/formatTimeToHHMM";
 const WaypointList: React.FC = () => {
   const { state } = useGlobalState();
 
-  // Check if GPX data and current track index are valid
   if (!state.gpxData || state.currentTrackIndex === null) {
     return <div>No GPX data available.</div>;
   }
 
   const currentTrack = state.gpxData.tracks[state.currentTrackIndex];
 
-  // Check if the current track and its waypoints are valid
   if (
     !currentTrack ||
     !currentTrack.waypoints ||
@@ -33,9 +31,6 @@ const WaypointList: React.FC = () => {
       <div className="inner-list-container">
         <ul>
           {waypoints.map((trackWaypoint, index) => {
-            // const referenceWaypoint = state.gpxData?.referenceWaypoints.find(
-            //   (refWaypoint) => refWaypoint.id === trackWaypoint.referenceId
-            // );
 
             return (
               <React.Fragment key={`waypoint-${index}`}>

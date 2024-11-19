@@ -13,6 +13,7 @@ import calculateTravelTimes from "../utils/calculateTravelTimes";
 import { calculateValueRange } from "../utils/calculateValueRange";
 import { SET_PROGRAMMATIC_ACTION } from "./actions";
 import calculateCenterFromBounds from "../utils/calculateCenterFromBonds";
+import { imageService } from "../utils/globalImageService";
 
 export interface GlobalState {
   gpxData: GPXData | null;
@@ -232,19 +233,30 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
       return state;
     }
 
-    case "CLEAR_PREVIOUS_DATA":
+    case "CLEAR_PREVIOUS_DATA": {
+      // Remove GPX-related data
       removeLocalStorage("gpxData");
       removeLocalStorage("dataVersion");
       removeLocalStorage("stopTimes");
       removeLocalStorage("currentTrackIndex");
-
+    
+      // Clear all locally stored image URLs
+      Object.keys(localStorage).forEach((key) => {
+        if (key.startsWith("imageUrl-")) {
+          localStorage.removeItem(key);
+        }
+      });
+    
+      imageService.clearCache();
+    
       return {
         ...initialState,
         mapMode: state.mapMode,
         travelMode: state.travelMode,
         gpxData: null,
-        currentTrackIndex: 0, // Ensure the index is reset in the state as well
+        currentTrackIndex: 0,
       };
+    }
 
     case "SET_GPX_DATA": {
       const updatedTracks = action.payload.tracks.map((track) => ({
@@ -331,6 +343,31 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
         referenceWaypoints: updatedWaypoints,
       };
       setLocalStorage("gpxData", updatedGPXData);
+
+      return {
+        ...state,
+        gpxData: updatedGPXData,
+      };
+    }
+
+    case "SET_WAYPOINT_IMAGE": {
+      const { index, imageUrl } = action.payload;
+      if (!state.gpxData) return state;
+
+      const updatedReferenceWaypoints = state.gpxData.referenceWaypoints.map(
+        (waypoint, i) => {
+          if (i === index) {
+            console.log(`Updating image for waypoint ${index}: ${imageUrl}`);
+            return { ...waypoint, imageUrl };
+          }
+          return waypoint;
+        }
+      );
+
+      const updatedGPXData = {
+        ...state.gpxData,
+        referenceWaypoints: updatedReferenceWaypoints,
+      };
 
       return {
         ...state,
@@ -708,7 +745,7 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
           setLocalStorage("mapZoom", 15); // Assuming a specific zoom level
         }
       }
-      console.log("Handling programmatic action:", action.payload);
+      // console.log("Handling programmatic action:", action.payload);
       return { ...state, programmaticAction: action.payload };
     }
 

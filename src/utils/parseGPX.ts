@@ -15,7 +15,6 @@ import travelModes from "../constants/travelModes";
 import { setInProgress } from "../context/actions";
 // import { fetchRoadDetailData } from "./fetchRoadDetailData";
 // import { fetchSpeedLimitData } from "./fetchSpeedLimitData";
-import fetchCommonsImages from "./fetchCommonsImage";
 
 export default async function parseGPX(
   gpxContent: string,
@@ -287,43 +286,43 @@ export default async function parseGPX(
 
   dispatch(setInProgress(true, "Fetching geolocated images..."));
 
-  const bulkCoordinates = referenceWaypoints
-    .filter((ref) => !ref.imageUrl)
-    .map((ref, index) => ({
-      lat: ref.lat.toString(),
-      lon: ref.lon.toString(),
-      index, // Include the index of the waypoint
-    }));
+  // const bulkCoordinates = referenceWaypoints
+  //   .filter((ref) => !ref.imageUrl)
+  //   .map((ref, index) => ({
+  //     lat: ref.lat.toString(),
+  //     lon: ref.lon.toString(),
+  //     index, // Include the index of the waypoint
+  //   }));
 
-  const imageResults = await fetchCommonsImages(
-    bulkCoordinates,
-    800,
-    5,
-    dispatch
-  );
+  // const imageResults = await fetchCommonsImages(
+  //   bulkCoordinates,
+  //   800,
+  //   5,
+  //   dispatch
+  // );
 
-  referenceWaypoints.forEach((refWaypoint) => {
-    if (!refWaypoint.imageUrl) {
-      const coordKey = `${refWaypoint.lat},${refWaypoint.lon}`;
-      refWaypoint.imageUrl = imageResults[coordKey] || undefined;
+  // referenceWaypoints.forEach((refWaypoint) => {
+  //   if (!refWaypoint.imageUrl) {
+  //     const coordKey = `${refWaypoint.lat},${refWaypoint.lon}`;
+  //     refWaypoint.imageUrl = imageResults[coordKey] || undefined;
 
-      if (refWaypoint.imageUrl) {
-        dispatch(
-          setInProgress(
-            true,
-            `Image found for waypoint at:\n(${refWaypoint.lat}, ${refWaypoint.lon}).`
-          )
-        );
-      } else {
-        dispatch(
-          setInProgress(
-            true,
-            `No image found for waypoint at:\n(${refWaypoint.lat}, ${refWaypoint.lon}).`
-          )
-        );
-      }
-    }
-  });
+  //     if (refWaypoint.imageUrl) {
+  //       dispatch(
+  //         setInProgress(
+  //           true,
+  //           `Image found for waypoint at:\n(${refWaypoint.lat}, ${refWaypoint.lon}).`
+  //         )
+  //       );
+  //     } else {
+  //       dispatch(
+  //         setInProgress(
+  //           true,
+  //           `No image found for waypoint at:\n(${refWaypoint.lat}, ${refWaypoint.lon}).`
+  //         )
+  //       );
+  //     }
+  //   }
+  // });
 
   dispatch(setInProgress(false, ""));
 

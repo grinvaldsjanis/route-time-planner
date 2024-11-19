@@ -10,6 +10,7 @@ export const SET_TRAVEL_MODE = "SET_TRAVEL_MODE";
 export const SET_START_TIME = "SET_START_TIME";
 export const UPDATE_STOP_TIME = "UPDATE_STOP_TIME";
 export const SET_WAYPOINT_NAME = "SET_WAYPOINT_NAME";
+export const SET_WAYPOINT_IMAGE = "SET_WAYPOINT_IMAGE";
 export const INITIALIZE_STATE = "INITIALIZE_STATE";
 export const CLEAR_PREVIOUS_DATA = "CLEAR_PREVIOUS_DATA";
 export const SET_FOCUSED_WAYPOINT = "SET_FOCUSED_WAYPOINT";
@@ -76,6 +77,14 @@ export interface SetWaypointName {
   payload: {
     index: number;
     name: string;
+  };
+}
+
+export interface SetWaypointImage {
+  type: typeof SET_WAYPOINT_IMAGE;
+  payload: {
+    index: number;
+    imageUrl: string;
   };
 }
 
@@ -170,6 +179,7 @@ export type Action =
   | UpdateStopTimeAction
   | SetTravelModeAction
   | SetWaypointName
+  | SetWaypointImage
   | InitializeStateAction
   | SetStartTimeAction
   | ClearPreviousDataAction
@@ -183,6 +193,23 @@ export type Action =
   | SetValueRangesAction
   | SetMapBoundsAction
   | SetProgrammaticAction;
+
+export const setWaypointName = (
+  index: number,
+  name: string
+): SetWaypointName => ({
+  type: SET_WAYPOINT_NAME,
+  payload: { index, name },
+});
+
+export const setWaypointImage = (
+  index: number,
+  imageUrl: string
+): SetWaypointImage => ({
+  type: SET_WAYPOINT_IMAGE,
+  payload: { index, imageUrl },
+});
+
 
 export const setProgrammaticAction = (
   programmaticAction: "fitBounds" | "focusWaypoint" | null
@@ -309,7 +336,6 @@ export const setInProgress = (
   },
 });
 
-// New action creator for setting value ranges
 export const setValueRanges = (
   modeKey: string,
   minValue: number,
