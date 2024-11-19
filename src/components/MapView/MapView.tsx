@@ -7,7 +7,6 @@ import React, {
 } from "react";
 import {
   MapContainer,
-  TileLayer,
   Marker,
   LayerGroup,
   Tooltip,
@@ -27,6 +26,7 @@ import ColorizedPolyline from "./ColorizedPolyline/ColorizedPolyline";
 import L from "leaflet";
 import { debounce } from "lodash";
 import { MdOutlineFitScreen } from "react-icons/md";
+import LayerManager from "./LayerManager/LayerManager";
 
 type ModeKeys = "ele" | "curve" | "slope" | "speedLimit";
 
@@ -150,15 +150,6 @@ const MapView: React.FC = () => {
   }, [focusedWaypointIndex, currentTrackIndex, gpxData, dispatch]);
 
   useEffect(() => {
-    // console.log("Global State Updated:", state);
-  }, [state]);
-  //
-  // useEffect(() => {
-  //   console.log("Bounds updated:", mapBounds);
-  //   console.log("Programmatic action:", programmaticAction);
-  // }, [mapBounds, programmaticAction]);
-
-  useEffect(() => {
     if (programmaticAction === "fitBounds" && mapBounds && mapRef.current) {
       console.log("Triggering fitBounds...");
       debouncedFitBounds();
@@ -172,7 +163,6 @@ const MapView: React.FC = () => {
       console.warn("Unhandled programmatic action:", programmaticAction);
     }
 
-    // Clear programmaticAction only after handling
     if (programmaticAction) {
       dispatch({ type: "SET_PROGRAMMATIC_ACTION", payload: null });
     }
@@ -301,7 +291,7 @@ const MapView: React.FC = () => {
         }}
       >
         <MapRefSetter />
-        <TileLayer url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png" />
+        <LayerManager />
         <button
           className="fit-bounds-button"
           onClick={handleFitActiveTrack}

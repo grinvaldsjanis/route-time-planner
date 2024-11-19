@@ -1,0 +1,73 @@
+[
+  {
+    "id": "openTopoMap",
+    "layerSetName": "Open Topo Map",
+    "layers": [
+      {
+        "url": "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
+      }
+    ]
+  },
+  {
+    "id": "arcgisWithLabels",
+    "layerSetName": "ArcGIS Satellite with Labels",
+    "layers": [
+      {
+        "url": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+      },
+      {
+        "url": "https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png",
+        "subdomains": "abcd"
+      }
+    ]
+  },
+  {
+    "id": "arcgisNoLabels",
+    "layerSetName": "ArcGIS Satellite",
+    "layers": [
+      {
+        "url": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+      }
+    ]
+  },
+  {
+    "id": "satStadiaLabels",
+    "layerSetName": "Stadia Alidade Satellite",
+    "layers": [
+      {
+        "url": "https://tiles.stadiamaps.com/tiles/alidade_satellite/{z}/{x}/{y}{r}.jpg"
+      }
+    ]
+  },
+  {
+    "id": "satMapTilerNoLabels",
+    "layerSetName": "MapTiler Satellite",
+    "layers": [
+      {
+        "url": "https://api.maptiler.com/maps/satellite/{z}/{x}/{y}@2x.jpg?key=6G3q0A2D2rsQ1yv66Hry"
+      }
+    ]
+  },
+  {
+    "id": "satMapTilerLabels",
+    "layerSetName": "MapTiler Satellite with Labels",
+    "layers": [
+      {
+        "url": "https://api.maptiler.com/maps/satellite/{z}/{x}/{y}@2x.jpg?key=6G3q0A2D2rsQ1yv66Hry"
+      },
+      {
+        "url": "https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png",
+        "subdomains": "abcd"
+      }
+    ]
+  },
+  {
+    "id": "openStreetMap",
+    "layerSetName": "OpenStreetMap",
+    "layers": [
+      {
+        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+      }
+    ]
+  }
+]

@@ -4,6 +4,7 @@ import { TravelMode } from "../constants/travelModes";
 import { GlobalState } from "./reducer";
 
 export const SET_GPX_DATA = "SET_GPX_DATA";
+export const SET_LAYER_SET = "SET_LAYER_SET";
 export const SET_MAP_MODE = "SET_MAP_MODE";
 export const INCREMENT_DATA_VERSION = "INCREMENT_DATA_VERSION";
 export const SET_TRAVEL_MODE = "SET_TRAVEL_MODE";
@@ -38,6 +39,13 @@ export interface SetHighlightAction {
 export interface SetGPXNameAction {
   type: typeof SET_GPX_NAME;
   payload: string;
+}
+
+export interface SetLayerSetAction {
+  type: typeof SET_LAYER_SET;
+  payload: {
+    layerSetId: string;
+  };
 }
 
 export interface SetMapBoundsAction {
@@ -192,6 +200,7 @@ export type Action =
   | SetCurrentTrackIndex
   | SetValueRangesAction
   | SetMapBoundsAction
+  | SetLayerSetAction
   | SetProgrammaticAction;
 
 export const setWaypointName = (
@@ -200,6 +209,11 @@ export const setWaypointName = (
 ): SetWaypointName => ({
   type: SET_WAYPOINT_NAME,
   payload: { index, name },
+});
+
+export const setLayerSet = (layerSetId: string): SetLayerSetAction => ({
+  type: SET_LAYER_SET,
+  payload: { layerSetId },
 });
 
 export const setWaypointImage = (

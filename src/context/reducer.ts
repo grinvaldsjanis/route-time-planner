@@ -17,6 +17,7 @@ import { imageService } from "../utils/globalImageService";
 
 export interface GlobalState {
   gpxData: GPXData | null;
+  layerSetId: string | null;
   mapBounds?: [LatLngTuple, LatLngTuple];
   mapMode: "ele" | "curve" | "slope" | "speedLimit";
   mapCenter: LatLngTuple;
@@ -46,6 +47,7 @@ export interface GlobalState {
 
 export const initialState: GlobalState = {
   dataVersion: getLocalStorage("dataVersion", 0),
+  layerSetId: getLocalStorage("layerSetId", "openTopoMap"),
   gpxData: getLocalStorage("gpxData", null),
   currentTrackIndex: getLocalStorage("currentTrackIndex", 0),
   mapMode: getLocalStorage("mapMode", "ele"),
@@ -734,6 +736,16 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
       );
       return state;
     }
+
+    case "SET_LAYER_SET": {
+      const { layerSetId } = action.payload;
+      setLocalStorage("layerSetId", layerSetId);
+      return {
+        ...state,
+        layerSetId,
+      };
+    }
+    
 
     case "SET_PROGRAMMATIC_ACTION": {
       if (action.payload === "fitBounds" && state.mapBounds) {
