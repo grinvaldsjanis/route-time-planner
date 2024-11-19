@@ -31,15 +31,6 @@
     ]
   },
   {
-    "id": "satStadiaLabels",
-    "layerSetName": "Stadia Alidade Satellite",
-    "layers": [
-      {
-        "url": "https://tiles.stadiamaps.com/tiles/alidade_satellite/{z}/{x}/{y}{r}.jpg"
-      }
-    ]
-  },
-  {
     "id": "satMapTilerNoLabels",
     "layerSetName": "MapTiler Satellite",
     "layers": [
