@@ -4,6 +4,7 @@ import { TravelMode } from "../constants/travelModes";
 import { GlobalState } from "./reducer";
 
 export const SET_GPX_DATA = "SET_GPX_DATA";
+export const SET_HOVERED_DISTANCE = "SET_HOVERED_DISTANCE";
 export const SET_LAYER_SET = "SET_LAYER_SET";
 export const SET_MAP_MODE = "SET_MAP_MODE";
 export const INCREMENT_DATA_VERSION = "INCREMENT_DATA_VERSION";
@@ -34,6 +35,11 @@ export interface SetHighlightAction {
     range: [number, number];
     isActive: boolean;
   };
+}
+
+export interface SetHoveredDistanceAction {
+  type: typeof SET_HOVERED_DISTANCE;
+  payload: number | null; // `null` means no hovering
 }
 
 export interface SetGPXNameAction {
@@ -201,6 +207,7 @@ export type Action =
   | SetValueRangesAction
   | SetMapBoundsAction
   | SetLayerSetAction
+  | SetHoveredDistanceAction
   | SetProgrammaticAction;
 
 export const setWaypointName = (
@@ -216,6 +223,13 @@ export const setLayerSet = (layerSetId: string): SetLayerSetAction => ({
   payload: { layerSetId },
 });
 
+export const setHoveredDistance = (
+  distance: number | null
+): SetHoveredDistanceAction => ({
+  type: SET_HOVERED_DISTANCE,
+  payload: distance,
+});
+
 export const setWaypointImage = (
   index: number,
   imageUrl: string
@@ -223,7 +237,6 @@ export const setWaypointImage = (
   type: SET_WAYPOINT_IMAGE,
   payload: { index, imageUrl },
 });
-
 
 export const setProgrammaticAction = (
   programmaticAction: "fitBounds" | "focusWaypoint" | null

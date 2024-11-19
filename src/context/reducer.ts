@@ -37,6 +37,7 @@ export interface GlobalState {
   highlightRange: [number, number];
   highlightMode: boolean;
   currentTrackIndex: number | null;
+  hoveredDistance: number | null;
   valueRanges: {
     ele: { minValue: number; maxValue: number };
     curve: { minValue: number; maxValue: number };
@@ -66,6 +67,7 @@ export const initialState: GlobalState = {
   progressText: "",
   highlightRange: [0, 100],
   highlightMode: false,
+  hoveredDistance: null,
   valueRanges: getLocalStorage("valueRanges", {
     ele: { minValue: 0, maxValue: 100 },
     curve: { minValue: 0, maxValue: 100 },
@@ -625,6 +627,12 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
       setLocalStorage("startTime", action.payload);
       return { ...state, startTime: action.payload };
 
+    case "SET_HOVERED_DISTANCE":
+      return {
+        ...state,
+        hoveredDistance: action.payload,
+      };
+
     case "SET_MAP_MODE": {
       setLocalStorage("mapMode", action.payload);
 
@@ -745,7 +753,6 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
         layerSetId,
       };
     }
-    
 
     case "SET_PROGRAMMATIC_ACTION": {
       if (action.payload === "fitBounds" && state.mapBounds) {

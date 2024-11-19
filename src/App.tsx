@@ -13,6 +13,7 @@ import AboutContent from "./components/Modal/AboutContent";
 import ProgressIndicator from "./components/ProgressIndicator/ProgressIndicator";
 import ErrorBoundary from "./components/ErrorBoundary/ErrorBoundary";
 import { processGPXData } from "./utils/processGPX";
+import TrackGraph from "./components/TrackGraph/TrackGraph";
 
 function App() {
   const { state, dispatch } = useGlobalState();
@@ -89,9 +90,9 @@ function App() {
             <div className="App-graph-container">
               <ErrorBoundary>
                 {" "}
-                {/* Wrap MapView with ErrorBoundary */}
                 <MapView />
               </ErrorBoundary>
+              <TrackGraph/>
               <ScaleStrip />
             </div>
           </>
