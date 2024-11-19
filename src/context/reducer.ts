@@ -64,12 +64,12 @@ export const initialState: GlobalState = {
   progressText: "",
   highlightRange: [0, 100],
   highlightMode: false,
-  valueRanges: {
+  valueRanges: getLocalStorage("valueRanges", {
     ele: { minValue: 0, maxValue: 100 },
     curve: { minValue: 0, maxValue: 100 },
     slope: { minValue: 0, maxValue: 100 },
     speedLimit: { minValue: 0, maxValue: 200 },
-  },
+  }),
 };
 
 if (initialState.gpxData && initialState.currentTrackIndex !== null) {
@@ -239,16 +239,16 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
       removeLocalStorage("dataVersion");
       removeLocalStorage("stopTimes");
       removeLocalStorage("currentTrackIndex");
-    
+
       // Clear all locally stored image URLs
       Object.keys(localStorage).forEach((key) => {
         if (key.startsWith("imageUrl-")) {
           localStorage.removeItem(key);
         }
       });
-    
+
       imageService.clearCache();
-    
+
       return {
         ...initialState,
         mapMode: state.mapMode,
@@ -592,6 +592,8 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
         speedLimit: calculateValueRange([currentTrack], "speedLimit", 0),
       };
 
+      setLocalStorage("valueRanges", newValueRanges);
+
       const {
         totalDistance,
         totalTravelTime,
@@ -693,12 +695,18 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
 
     case "SET_VALUE_RANGES": {
       const { modeKey, minValue, maxValue } = action.payload;
+
+      const updatedValueRanges = {
+        ...state.valueRanges,
+        [modeKey]: { minValue, maxValue },
+      };
+
+      // Persist updated valueRanges to local storage
+      setLocalStorage("valueRanges", updatedValueRanges);
+
       return {
         ...state,
-        valueRanges: {
-          ...state.valueRanges,
-          [modeKey]: { minValue, maxValue },
-        },
+        valueRanges: updatedValueRanges,
       };
     }
 
