@@ -280,7 +280,7 @@ const MapView: React.FC = () => {
           iconType = "start";
         } else if (idx === currentTrack.waypoints.length - 1) {
           iconType = "destination";
-        } else if (mapZoom < 11) {
+        } else if (mapZoom < 10) {
           iconType = "small"; // Use "small" icon for zoom < 15
         }
 
