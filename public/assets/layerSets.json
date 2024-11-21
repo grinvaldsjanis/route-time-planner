@@ -9,6 +9,15 @@
     ]
   },
   {
+    "id": "openStreetMap",
+    "layerSetName": "OpenStreetMap",
+    "layers": [
+      {
+        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+      }
+    ]
+  },
+  {
     "id": "arcgisWithLabels",
     "layerSetName": "ArcGIS Satellite with Labels",
     "layers": [
@@ -51,14 +60,6 @@
         "subdomains": "abcd"
       }
     ]
-  },
-  {
-    "id": "openStreetMap",
-    "layerSetName": "OpenStreetMap",
-    "layers": [
-      {
-        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-      }
-    ]
   }
+  
 ]

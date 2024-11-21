@@ -2,7 +2,13 @@
   color: rgb(71, 71, 71);
   font-size: 14px;
   opacity: 60%;
+  pointer-events: none;
 }
+
+.leaflet-marker-icon.directional-marker-icon {
+  pointer-events: none !important;
+}
+
 
 .polyline-transition {
   transition: opacity 0.6s ease-in-out;

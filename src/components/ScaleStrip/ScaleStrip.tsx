@@ -3,7 +3,6 @@ import React, {
   useState,
   useRef,
   CSSProperties,
-  useCallback,
 } from "react";
 import { useGlobalState } from "../../context/GlobalContext";
 import { calculateValueRange } from "../../utils/calculateValueRange";

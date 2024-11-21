@@ -67,19 +67,17 @@
   background-color: #eaeaea;
   overflow: hidden;
 }
-
 .track-graph-wrapper {
-  overflow: hidden;
-  max-width: 100%; 
+  width: 100%;
   position: relative;
   margin: 0;
   z-index: 2000;
   height: 100px;
-  transition: height 0.3s ease;
+  transition: height 0.2s ease;
 }
 
 .track-graph-wrapper.collapsed {
-  height: 0px;
+  height: 3px;
 }
 
 .scale-strip {
