@@ -13,6 +13,7 @@ import AboutContent from "./components/Modal/AboutContent";
 import ProgressIndicator from "./components/ProgressIndicator/ProgressIndicator";
 import { processGPXData } from "./utils/processGPX";
 import TrackGraph from "./components/TrackGraph/TrackGraph";
+import { FaPlay } from "react-icons/fa";
 
 function App() {
   const { state, dispatch } = useGlobalState();
@@ -75,7 +76,7 @@ function App() {
         {!state.gpxData && (
           <div className="try-stored-gpx">
             <button onClick={handleLoadStoredGPX} className="try-button">
-              Try Example GPX!
+              <FaPlay />Try Example GPX!
             </button>
           </div>
         )}
@@ -112,4 +113,3 @@ function App() {
 }
 
 export default App;
-

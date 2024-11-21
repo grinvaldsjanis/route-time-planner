@@ -96,6 +96,29 @@
   position: relative;
 }
 
+.try-stored-gpx {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.try-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  gap: 10px;
+  font-size: 1rem;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.try-button:hover {
+  background-color: #0056b3;
+}
+
 /* Media Queries for Responsive Design */
 @media (max-width: 1024px) {
   .App-sidebar {
@@ -134,6 +157,6 @@
   }
 
   .map-view {
-    height: 450px; /* Smaller height for very narrow screens */
+    height: 450px;
   }
 }
