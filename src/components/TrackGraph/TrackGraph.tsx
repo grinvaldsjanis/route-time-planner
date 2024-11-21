@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { FaChartLine, FaChevronDown } from "react-icons/fa"; // Import icons
 import "./TrackGraph.css";
 import { useGlobalState } from "../../context/GlobalContext";
 import getColorForValue from "../../utils/getColorForValue";
@@ -9,10 +10,13 @@ const TrackGraph: React.FC = () => {
   const { state, dispatch } = useGlobalState();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [width, setWidth] = useState(0);
-
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [hoverX, setHoverX] = useState<number | null>(null);
+  const [hoverValue, setHoverValue] = useState<number | null>(null);
+  const [tooltipY, setTooltipY] = useState(0);
   const { gpxData, mapMode, currentTrackIndex, valueRanges } = state;
+  const graphHeight: number = 70;
 
-  // Recalculate graph width on window resize
   useEffect(() => {
     const updateWidth = () => {
       if (containerRef.current) {
@@ -34,7 +38,6 @@ const TrackGraph: React.FC = () => {
     const sampledData: { distance: number; value: number; color: string }[] =
       [];
 
-    // Total distance along the track
     let totalDistance = 0;
     currentTrack.points.slice(1).forEach((point, idx) => {
       const prevPoint = currentTrack.points[idx];
@@ -47,7 +50,6 @@ const TrackGraph: React.FC = () => {
       totalDistance += segmentDistance;
     });
 
-    // Sample data at regular intervals
     const sampleInterval = totalDistance / width;
     let accumulatedDistance = 0;
     let currentSampleDistance = 0;
@@ -100,48 +102,111 @@ const TrackGraph: React.FC = () => {
     const relativeDistance =
       (x / width) * graphData[graphData.length - 1].distance;
 
-    dispatch(setHoveredDistance(relativeDistance)); // Dispatch hover distance
+    const closestPoint = graphData.reduce((prev, curr) => {
+      return Math.abs(curr.distance - relativeDistance) <
+        Math.abs(prev.distance - relativeDistance)
+        ? curr
+        : prev;
+    });
+
+    setHoverX(x);
+    setHoverValue(closestPoint.value);
+
+    // Calculate tooltipY and ensure it's within bounds
+    let calculatedY =
+      graphHeight -
+      ((closestPoint.value - minValue) / (maxValue - minValue)) * graphHeight;
+
+    // Prevent tooltip from going out of bounds
+    calculatedY = Math.max(20, Math.min(calculatedY, graphHeight - 5));
+
+    setTooltipY(calculatedY);
+
+    dispatch(setHoveredDistance(relativeDistance));
   };
 
   const handleMouseLeave = () => {
-    dispatch(setHoveredDistance(null)); // Clear hover state
+    setHoverX(null);
+    setHoverValue(null);
+    dispatch(setHoveredDistance(null));
+  };
+
+  const toggleCollapse = () => {
+    setIsCollapsed(!isCollapsed);
   };
 
   return (
-    <div className="track-graph-container" ref={containerRef}>
-      <svg
-        className="track-graph-svg"
-        width={width}
-        height="80"
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
-      >
-        {graphData.map((point, idx) => {
-          if (idx === 0) return null;
-          const prevPoint = graphData[idx - 1];
-          const x1 =
-            (prevPoint.distance / graphData[graphData.length - 1].distance) *
-            width;
-          const y1 =
-            80 - ((prevPoint.value - minValue) / (maxValue - minValue)) * 80;
-          const x2 =
-            (point.distance / graphData[graphData.length - 1].distance) * width;
-          const y2 =
-            80 - ((point.value - minValue) / (maxValue - minValue)) * 80;
+    <div className={`track-graph-wrapper ${isCollapsed ? "collapsed" : ""}`}>
+      <button className="collapse-button" onClick={toggleCollapse}>
+        {isCollapsed ? <FaChartLine size={16} /> : <FaChevronDown size={16} />}
+      </button>
+      {!isCollapsed && (
+        <div className="track-graph-container" ref={containerRef}>
+          <svg
+            className="track-graph-svg"
+            width={width}
+            height={graphHeight}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
+          >
+            {graphData.map((point, idx) => {
+              if (idx === 0) return null;
+              const prevPoint = graphData[idx - 1];
+              const x1 =
+                (prevPoint.distance /
+                  graphData[graphData.length - 1].distance) *
+                width;
+              const y1 =
+                graphHeight -
+                ((prevPoint.value - minValue) / (maxValue - minValue)) *
+                  graphHeight;
+              const x2 =
+                (point.distance / graphData[graphData.length - 1].distance) *
+                width;
+              const y2 =
+                graphHeight -
+                ((point.value - minValue) / (maxValue - minValue)) *
+                  graphHeight;
 
-          return (
-            <line
-              key={`graph-line-${idx}`}
-              x1={x1}
-              y1={y1}
-              x2={x2}
-              y2={y2}
-              stroke={point.color}
-              strokeWidth="4"
-            />
-          );
-        })}
-      </svg>
+              return (
+                <line
+                  key={`graph-line-${idx}`}
+                  x1={x1}
+                  y1={y1}
+                  x2={x2}
+                  y2={y2}
+                  stroke={point.color}
+                  strokeWidth="4"
+                />
+              );
+            })}
+
+            {hoverX !== null && (
+              <>
+                <line
+                  x1={hoverX}
+                  y1={0}
+                  x2={hoverX}
+                  y2={graphHeight}
+                  stroke="red"
+                  strokeDasharray="4"
+                />
+                {hoverValue !== null && (
+                  <text
+                    x={hoverX}
+                    y={tooltipY - 10}
+                    fill="black"
+                    fontSize="12"
+                    textAnchor="middle"
+                  >
+                    {hoverValue.toFixed(2)}
+                  </text>
+                )}
+              </>
+            )}
+          </svg>
+        </div>
+      )}
     </div>
   );
 };

@@ -11,7 +11,6 @@ import Modal from "./components/Modal/Modal";
 import TravelModeSelector from "./components/TravelModeSelector/TravelModesSelector";
 import AboutContent from "./components/Modal/AboutContent";
 import ProgressIndicator from "./components/ProgressIndicator/ProgressIndicator";
-import ErrorBoundary from "./components/ErrorBoundary/ErrorBoundary";
 import { processGPXData } from "./utils/processGPX";
 import TrackGraph from "./components/TrackGraph/TrackGraph";
 
@@ -88,12 +87,13 @@ function App() {
               <WaypointList />
             </div>
             <div className="App-graph-container">
-              <ErrorBoundary>
-                {" "}
+              <div className="map-view">
                 <MapView />
-              </ErrorBoundary>
-              <TrackGraph/>
-              <ScaleStrip />
+              </div>
+              <TrackGraph />
+              <div className="scale-strip">
+                <ScaleStrip />
+              </div>
             </div>
           </>
         )}
@@ -112,3 +112,4 @@ function App() {
 }
 
 export default App;
+

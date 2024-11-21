@@ -1,17 +1,42 @@
-.track-graph-container {
-  width: 100%;
-  height: 100px;
-  overflow: hidden;
-  position: relative;
+
+
+.collapse-button {
+  position: absolute;
+  top: -45px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  padding: 10px;
+  cursor: pointer;
+  font-size: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.3s ease;
+  z-index: 2000 !important;
+}
+
+.collapse-button:hover {
+  background-color: #0056b3;
 }
 
 .track-graph-svg {
   display: block;
   width: 100%;
-  height: 80px;
-margin: 10px 0;
+  height: 100px;
+  margin: 20px 0;
+  padding: 0 10px;
 }
 
 .track-graph-svg line {
   transition: stroke 0.2s ease;
+}
+
+.track-graph-svg text {
+  background: white;
+  padding: 2px 4px;
+  border-radius: 3px;
+  pointer-events: none;
+  font-weight: bold;
 }

@@ -6,11 +6,7 @@
   position: fixed;
   top: 0;
   left: 0;
-}
-
-.App-logo {
-  background-repeat: no-repeat, repeat;
-  background-position: left center;
+  overflow: hidden; /* Prevent content overflow */
 }
 
 .App-header {
@@ -31,22 +27,64 @@
   gap: 10px;
 }
 
+.App-logo {
+  background-image: url(./logo.png);
+  background-repeat: no-repeat, repeat;
+  background-position: left center;
+  padding-left: 70px;
+  visibility: visible;
+}
+
 .App-main-container {
   display: flex;
-  flex-direction: column;
-  width: 100%;
-  overflow-y: auto;
-  height: 100%;
+  flex-grow: 1;
+  height: calc(100% - 70px); /* Subtract header height */
+  overflow-y: auto; /* Enable scrolling if content exceeds viewport */
 }
 
 .App-sidebar {
-  width: 100%;
-  order: 1;
+  width: 450px;
+  flex-shrink: 0; /* Prevent shrinking */
+  overflow: hidden; /* Disable unwanted scrolling */
+  background-color: #f4f4f4;
+  border-right: 1px solid #ccc;
 }
 
 .App-graph-container {
+  display: flex;
+  flex-direction: column;
   flex-grow: 1;
-  height: 100%;
+  position: relative;
+  height: auto; /* Let it adapt to content */
+  min-height: 550px; /* Ensure it always has a minimum height */
+  overflow-y: auto; /* Enable scrolling if needed */
+}
+
+.map-view {
+  flex-grow: 1;
+  position: relative;
+  min-height: 400px;
+  background-color: #eaeaea;
+  overflow: hidden;
+}
+.track-graph-wrapper {
+  width: 100%;
+  position: relative;
+  margin: 0;
+  z-index: 2000;
+  height: 100px;
+  transition: height 0.3s ease;
+}
+
+.track-graph-wrapper.collapsed {
+  height: 0px;
+}
+
+.scale-strip {
+  position: relative;
+  display: flex;
+  height: 50px;
+  flex-shrink: 0;
 }
 
 .footer {
@@ -55,59 +93,48 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-top: 1px solid black;
+  border-top: 1px solid rgb(143, 143, 143);
   position: relative;
 }
 
-.try-stored-gpx {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-top: 20px;
-}
-
-.try-button {
-  background-color: #007bff;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  font-size: 1rem;
-  cursor: pointer;
-  border-radius: 5px;
-}
-
-.try-button:hover {
-  background-color: #0056b3;
-}
-
-/* Media Queries */
-@media (min-width: 768px) {
-  /* Adjustments for tablets and desktops */
-  .App-main-container {
-    display: flex;
-    flex-direction: row;
-    overflow-y: hidden;
-    position: relative;
-    z-index: 1;
-  }
-
+/* Media Queries for Responsive Design */
+@media (max-width: 1024px) {
   .App-sidebar {
-    min-height: 100vh;
-    width: 450px;
-    order: 0;
+    width: 450px; /* Reduce sidebar width */
   }
 
   .App-graph-container {
-    height: calc(100vh - 200px);
-    position: relative;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 768px) {
+  .App-main-container {
+    flex-direction: column;
+    overflow-y: auto;
   }
 
-  .App-logo {
-    background-image: url(./logo.png);
-    background-repeat: no-repeat, repeat;
-    background-position: left center;
-    padding-left: 70px;
-    visibility: visible;
+  .App-sidebar {
+    width: 100%;
+    order: 1;
+    height: auto;
+  }
+
+  .App-graph-container {
+    height: auto;
+  }
+
+  .map-view {
+    height: 450px;
+  }
+}
+
+@media (max-width: 480px) {
+  .App-sidebar {
+    width: 100%;
+  }
+
+  .map-view {
+    height: 450px; /* Smaller height for very narrow screens */
   }
 }

@@ -7,9 +7,7 @@
   display: flex;
   flex-direction: column;
   flex-grow: 1;
-  /* overflow-y: hidden; */
-  max-height: calc(100% - 250px);
-  /* border: 1px solid blue; */
+  max-height: calc(100% - 200px);
 }
 
 .inner-list-container ul {

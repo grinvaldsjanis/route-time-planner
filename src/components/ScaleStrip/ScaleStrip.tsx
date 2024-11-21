@@ -191,33 +191,34 @@ const ScaleStrip: React.FC = () => {
   };
 
   return (
-    <div
-      className="scale-strip"
-      ref={stripRef}
-      onMouseMove={handleMouseMove}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-    >
-      {hasNoRange ? (
-        <div className="no-range">There's no range for the data</div>
-      ) : (
-        <>
-          <div
-            className="gradient-strip background"
-            style={gradientStyle}
-          ></div>
-          <div
-            className="gradient-strip foreground"
-            style={{ ...gradientStyle, ...getForegroundStyle() }}
-          ></div>
-          <div className="scale-labels">
-            {labels.map((label, index) => (
-              <span key={index}>{label.value}</span>
-            ))}
-          </div>
-        </>
-      )}
-    </div>
+    <>
+      <div className="scale-wrapper"
+        ref={stripRef}
+        onMouseMove={handleMouseMove}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
+        {hasNoRange ? (
+          <div className="no-range">There's no range for the data</div>
+        ) : (
+          <>
+            <div
+              className="gradient-strip background"
+              style={gradientStyle}
+            ></div>
+            <div
+              className="gradient-strip foreground"
+              style={{ ...gradientStyle, ...getForegroundStyle() }}
+            ></div>
+            <div className="scale-labels">
+              {labels.map((label, index) => (
+                <span key={index}>{label.value}</span>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    </>
   );
 };
 

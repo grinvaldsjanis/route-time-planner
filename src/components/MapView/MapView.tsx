@@ -280,7 +280,7 @@ const MapView: React.FC = () => {
   }
 
   return (
-    <div className="map-view">
+    <>
       <MapContainer
         center={state.mapCenter}
         zoom={state.mapZoom}
@@ -312,7 +312,7 @@ const MapView: React.FC = () => {
           handleClose={() => setIsModalOpen(false)}
         />
       )}
-    </div>
+    </>
   );
 };
 
