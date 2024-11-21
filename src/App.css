@@ -39,7 +39,8 @@
   display: flex;
   flex-grow: 1;
   height: calc(100% - 70px);
-  overflow-y: auto;
+  overflow: hidden;
+  position: relative;
 }
 
 .App-sidebar {
@@ -101,6 +102,9 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  position: absolute;
+  top: 30%;
+  z-index: 10; 
   margin-top: 20px;
 }
 

@@ -14,6 +14,7 @@ import ProgressIndicator from "./components/ProgressIndicator/ProgressIndicator"
 import { processGPXData } from "./utils/processGPX";
 import TrackGraph from "./components/TrackGraph/TrackGraph";
 import { FaPlay } from "react-icons/fa";
+import AnimatedBackground from "./components/AnimatedBackground/AnimatedBackground";
 
 function App() {
   const { state, dispatch } = useGlobalState();
@@ -73,6 +74,7 @@ function App() {
         </div>
       </header>
       <div className="App-main-container">
+        {!state.gpxData && !state.inProgress && <AnimatedBackground />}
         {!state.gpxData && (
           <div className="try-stored-gpx">
             <button onClick={handleLoadStoredGPX} className="try-button">
