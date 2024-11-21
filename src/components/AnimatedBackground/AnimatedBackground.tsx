@@ -20,11 +20,11 @@ const AnimatedBackground: React.FC = () => {
     // Parameters for responsiveness
     const getSettings = () => {
       if (window.matchMedia("(max-width: 480px)").matches) {
-        return { pointCount: 10, lineWidth: 1, pointRadius: 2 };
+        return { pointCount: 20, lineWidth: 1, pointRadius: 2 };
       } else if (window.matchMedia("(max-width: 768px)").matches) {
-        return { pointCount: 30, lineWidth: 2, pointRadius: 4 };
+        return { pointCount: 25, lineWidth: 2, pointRadius: 4 };
       } else {
-        return { pointCount: 50, lineWidth: 3, pointRadius: 6 };
+        return { pointCount: 35, lineWidth: 3, pointRadius: 6 };
       }
     };
 
@@ -32,30 +32,44 @@ const AnimatedBackground: React.FC = () => {
 
     let points: { x: number; y: number; dx: number; dy: number }[] = [];
 
+    // Generate random angle within valid ranges
+    const generateValidAngle = (): number => {
+      const ranges = [
+        [30, 60],
+        [120, 150],
+        [210, 240],
+        [300, 330],
+      ];
+      const range = ranges[Math.floor(Math.random() * ranges.length)];
+      return (Math.random() * (range[1] - range[0]) + range[0]) * (Math.PI / 180); // Convert to radians
+    };
+
     // Initialize points
     const initializePoints = () => {
       points = [];
       for (let i = 0; i < pointCount; i++) {
+        const angle = generateValidAngle();
+        const speed = Math.random() * (maxSpeed - minSpeed) + minSpeed;
         points.push({
           x: Math.random() * (width - 2 * pointRadius) + pointRadius,
           y: Math.random() * (height - 2 * pointRadius) + pointRadius,
-          dx: (Math.random() - 0.5) * maxSpeed,
-          dy: (Math.random() - 0.5) * maxSpeed,
+          dx: Math.cos(angle) * speed,
+          dy: Math.sin(angle) * speed,
         });
       }
     };
 
     // Calculate alpha based on line length
     const calculateAlpha = (length: number, maxLength: number): number => {
-      return 0.7 - length / maxLength; // Shorter lines = higher alpha
+      return Math.max(0, 0.7 - length / maxLength);
     };
 
     // Calculate speed factor based on distance from center
     const calculateSpeedFactor = (x: number, y: number): number => {
       const centerX = width / 2;
       const centerY = height / 2;
-      const maxDistance = Math.sqrt(centerX ** 2 + centerY ** 2); // Distance from center to corner
-      const distance = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2); // Distance from point to center
+      const maxDistance = Math.sqrt(centerX ** 2 + centerY ** 2);
+      const distance = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2);
 
       // Map distance to speed (closer to center = faster)
       return minSpeed + (1 - distance / maxDistance) * (maxSpeed - minSpeed);
@@ -101,8 +115,22 @@ const AnimatedBackground: React.FC = () => {
         p.y += p.dy;
 
         // Bounce on edges considering radius
-        if (p.x - pointRadius < 0 || p.x + pointRadius > width) p.dx *= -1;
-        if (p.y - pointRadius < 0 || p.y + pointRadius > height) p.dy *= -1;
+        if (p.x - pointRadius < 0) {
+          p.x = pointRadius;
+          p.dx *= -1;
+        }
+        if (p.x + pointRadius > width) {
+          p.x = width - pointRadius;
+          p.dx *= -1;
+        }
+        if (p.y - pointRadius < 0) {
+          p.y = pointRadius;
+          p.dy *= -1;
+        }
+        if (p.y + pointRadius > height) {
+          p.y = height - pointRadius;
+          p.dy *= -1;
+        }
       });
     };
 
