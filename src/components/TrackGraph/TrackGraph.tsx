@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { FaChartLine, FaChevronDown } from "react-icons/fa"; // Import icons
+import { FaChartLine, FaChevronDown } from "react-icons/fa";
 import "./TrackGraph.css";
 import { useGlobalState } from "../../context/GlobalContext";
 import getColorForValue from "../../utils/getColorForValue";
@@ -14,7 +14,8 @@ const TrackGraph: React.FC = () => {
   const [hoverX, setHoverX] = useState<number | null>(null);
   const [hoverValue, setHoverValue] = useState<number | null>(null);
   const [tooltipY, setTooltipY] = useState(0);
-  const { gpxData, mapMode, currentTrackIndex, valueRanges } = state;
+  const { gpxData, mapMode, currentTrackIndex, valueRanges, hoveredDistance } =
+    state;
   const graphHeight: number = 70;
 
   useEffect(() => {
@@ -90,15 +91,43 @@ const TrackGraph: React.FC = () => {
     return sampledData;
   }, [gpxData, currentTrackIndex, mapMode, valueRanges, width]);
 
-  if (!graphData || graphData.length === 0) return null;
+  useEffect(() => {
+    if (!graphData || hoveredDistance === null) return;
 
-  const { minValue, maxValue } = valueRanges[mapMode];
+    // Ensure hoveredDistance is clamped within the graph's range
+    const clampedDistance = Math.min(
+      Math.max(hoveredDistance, 0),
+      graphData[graphData.length - 1].distance
+    );
+
+    const closestPoint = graphData.reduce((prev, curr) => {
+      return Math.abs(curr.distance - clampedDistance) <
+        Math.abs(prev.distance - clampedDistance)
+        ? curr
+        : prev;
+    });
+
+    const x =
+      (closestPoint.distance / graphData[graphData.length - 1].distance) *
+      width;
+    const y =
+      graphHeight -
+      ((closestPoint.value - valueRanges[mapMode].minValue) /
+        (valueRanges[mapMode].maxValue - valueRanges[mapMode].minValue)) *
+        graphHeight;
+
+    setHoverX(x);
+    setHoverValue(closestPoint.value);
+    setTooltipY(Math.max(20, Math.min(y, graphHeight - 5)));
+  }, [hoveredDistance, graphData, width, graphHeight, valueRanges, mapMode]);
 
   const handleMouseMove = (event: React.MouseEvent<SVGElement>) => {
+    if (!graphData) return;
+
     const rect = containerRef.current?.getBoundingClientRect();
     if (!rect) return;
 
-    const x = event.clientX - rect.left; // Mouse X position relative to the graph
+    const x = event.clientX - rect.left;
     const relativeDistance =
       (x / width) * graphData[graphData.length - 1].distance;
 
@@ -112,12 +141,12 @@ const TrackGraph: React.FC = () => {
     setHoverX(x);
     setHoverValue(closestPoint.value);
 
-    // Calculate tooltipY and ensure it's within bounds
     let calculatedY =
       graphHeight -
-      ((closestPoint.value - minValue) / (maxValue - minValue)) * graphHeight;
+      ((closestPoint.value - valueRanges[mapMode].minValue) /
+        (valueRanges[mapMode].maxValue - valueRanges[mapMode].minValue)) *
+        graphHeight;
 
-    // Prevent tooltip from going out of bounds
     calculatedY = Math.max(20, Math.min(calculatedY, graphHeight - 5));
 
     setTooltipY(calculatedY);
@@ -149,37 +178,42 @@ const TrackGraph: React.FC = () => {
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
           >
-            {graphData.map((point, idx) => {
-              if (idx === 0) return null;
-              const prevPoint = graphData[idx - 1];
-              const x1 =
-                (prevPoint.distance /
-                  graphData[graphData.length - 1].distance) *
-                width;
-              const y1 =
-                graphHeight -
-                ((prevPoint.value - minValue) / (maxValue - minValue)) *
-                  graphHeight;
-              const x2 =
-                (point.distance / graphData[graphData.length - 1].distance) *
-                width;
-              const y2 =
-                graphHeight -
-                ((point.value - minValue) / (maxValue - minValue)) *
-                  graphHeight;
+            {graphData &&
+              graphData.map((point, idx) => {
+                if (idx === 0) return null;
+                const prevPoint = graphData[idx - 1];
+                const x1 =
+                  (prevPoint.distance /
+                    graphData[graphData.length - 1].distance) *
+                  width;
+                const y1 =
+                  graphHeight -
+                  ((prevPoint.value - valueRanges[mapMode].minValue) /
+                    (valueRanges[mapMode].maxValue -
+                      valueRanges[mapMode].minValue)) *
+                    graphHeight;
+                const x2 =
+                  (point.distance / graphData[graphData.length - 1].distance) *
+                  width;
+                const y2 =
+                  graphHeight -
+                  ((point.value - valueRanges[mapMode].minValue) /
+                    (valueRanges[mapMode].maxValue -
+                      valueRanges[mapMode].minValue)) *
+                    graphHeight;
 
-              return (
-                <line
-                  key={`graph-line-${idx}`}
-                  x1={x1}
-                  y1={y1}
-                  x2={x2}
-                  y2={y2}
-                  stroke={point.color}
-                  strokeWidth="4"
-                />
-              );
-            })}
+                return (
+                  <line
+                    key={`graph-line-${idx}`}
+                    x1={x1}
+                    y1={y1}
+                    x2={x2}
+                    y2={y2}
+                    stroke={point.color}
+                    strokeWidth="4"
+                  />
+                );
+              })}
 
             {hoverX !== null && (
               <>

@@ -43,6 +43,7 @@ export interface TrackPoint {
   surface?: string | null;
   roadCategory?: string | null;
   speedLimit?: number | null;
+  distanceFromStart?: number;
 }
 
 export interface Track {

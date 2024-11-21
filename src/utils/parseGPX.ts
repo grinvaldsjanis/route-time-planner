@@ -76,6 +76,7 @@ export default async function parseGPX(
 
     const points: TrackPoint[] = [];
     const trackParts: TrackPart[] = [];
+    let cumulativeDistance = 0; // Initialize cumulative distance
 
     for (let j = 0; j < trksegs.length; j++) {
       const seg = trksegs[j];
@@ -84,6 +85,17 @@ export default async function parseGPX(
       for (let k = 0; k < trkpts.length; k++) {
         const pt = parseTrackPoint(trkpts[k]);
         if (pt) {
+          if (points.length > 0) {
+            const prevPt = points[points.length - 1];
+            const segmentDistance = haversineDistance(
+              parseFloat(prevPt.lat),
+              parseFloat(prevPt.lon),
+              parseFloat(pt.lat),
+              parseFloat(pt.lon)
+            );
+            cumulativeDistance += segmentDistance;
+          }
+          pt.distanceFromStart = cumulativeDistance; // Assign cumulative distance
           points.push(pt);
         }
       }
@@ -283,46 +295,6 @@ export default async function parseGPX(
       delete waypoint.closestTrackPointIndex;
     });
   });
-
-  dispatch(setInProgress(true, "Fetching geolocated images..."));
-
-  // const bulkCoordinates = referenceWaypoints
-  //   .filter((ref) => !ref.imageUrl)
-  //   .map((ref, index) => ({
-  //     lat: ref.lat.toString(),
-  //     lon: ref.lon.toString(),
-  //     index, // Include the index of the waypoint
-  //   }));
-
-  // const imageResults = await fetchCommonsImages(
-  //   bulkCoordinates,
-  //   800,
-  //   5,
-  //   dispatch
-  // );
-
-  // referenceWaypoints.forEach((refWaypoint) => {
-  //   if (!refWaypoint.imageUrl) {
-  //     const coordKey = `${refWaypoint.lat},${refWaypoint.lon}`;
-  //     refWaypoint.imageUrl = imageResults[coordKey] || undefined;
-
-  //     if (refWaypoint.imageUrl) {
-  //       dispatch(
-  //         setInProgress(
-  //           true,
-  //           `Image found for waypoint at:\n(${refWaypoint.lat}, ${refWaypoint.lon}).`
-  //         )
-  //       );
-  //     } else {
-  //       dispatch(
-  //         setInProgress(
-  //           true,
-  //           `No image found for waypoint at:\n(${refWaypoint.lat}, ${refWaypoint.lon}).`
-  //         )
-  //       );
-  //     }
-  //   }
-  // });
 
   dispatch(setInProgress(false, ""));
 

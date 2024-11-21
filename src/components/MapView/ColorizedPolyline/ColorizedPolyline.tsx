@@ -2,10 +2,10 @@ import { useState, useEffect, useMemo } from "react";
 import { Polyline, LayerGroup, Marker, Tooltip, useMap } from "react-leaflet";
 import { DivIcon, LatLngTuple } from "leaflet";
 import getColorForValue from "../../../utils/getColorForValue";
-import haversineDistance from "../../../utils/haversineDistance";
 import "./ColorizedPolyline.css";
 import { useGlobalState } from "../../../context/GlobalContext";
 import { calculateBearing } from "../../../utils/calculateBearing";
+import { setHoveredDistance } from "../../../context/actions";
 
 const createDistanceMarkerIcon = () => {
   return new DivIcon({
@@ -37,12 +37,13 @@ const getMarkerSpacingByZoom = (zoom: number): number => {
 };
 
 const ColorizedPolyline: React.FC = () => {
-  const { state } = useGlobalState();
+  const { state, dispatch } = useGlobalState();
   const map = useMap();
   const [zoomLevel, setZoomLevel] = useState(map.getZoom());
   const [hoverMarkerPos, setHoverMarkerPos] = useState<LatLngTuple | null>(
     null
   );
+  const [isHoveringOverPolyline, setIsHoveringOverPolyline] = useState(false); // New state
 
   const {
     gpxData,
@@ -67,7 +68,7 @@ const ColorizedPolyline: React.FC = () => {
   }, [map]);
 
   useEffect(() => {
-    if (hoveredDistance === null || !gpxData || currentTrackIndex === null) {
+    if (!gpxData || currentTrackIndex === null || hoveredDistance === null) {
       setHoverMarkerPos(null);
       return;
     }
@@ -75,32 +76,17 @@ const ColorizedPolyline: React.FC = () => {
     const currentTrack = gpxData.tracks[currentTrackIndex];
     if (!currentTrack) return;
 
-    let accumulatedDistance = 0;
+    const closestPoint = currentTrack.points.find(
+      (point) => (point.distanceFromStart ?? Infinity) >= hoveredDistance
+    );
 
-    for (let i = 1; i < currentTrack.points.length; i++) {
-      const prevPoint = currentTrack.points[i - 1];
-      const point = currentTrack.points[i];
-
-      const segmentDistance = haversineDistance(
-        parseFloat(prevPoint.lat),
-        parseFloat(prevPoint.lon),
-        parseFloat(point.lat),
-        parseFloat(point.lon)
-      );
-
-      if (accumulatedDistance + segmentDistance >= hoveredDistance) {
-        const ratio = (hoveredDistance - accumulatedDistance) / segmentDistance;
-        const lat =
-          parseFloat(prevPoint.lat) +
-          ratio * (parseFloat(point.lat) - parseFloat(prevPoint.lat));
-        const lon =
-          parseFloat(prevPoint.lon) +
-          ratio * (parseFloat(point.lon) - parseFloat(prevPoint.lon));
-        setHoverMarkerPos([lat, lon]);
-        break;
-      }
-
-      accumulatedDistance += segmentDistance;
+    if (closestPoint) {
+      setHoverMarkerPos([
+        parseFloat(closestPoint.lat),
+        parseFloat(closestPoint.lon),
+      ]);
+    } else {
+      setHoverMarkerPos(null);
     }
   }, [hoveredDistance, gpxData, currentTrackIndex]);
 
@@ -140,23 +126,19 @@ const ColorizedPolyline: React.FC = () => {
       ];
 
       const value = ((prevPoint[mapMode] ?? 0) + (point[mapMode] ?? 0)) / 2;
-      let color =
+      const color =
         minValue === maxValue
           ? "blue"
           : getColorForValue(value, minValue, maxValue, mapMode === "curve");
-      let opacity = 1;
-
-      if (
+      const opacity =
         highlightMode &&
         (value < highlightRange[0] || value > highlightRange[1])
-      ) {
-        opacity = 0.05;
-      }
+          ? 0.05
+          : 1;
 
       const segmentDistanceKm =
-        haversineDistance(startPos[0], startPos[1], endPos[0], endPos[1]) /
-        1000;
-      distanceSinceLastMarker += segmentDistanceKm;
+        point.distanceFromStart! - prevPoint.distanceFromStart!;
+      distanceSinceLastMarker += segmentDistanceKm / 1000;
 
       segmentsWithMarkers.push(
         <Polyline
@@ -165,6 +147,16 @@ const ColorizedPolyline: React.FC = () => {
           color={color}
           weight={6}
           pathOptions={{ opacity }}
+          eventHandlers={{
+            mouseover: () => {
+              setIsHoveringOverPolyline(true); // Set flag to true
+              dispatch(setHoveredDistance(point.distanceFromStart!));
+            },
+            mouseout: () => {
+              setIsHoveringOverPolyline(false); // Set flag to false
+              dispatch(setHoveredDistance(null));
+            },
+          }}
         >
           <Tooltip
             key={`tooltip-${pointIdx}`}
@@ -202,6 +194,7 @@ const ColorizedPolyline: React.FC = () => {
     zoomLevel,
     highlightMode,
     highlightRange,
+    dispatch,
   ]);
 
   if (!coloredSegmentsWithMarkers) return null;
@@ -219,24 +212,23 @@ const ColorizedPolyline: React.FC = () => {
     <LayerGroup>
       {darkPolyline}
       {coloredSegmentsWithMarkers}
-      {hoverMarkerPos && (
+      {!isHoveringOverPolyline && hoverMarkerPos && ( // Hide tooltip when hovering over polyline
         <Marker
           position={hoverMarkerPos}
           icon={createDistanceMarkerIcon()}
-          zIndexOffset={1000} // Ensures marker is above map layers
+          zIndexOffset={1000}
         >
-          {/* Tooltip must be a direct child of Marker */}
           <Tooltip
-            direction="top" // Position tooltip above the marker
-            offset={[0, -10]} // Adjust vertical offset to avoid overlap
-            opacity={1} // Ensure full opacity
+            direction="top"
+            offset={[0, -10]}
+            opacity={1}
             permanent
             sticky
             className="tooltip-transition"
           >
             <div>
               {hoveredDistance
-                ? `${(hoveredDistance / 1000).toFixed(0)} km`
+                ? `${(hoveredDistance / 1000).toFixed(2)} km`
                 : "N/A"}
             </div>
           </Tooltip>
