@@ -1,7 +1,6 @@
 .track-graph-container {
   width: 100%;
   max-width: 100%;
-  overflow-x: hidden; /* Prevent horizontal scrolling */
   overflow-y: visible;
 }
 

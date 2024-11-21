@@ -194,6 +194,26 @@ const MapView: React.FC = () => {
       : null;
   }, [currentTrackIndex, gpxData]);
 
+  const handleZoomChange = useCallback(() => {
+    if (mapRef.current) {
+      const currentZoom = mapRef.current.getZoom();
+      console.log("Zoom change detected:", currentZoom);
+      dispatch(setMapZoom(currentZoom)); // Always update the zoom level
+    }
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (mapRef.current) {
+      const mapInstance = mapRef.current;
+
+      mapInstance.on("zoomend", handleZoomChange);
+
+      return () => {
+        mapInstance.off("zoomend", handleZoomChange);
+      };
+    }
+  }, [handleZoomChange]);
+
   const renderTracks = useMemo(() => {
     if (!gpxData || !gpxData.tracks || gpxData.tracks.length === 0) return null;
 
@@ -228,9 +248,15 @@ const MapView: React.FC = () => {
 
     useEffect(() => {
       if (!mapRef.current) {
-        console.log("Initializing map reference...");
+        // console.log("Initializing map reference...");
         mapRef.current = map;
       }
+
+      return () => {
+        if (mapRef.current === map) {
+          mapRef.current = null;
+        }
+      };
     }, [map]);
 
     return null;
@@ -246,14 +272,16 @@ const MapView: React.FC = () => {
         );
         if (!refWaypoint) return null;
 
-        // Determine the icon type based on zoom level
+        console.log("Rendering markers with zoom level:", mapZoom); // Debugging
+
+        // Determine the icon type dynamically based on zoom level
         let iconType = refWaypoint.type || "via";
         if (idx === 0) {
           iconType = "start";
         } else if (idx === currentTrack.waypoints.length - 1) {
           iconType = "destination";
         } else if (mapZoom < 11) {
-          iconType = "small";
+          iconType = "small"; // Use "small" icon for zoom < 15
         }
 
         return (
@@ -264,11 +292,15 @@ const MapView: React.FC = () => {
               parseFloat(refWaypoint.lon),
             ]}
             icon={createMarkerIcon(iconType, idx + 1)}
-            eventHandlers={{ click: () => handleMarkerClick(idx) }}
+            eventHandlers={{
+              click: () => handleMarkerClick(idx),
+            }}
           >
-            <Tooltip sticky className="waypoint-tooltip">
-              {refWaypoint.name || `Waypoint ${idx + 1}`}
-            </Tooltip>
+            {iconType !== "small" && (
+              <Tooltip sticky className="waypoint-tooltip">
+                {refWaypoint.name || `Waypoint ${idx + 1}`}
+              </Tooltip>
+            )}
           </Marker>
         );
       }

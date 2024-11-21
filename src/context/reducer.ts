@@ -667,9 +667,6 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
     }
 
     case "SET_MAP_ZOOM": {
-      if (state.isProgrammaticMove) {
-        return state;
-      }
       setLocalStorage("mapZoom", action.payload);
       return {
         ...state,
