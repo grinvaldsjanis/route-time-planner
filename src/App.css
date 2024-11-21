@@ -67,8 +67,10 @@
   background-color: #eaeaea;
   overflow: hidden;
 }
+
 .track-graph-wrapper {
-  width: 100%;
+  overflow: hidden;
+  max-width: 100%; 
   position: relative;
   margin: 0;
   z-index: 2000;
