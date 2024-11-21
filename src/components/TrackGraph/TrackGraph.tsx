@@ -231,7 +231,7 @@ const TrackGraph: React.FC = () => {
                     y={tooltipY - 10}
                     fill="black"
                     fontSize="12"
-                    textAnchor="middle"
+                    className={"tooltip"}
                   >
                     {hoverValue.toFixed(2)}
                   </text>

@@ -6,7 +6,7 @@
   position: fixed;
   top: 0;
   left: 0;
-  overflow: hidden; /* Prevent content overflow */
+  overflow: hidden;
 }
 
 .App-header {
@@ -38,14 +38,14 @@
 .App-main-container {
   display: flex;
   flex-grow: 1;
-  height: calc(100% - 70px); /* Subtract header height */
-  overflow-y: auto; /* Enable scrolling if content exceeds viewport */
+  height: calc(100% - 70px);
+  overflow-y: auto;
 }
 
 .App-sidebar {
   width: 450px;
-  flex-shrink: 0; /* Prevent shrinking */
-  overflow: hidden; /* Disable unwanted scrolling */
+  flex-shrink: 0;
+  overflow: hidden;
   background-color: #f4f4f4;
   border-right: 1px solid #ccc;
 }
@@ -57,7 +57,7 @@
   position: relative;
   max-height: 100%;
   min-height: 50px;
-  overflow-y: auto; /* Enable scrolling if needed */
+  overflow-y: auto;
 }
 
 .map-view {
@@ -119,10 +119,9 @@
   background-color: #0056b3;
 }
 
-/* Media Queries for Responsive Design */
 @media (max-width: 1024px) {
   .App-sidebar {
-    width: 450px; /* Reduce sidebar width */
+    width: 450px;
   }
 
   .App-graph-container {

@@ -7,7 +7,6 @@ const calculateRelativeTimes = (
   let currentTimeInSeconds = 0; // Tracks the total elapsed time
 
   return waypoints.map((waypoint, waypointIndex) => {
-    // For waypoints with index > 0, calculate the travel time from the previous waypoint
     if (waypointIndex > 0) {
       const correspondingTrackPart = trackParts[waypointIndex - 1]; // Get the track part for the previous waypoint
       currentTimeInSeconds += Math.round(
