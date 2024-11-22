@@ -29,9 +29,10 @@ export interface GlobalState {
   totalJourneyTime: string;
   finalArrivalTime: string;
   focusedWaypointIndex: number | null;
+  focusCoordinate: LatLngTuple | null;
   startTime: string;
   isProgrammaticMove: boolean;
-  programmaticAction: "fitBounds" | "focusWaypoint" | null;
+  programmaticAction: "fitBounds" | "focusWaypoint" | "focusCoordinate" | null;
   inProgress: boolean;
   progressText: string;
   highlightRange: [number, number];
@@ -63,6 +64,7 @@ export const initialState: GlobalState = {
   totalTravelTime: 0,
   totalJourneyTime: "0:00",
   finalArrivalTime: "0:00",
+  focusCoordinate: null,
   inProgress: false,
   progressText: "",
   highlightRange: [0, 100],
@@ -752,25 +754,41 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
     }
 
     case "SET_PROGRAMMATIC_ACTION": {
-      if (action.payload === "fitBounds" && state.mapBounds) {
-        const center = calculateCenterFromBounds(state.mapBounds); // Utility to calculate center
-        setLocalStorage("mapCenter", center);
-        setLocalStorage("mapZoom", state.mapZoom); // Assuming zoom is adjusted programmatically
-      }
-      if (
+      if (action.payload === "focusCoordinate" && action.focusCoordinate) {
+        return {
+          ...state,
+          programmaticAction: action.payload,
+          focusCoordinate: action.focusCoordinate,
+        };
+      } else if (
         action.payload === "focusWaypoint" &&
         state.focusedWaypointIndex !== null
       ) {
         const waypoint =
           state.gpxData?.referenceWaypoints[state.focusedWaypointIndex];
         if (waypoint) {
-          const center = [parseFloat(waypoint.lat), parseFloat(waypoint.lon)];
-          setLocalStorage("mapCenter", center);
-          setLocalStorage("mapZoom", 15); // Assuming a specific zoom level
+          const center: LatLngTuple = [
+            parseFloat(waypoint.lat),
+            parseFloat(waypoint.lon),
+          ];
+          return {
+            ...state,
+            programmaticAction: action.payload,
+            focusCoordinate: center,
+          };
         }
+      } else if (action.payload === "fitBounds") {
+        return {
+          ...state,
+          programmaticAction: action.payload,
+          focusCoordinate: null, // Ensure focusCoordinate is reset
+        };
       }
-      // console.log("Handling programmatic action:", action.payload);
-      return { ...state, programmaticAction: action.payload };
+      return {
+        ...state,
+        programmaticAction: action.payload,
+        focusCoordinate: null,
+      };
     }
 
     default:

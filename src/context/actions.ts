@@ -180,7 +180,8 @@ export interface SetValueRangesAction {
 
 export interface SetProgrammaticAction {
   type: typeof SET_PROGRAMMATIC_ACTION;
-  payload: "fitBounds" | "focusWaypoint" | null;
+  payload: "fitBounds" | "focusWaypoint" | "focusCoordinate" | null;
+  focusCoordinate?: LatLngTuple; // Ensure this is optional
 }
 
 export type Action =
@@ -209,6 +210,14 @@ export type Action =
   | SetLayerSetAction
   | SetHoveredDistanceAction
   | SetProgrammaticAction;
+
+export const focusOnCoordinate = (
+  coordinate: LatLngTuple
+): SetProgrammaticAction => ({
+  type: SET_PROGRAMMATIC_ACTION,
+  payload: "focusCoordinate",
+  focusCoordinate: coordinate, // Ensure this is provided
+});
 
 export const setWaypointName = (
   index: number,
@@ -239,7 +248,7 @@ export const setWaypointImage = (
 });
 
 export const setProgrammaticAction = (
-  programmaticAction: "fitBounds" | "focusWaypoint" | null
+  programmaticAction: "fitBounds" | "focusWaypoint" | "focusCoordinate" | null
 ): SetProgrammaticAction => ({
   type: SET_PROGRAMMATIC_ACTION,
   payload: programmaticAction,

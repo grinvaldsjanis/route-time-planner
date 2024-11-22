@@ -4,7 +4,13 @@ import "./TrackGraph.css";
 import { useGlobalState } from "../../context/GlobalContext";
 import getColorForValue from "../../utils/getColorForValue";
 import haversineDistance from "../../utils/haversineDistance";
-import { setHoveredDistance } from "../../context/actions";
+import {
+  setHoveredDistance,
+  setMapCenter,
+  setMapZoom,
+  focusOnCoordinate,
+  setIsProgrammaticMove, // Import the action
+} from "../../context/actions";
 
 const TrackGraph: React.FC = () => {
   const { state, dispatch } = useGlobalState();
@@ -36,8 +42,13 @@ const TrackGraph: React.FC = () => {
     if (!currentTrack || currentTrack.points.length < 2) return null;
 
     const { minValue, maxValue } = valueRanges[mapMode];
-    const sampledData: { distance: number; value: number; color: string }[] =
-      [];
+    const sampledData: {
+      distance: number;
+      value: number;
+      lat: number;
+      lon: number;
+      color: string;
+    }[] = [];
 
     let totalDistance = 0;
     currentTrack.points.slice(1).forEach((point, idx) => {
@@ -73,6 +84,13 @@ const TrackGraph: React.FC = () => {
         const interpolatedValue = ((1 - ratio) * (prevPoint[mapMode] ?? 0) +
           ratio * (point[mapMode] ?? 0)) as number;
 
+        const interpolatedLat =
+          (1 - ratio) * parseFloat(prevPoint.lat) +
+          ratio * parseFloat(point.lat);
+        const interpolatedLon =
+          (1 - ratio) * parseFloat(prevPoint.lon) +
+          ratio * parseFloat(point.lon);
+
         const color =
           minValue === maxValue
             ? "blue"
@@ -81,6 +99,8 @@ const TrackGraph: React.FC = () => {
         sampledData.push({
           distance: currentSampleDistance,
           value: interpolatedValue,
+          lat: interpolatedLat,
+          lon: interpolatedLon,
           color,
         });
 
@@ -160,6 +180,31 @@ const TrackGraph: React.FC = () => {
     dispatch(setHoveredDistance(null));
   };
 
+  const handleGraphClick = (event: React.MouseEvent<SVGElement>) => {
+    if (!graphData) return;
+  
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+  
+    const x = event.clientX - rect.left;
+    const relativeDistance =
+      (x / width) * graphData[graphData.length - 1].distance;
+  
+    const closestPoint = graphData.reduce((prev, curr) => {
+      return Math.abs(curr.distance - relativeDistance) <
+        Math.abs(prev.distance - relativeDistance)
+        ? curr
+        : prev;
+    });
+  
+    // Dispatch actions to center the map and set the zoom level
+    dispatch(setIsProgrammaticMove(true));
+    dispatch(setMapZoom(15));
+    dispatch(focusOnCoordinate([closestPoint.lat, closestPoint.lon])); // Use closestPoint
+    console.log("Click made on track graph and state dispatched");
+  };
+  
+
   const toggleCollapse = () => {
     setIsCollapsed(!isCollapsed);
   };
@@ -177,6 +222,7 @@ const TrackGraph: React.FC = () => {
             height={graphHeight}
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
+            onClick={handleGraphClick}
           >
             {graphData &&
               graphData.map((point, idx) => {

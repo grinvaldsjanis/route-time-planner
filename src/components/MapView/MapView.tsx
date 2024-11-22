@@ -159,6 +159,14 @@ const MapView: React.FC = () => {
     ) {
       console.log("Triggering centerOnWaypoint...");
       centerOnWaypoint();
+    } else if (
+      programmaticAction === "focusCoordinate" &&
+      state.focusCoordinate
+    ) {
+      console.log("Triggering focusCoordinate...");
+      mapRef.current?.setView(state.focusCoordinate, mapZoom, {
+        animate: true,
+      });
     } else if (programmaticAction) {
       console.warn("Unhandled programmatic action:", programmaticAction);
     }
@@ -173,6 +181,8 @@ const MapView: React.FC = () => {
     centerOnWaypoint,
     dispatch,
     focusedWaypointIndex,
+    mapZoom,
+    state.focusCoordinate,
   ]);
 
   const handleMarkerClick = (index: number) => {
@@ -214,6 +224,46 @@ const MapView: React.FC = () => {
     }
   }, [handleZoomChange]);
 
+  useEffect(() => {
+    if (mapRef.current) {
+      const map = mapRef.current;
+
+      const {
+        mapCenter,
+        mapZoom,
+        programmaticAction,
+        focusCoordinate,
+        isProgrammaticMove,
+        mapBounds,
+      } = state;
+
+      if (isProgrammaticMove) {
+        if (
+          programmaticAction === "focusWaypoint" ||
+          programmaticAction === "focusCoordinate"
+        ) {
+          map.setView(focusCoordinate || mapCenter, mapZoom, { animate: true });
+        } else if (programmaticAction === "fitBounds" && mapBounds) {
+          const bounds = L.latLngBounds(mapBounds);
+          if (bounds.isValid()) {
+            map.fitBounds(bounds, { animate: true, padding: [50, 50] });
+          }
+        }
+
+        // Reset isProgrammaticMove to prevent looping
+        dispatch({ type: "SET_IS_PROGRAMMATIC_MOVE", payload: false });
+      }
+    }
+  }, [
+    state.mapCenter,
+    state.mapZoom,
+    state.mapBounds,
+    state.focusCoordinate,
+    state.programmaticAction,
+    state.isProgrammaticMove,
+    dispatch,
+  ]);
+
   const renderTracks = useMemo(() => {
     if (!gpxData || !gpxData.tracks || gpxData.tracks.length === 0) return null;
 
@@ -242,7 +292,6 @@ const MapView: React.FC = () => {
     });
   }, [gpxData, currentTrackIndex]);
 
-  //  sfsffs
   const MapRefSetter = () => {
     const map = useMap();
 
@@ -272,8 +321,6 @@ const MapView: React.FC = () => {
         );
         if (!refWaypoint) return null;
 
-        console.log("Rendering markers with zoom level:", mapZoom); // Debugging
-
         // Determine the icon type dynamically based on zoom level
         let iconType = refWaypoint.type || "via";
         if (idx === 0) {
@@ -281,7 +328,7 @@ const MapView: React.FC = () => {
         } else if (idx === currentTrack.waypoints.length - 1) {
           iconType = "destination";
         } else if (mapZoom < 10) {
-          iconType = "small"; // Use "small" icon for zoom < 15
+          iconType = "small"; // Use "small" icon for zoom < 10
         }
 
         return (
