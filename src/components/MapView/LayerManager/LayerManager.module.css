@@ -1,6 +1,6 @@
 .layerControl {
   position: absolute;
-  bottom: 10px;
+  top: 115px;
   left: 10px;
   z-index: 400;
   color: black;
@@ -11,19 +11,20 @@
   border: 1px solid #ccc;
   border-radius: 2px;
   color: black;
-  width: 40px;
-  height: 40px;
+  width: 33px;
+  height: 33px;
+  padding: 0;
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: pointer;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   font-size: 20px;
 }
 
 .menu {
   position: absolute;
-  bottom: 0;
+  top: 0;
   left: 0;
   background-color: rgba(255, 255, 255, 0.9);
   border: 1px solid #ccc;

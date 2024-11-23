@@ -5,7 +5,6 @@ import MapView from "./components/MapView/MapView";
 import WaypointList from "./components/WaypointList/WaypointList";
 import ScaleStrip from "./components/ScaleStrip/ScaleStrip";
 import { useGlobalState } from "./context/GlobalContext";
-import GPXDownloadButton from "./components/GPXDownloadButton/GPXDownloadButton";
 import { clearPreviousData, setInProgress } from "./context/actions";
 import Modal from "./components/Modal/Modal";
 import TravelModeSelector from "./components/TravelModeSelector/TravelModesSelector";
@@ -15,14 +14,12 @@ import { processGPXData } from "./utils/processGPX";
 import TrackGraph from "./components/TrackGraph/TrackGraph";
 import { FaPlay } from "react-icons/fa";
 import AnimatedBackground from "./components/AnimatedBackground/AnimatedBackground";
+import Menu from "./components/Menu/Menu";
+import Downloader from "./components/GPXDownloadButton/Downloader";
 
 function App() {
   const { state, dispatch } = useGlobalState();
   const [isModalOpen, setModalOpen] = useState(false);
-
-  const handleClearData = () => {
-    dispatch(clearPreviousData());
-  };
 
   const toggleModal = () => {
     setModalOpen(!isModalOpen);
@@ -65,12 +62,13 @@ function App() {
         <div className="App-logo">
           <h4>GPX Time Planner</h4>
         </div>
-        <div className="file-buttons">
-          <FileUploader />
-          <GPXDownloadButton />
-          <button onClick={handleClearData} className="clear-button">
-            Clear Data
-          </button>
+        <div>
+          <Menu />
+          <div>
+        {/* Hidden inputs for actions */}
+        <FileUploader />
+        {state.gpxData && <Downloader />}
+      </div>
         </div>
       </header>
       <div className="App-main-container">
@@ -78,7 +76,8 @@ function App() {
         {!state.gpxData && (
           <div className="try-stored-gpx">
             <button onClick={handleLoadStoredGPX} className="try-button">
-              <FaPlay />Try Example GPX!
+              <FaPlay />
+              Try Example GPX!
             </button>
           </div>
         )}

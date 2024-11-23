@@ -1,0 +1,16 @@
+button {
+  gap: 10px;
+}
+
+.map-buttons button {
+  transition: background-color 0.5s ease-in-out, color 0.4s ease;
+}
+
+.map-buttons button {
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+.button-active {
+  color: #fff;
+  background-color: #007bff;
+}

@@ -1,0 +1,99 @@
+/* General Menu Styling */
+.menu {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #ffffff;
+  position: relative;
+  padding: 10px 20px;
+}
+
+/* Horizontal menu links for larger screens */
+.menu-links {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.menu-link {
+  color: #007bff;
+  text-decoration: none;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.menu-link:hover {
+  color: #0056b3;
+}
+
+/* Clear button styling */
+.clear-link {
+  color: #dc3545;
+}
+
+.clear-link:hover {
+  color: #a71d2a;
+}
+
+/* Hamburger menu button */
+.hamburger-menu {
+  display: none;
+  background: none;
+  border: none;
+  color: #333;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+/* Dropdown menu for smaller screens */
+.dropdown-menu {
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+  position: absolute;
+  top: 50px;
+  left: auto;
+  right: 20px; /* Aligns to the right edge of the menu */
+  transform: translateX(0); /* Prevents it from overflowing off-screen */
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  padding: 10px;
+  z-index: 3000;
+  width: 300px; /* Ensures the dropdown is at least 300px wide */
+  min-width: 300px; /* Ensures the dropdown won't shrink below 300px */
+}
+
+/* Adjust position if dropdown might overflow off-screen */
+.dropdown-menu.show {
+  display: flex; /* Show when toggled */
+}
+
+/* Dynamically reposition based on screen size */
+@media (max-width: 768px) {
+  .menu-links {
+    display: none; /* Hide horizontal menu */
+  }
+
+  .hamburger-menu {
+    display: block; /* Show hamburger button */
+  }
+
+  .dropdown-menu {
+    right: 10px; /* Adjust to prevent it from overflowing */
+    left: auto; /* Disable left alignment */
+  }
+}
+
+@media (min-width: 769px) {
+  .dropdown-menu {
+    display: none !important; /* Hide dropdown menu */
+  }
+
+  .menu-links {
+    display: flex; /* Horizontal menu visible */
+  }
+}

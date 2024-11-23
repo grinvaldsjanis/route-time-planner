@@ -1,5 +1,7 @@
 import React from "react";
 import "./ModeToggles.css";
+import { FaBezierCurve, FaMountain } from "react-icons/fa";
+import { RxAngle } from "react-icons/rx";
 
 type ModeKeys = "ele" | "curve" | "slope" | "speedLimit";
 
@@ -17,9 +19,9 @@ const ModeToggles: React.FC<ModeTogglesProps> = ({
       className="map-buttons"
       style={{
         position: "absolute",
-        top: 10,
+        bottom: 10,
         gap: 10,
-        right: 10,
+        left: 10,
         zIndex: 1000,
         display: "flex",
         flexDirection: "column",
@@ -29,18 +31,21 @@ const ModeToggles: React.FC<ModeTogglesProps> = ({
         onClick={() => onModeChange("ele")}
         className={currentMode === "ele" ? "button-active" : ""}
       >
+        <FaMountain />
         Elevation
       </button>
       <button
         onClick={() => onModeChange("curve")}
         className={currentMode === "curve" ? "button-active" : ""}
       >
+        <FaBezierCurve />
         Curvature
       </button>
       <button
         onClick={() => onModeChange("slope")}
         className={currentMode === "slope" ? "button-active" : ""}
       >
+        <RxAngle />
         Slope
       </button>
       {/* <button

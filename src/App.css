@@ -10,13 +10,12 @@
 }
 
 .App-header {
-  height: 70px;
+  height: 100px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem;
+  padding: 0 10px;
   gap: 1rem;
-  font-size: calc(10px + 2vmin);
 }
 
 .file-buttons {
@@ -31,7 +30,7 @@
   background-image: url(./logo.png);
   background-repeat: no-repeat, repeat;
   background-position: left center;
-  padding-left: 70px;
+  padding: 5px 70px;
   visibility: visible;
 }
 

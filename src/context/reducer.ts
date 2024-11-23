@@ -11,8 +11,6 @@ import {
 } from "../utils/localStorageUtils";
 import calculateTravelTimes from "../utils/calculateTravelTimes";
 import { calculateValueRange } from "../utils/calculateValueRange";
-import { SET_PROGRAMMATIC_ACTION } from "./actions";
-import calculateCenterFromBounds from "../utils/calculateCenterFromBonds";
 import { imageService } from "../utils/globalImageService";
 
 export interface GlobalState {
