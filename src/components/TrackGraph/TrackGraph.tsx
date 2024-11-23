@@ -21,7 +21,7 @@ const TrackGraph: React.FC = () => {
   const [tooltipY, setTooltipY] = useState(0);
   const { gpxData, mapMode, currentTrackIndex, valueRanges, hoveredDistance } =
     state;
-  const graphHeight: number = 70;
+  const graphHeight: number = 85;
 
   useEffect(() => {
     const updateWidth = () => {
@@ -265,9 +265,9 @@ const TrackGraph: React.FC = () => {
                   <line
                     key={`graph-line-${idx}`}
                     x1={x1}
-                    y1={y1}
+                    y1={y1+5}
                     x2={x2}
-                    y2={y2}
+                    y2={y2+5}
                     stroke={point.color}
                     strokeWidth="4"
                   />
@@ -278,9 +278,9 @@ const TrackGraph: React.FC = () => {
             {waypointsData.map((waypoint, idx) => (
               <polygon
                 key={`waypoint-${idx}`}
-                points={`${waypoint.x - 5},${graphHeight + 5} ${
+                points={`${waypoint.x - 5},${graphHeight + 10} ${
                   waypoint.x + 5
-                },${graphHeight + 5} ${waypoint.x},${graphHeight}`}
+                },${graphHeight + 10} ${waypoint.x},${graphHeight+5}`}
                 fill="orange"
               />
             ))}

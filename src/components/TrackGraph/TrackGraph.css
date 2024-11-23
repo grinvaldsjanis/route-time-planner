@@ -2,6 +2,7 @@
   width: 100%;
   max-width: 100%;
   overflow-y: visible;
+  margin: 0;
 }
 
 .collapse-button {
@@ -29,7 +30,7 @@
   display: block;
   width: 100%;
   height: 100px;
-  margin: 20px 0;
+  margin: 0px 0;
   padding: 0;
 }
 
