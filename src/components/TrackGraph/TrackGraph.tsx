@@ -6,10 +6,9 @@ import getColorForValue from "../../utils/getColorForValue";
 import haversineDistance from "../../utils/haversineDistance";
 import {
   setHoveredDistance,
-  setMapCenter,
   setMapZoom,
   focusOnCoordinate,
-  setIsProgrammaticMove, // Import the action
+  setIsProgrammaticMove,
 } from "../../context/actions";
 
 const TrackGraph: React.FC = () => {
@@ -111,35 +110,52 @@ const TrackGraph: React.FC = () => {
     return sampledData;
   }, [gpxData, currentTrackIndex, mapMode, valueRanges, width]);
 
-  useEffect(() => {
-    if (!graphData || hoveredDistance === null) return;
+  const waypointsData = useMemo(() => {
+    if (!gpxData || currentTrackIndex === null || width === 0) {
+      console.log("No GPX data, invalid track index, or width is zero.");
+      return [];
+    }
 
-    // Ensure hoveredDistance is clamped within the graph's range
-    const clampedDistance = Math.min(
-      Math.max(hoveredDistance, 0),
-      graphData[graphData.length - 1].distance
-    );
+    const currentTrack = gpxData.tracks[currentTrackIndex];
+    if (!currentTrack || currentTrack.waypoints.length === 0) {
+      console.log("No current track or no waypoints in the track.");
+      return [];
+    }
 
-    const closestPoint = graphData.reduce((prev, curr) => {
-      return Math.abs(curr.distance - clampedDistance) <
-        Math.abs(prev.distance - clampedDistance)
-        ? curr
-        : prev;
+    const totalDistance =
+      currentTrack.points[currentTrack.points.length - 1]?.distanceFromStart ||
+      0;
+
+    if (totalDistance === 0) {
+      console.log("Total distance is zero, unable to scale waypoints.");
+      return [];
+    }
+
+    console.log("Graph Width:", width);
+    console.log("Total Track Distance (meters):", totalDistance);
+
+    return currentTrack.waypoints.map((waypoint, idx) => {
+      const distanceFromStart = (waypoint.distanceFromStart || 0) * 1000; // Convert kilometers to meters
+      const x = (distanceFromStart / totalDistance) * width;
+
+      const closestPointIndex = waypoint.closestTrackPointIndex || 0;
+      const lat = parseFloat(
+        currentTrack.points[closestPointIndex]?.lat || "0"
+      );
+      const lon = parseFloat(
+        currentTrack.points[closestPointIndex]?.lon || "0"
+      );
+
+      console.log(`Waypoint ${idx}:`, {
+        distanceFromStart,
+        x,
+        lat,
+        lon,
+      });
+
+      return { x, lat, lon };
     });
-
-    const x =
-      (closestPoint.distance / graphData[graphData.length - 1].distance) *
-      width;
-    const y =
-      graphHeight -
-      ((closestPoint.value - valueRanges[mapMode].minValue) /
-        (valueRanges[mapMode].maxValue - valueRanges[mapMode].minValue)) *
-        graphHeight;
-
-    setHoverX(x);
-    setHoverValue(closestPoint.value);
-    setTooltipY(Math.max(20, Math.min(y, graphHeight - 5)));
-  }, [hoveredDistance, graphData, width, graphHeight, valueRanges, mapMode]);
+  }, [gpxData, currentTrackIndex, width]);
 
   const handleMouseMove = (event: React.MouseEvent<SVGElement>) => {
     if (!graphData) return;
@@ -182,28 +198,25 @@ const TrackGraph: React.FC = () => {
 
   const handleGraphClick = (event: React.MouseEvent<SVGElement>) => {
     if (!graphData) return;
-  
+
     const rect = containerRef.current?.getBoundingClientRect();
     if (!rect) return;
-  
+
     const x = event.clientX - rect.left;
     const relativeDistance =
       (x / width) * graphData[graphData.length - 1].distance;
-  
+
     const closestPoint = graphData.reduce((prev, curr) => {
       return Math.abs(curr.distance - relativeDistance) <
         Math.abs(prev.distance - relativeDistance)
         ? curr
         : prev;
     });
-  
-    // Dispatch actions to center the map and set the zoom level
+
     dispatch(setIsProgrammaticMove(true));
     dispatch(setMapZoom(15));
-    dispatch(focusOnCoordinate([closestPoint.lat, closestPoint.lon])); // Use closestPoint
-    console.log("Click made on track graph and state dispatched");
+    dispatch(focusOnCoordinate([closestPoint.lat, closestPoint.lon]));
   };
-  
 
   const toggleCollapse = () => {
     setIsCollapsed(!isCollapsed);
@@ -219,7 +232,7 @@ const TrackGraph: React.FC = () => {
           <svg
             className="track-graph-svg"
             width={width}
-            height={graphHeight}
+            height={graphHeight + 10} // Add padding for triangles
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
             onClick={handleGraphClick}
@@ -260,6 +273,17 @@ const TrackGraph: React.FC = () => {
                   />
                 );
               })}
+
+            {/* Render waypoint triangles */}
+            {waypointsData.map((waypoint, idx) => (
+              <polygon
+                key={`waypoint-${idx}`}
+                points={`${waypoint.x - 5},${graphHeight + 5} ${
+                  waypoint.x + 5
+                },${graphHeight + 5} ${waypoint.x},${graphHeight}`}
+                fill="orange"
+              />
+            ))}
 
             {hoverX !== null && (
               <>

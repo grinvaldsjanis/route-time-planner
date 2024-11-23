@@ -70,7 +70,7 @@
   width: 100%;
   position: relative;
   margin: 0;
-  z-index: 2000;
+  z-index: 400;
   height: 100px;
   transition: height 0.3s ease;
 }
