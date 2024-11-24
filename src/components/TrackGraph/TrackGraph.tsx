@@ -19,8 +19,15 @@ const TrackGraph: React.FC = () => {
   const [hoverX, setHoverX] = useState<number | null>(null);
   const [hoverValue, setHoverValue] = useState<number | null>(null);
   const [tooltipY, setTooltipY] = useState(0);
-  const { gpxData, mapMode, currentTrackIndex, valueRanges, hoveredDistance } =
-    state;
+  const [isDragging, setIsDragging] = useState(false);
+  const {
+    gpxData,
+    mapMode,
+    currentTrackIndex,
+    focusedWaypointIndex,
+    valueRanges,
+    hoveredDistance,
+  } = state;
   const graphHeight: number = 85;
 
   useEffect(() => {
@@ -157,6 +164,10 @@ const TrackGraph: React.FC = () => {
     });
   }, [gpxData, currentTrackIndex, width]);
 
+  const handleMouseDown = (event: React.MouseEvent<SVGElement>) => {
+    setIsDragging(true);
+  };
+
   const handleMouseMove = (event: React.MouseEvent<SVGElement>) => {
     if (!graphData) return;
 
@@ -187,7 +198,17 @@ const TrackGraph: React.FC = () => {
 
     setTooltipY(calculatedY);
 
-    dispatch(setHoveredDistance(relativeDistance));
+    // Only dispatch map updates when dragging
+    if (isDragging) {
+      dispatch(setHoveredDistance(relativeDistance));
+      dispatch(setIsProgrammaticMove(true));
+      dispatch(setMapZoom(13));
+      dispatch(focusOnCoordinate([closestPoint.lat, closestPoint.lon]));
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
   };
 
   const handleMouseLeave = () => {
@@ -223,7 +244,10 @@ const TrackGraph: React.FC = () => {
   };
 
   return (
-    <div className={`track-graph-wrapper ${isCollapsed ? "collapsed" : ""}`}>
+    <div
+      className={`track-graph-wrapper ${isCollapsed ? "collapsed" : ""}`}
+      onMouseUp={handleMouseUp} // Ensure dragging stops when mouse is released
+    >
       <button className="collapse-button" onClick={toggleCollapse}>
         {isCollapsed ? <FaChartLine size={16} /> : <FaChevronDown size={16} />}
       </button>
@@ -234,6 +258,7 @@ const TrackGraph: React.FC = () => {
             width={width}
             height={graphHeight + 10} // Add padding for triangles
             onMouseMove={handleMouseMove}
+            onMouseDown={handleMouseDown}
             onMouseLeave={handleMouseLeave}
             onClick={handleGraphClick}
           >
@@ -265,9 +290,9 @@ const TrackGraph: React.FC = () => {
                   <line
                     key={`graph-line-${idx}`}
                     x1={x1}
-                    y1={y1+5}
+                    y1={y1 + 5}
                     x2={x2}
-                    y2={y2+5}
+                    y2={y2 + 5}
                     stroke={point.color}
                     strokeWidth="4"
                   />
@@ -280,8 +305,8 @@ const TrackGraph: React.FC = () => {
                 key={`waypoint-${idx}`}
                 points={`${waypoint.x - 5},${graphHeight + 10} ${
                   waypoint.x + 5
-                },${graphHeight + 10} ${waypoint.x},${graphHeight+5}`}
-                fill="orange"
+                },${graphHeight + 10} ${waypoint.x},${graphHeight + 5}`}
+                fill={idx === focusedWaypointIndex ? "red" : "rgb(54, 217, 0)"} // Conditional coloring
               />
             ))}
 
