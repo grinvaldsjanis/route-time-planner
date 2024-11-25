@@ -6,9 +6,9 @@ import getColorForValue from "../../utils/getColorForValue";
 import haversineDistance from "../../utils/haversineDistance";
 import {
   setHoveredDistance,
-  setMapZoom,
   focusOnCoordinate,
   setIsProgrammaticMove,
+  setPlaybackPosition,
 } from "../../context/actions";
 
 const TrackGraph: React.FC = () => {
@@ -27,6 +27,7 @@ const TrackGraph: React.FC = () => {
     focusedWaypointIndex,
     valueRanges,
     hoveredDistance,
+    playbackPosition,
   } = state;
   const graphHeight: number = 85;
 
@@ -67,6 +68,8 @@ const TrackGraph: React.FC = () => {
       );
       totalDistance += segmentDistance;
     });
+
+    if (totalDistance === 0 || width === 0) return null;
 
     const sampleInterval = totalDistance / width;
     let accumulatedDistance = 0;
@@ -138,11 +141,11 @@ const TrackGraph: React.FC = () => {
       return [];
     }
 
-    console.log("Graph Width:", width);
-    console.log("Total Track Distance (meters):", totalDistance);
+    // console.log("Graph Width:", width);
+    // console.log("Total Track Distance (meters):", totalDistance);
 
     return currentTrack.waypoints.map((waypoint, idx) => {
-      const distanceFromStart = (waypoint.distanceFromStart || 0) * 1000; // Convert kilometers to meters
+      const distanceFromStart = waypoint.distanceFromStart || 0;
       const x = (distanceFromStart / totalDistance) * width;
 
       const closestPointIndex = waypoint.closestTrackPointIndex || 0;
@@ -153,16 +156,48 @@ const TrackGraph: React.FC = () => {
         currentTrack.points[closestPointIndex]?.lon || "0"
       );
 
-      console.log(`Waypoint ${idx}:`, {
-        distanceFromStart,
-        x,
-        lat,
-        lon,
-      });
+      // console.log(`Waypoint ${idx}:`, {
+      //   distanceFromStart,
+      //   x,
+      //   lat,
+      //   lon,
+      // });
 
       return { x, lat, lon };
     });
   }, [gpxData, currentTrackIndex, width]);
+
+  const animationLineX = useMemo(() => {
+    if (!graphData || playbackPosition === null) return null;
+    const totalDistance = graphData[graphData.length - 1]?.distance || 1; // Avoid division by zero
+    return (playbackPosition / totalDistance) * width;
+  }, [graphData, playbackPosition, width]);
+
+  useEffect(() => {
+    if (hoveredDistance !== null && graphData) {
+      const closestPoint = graphData.reduce((prev, curr) => {
+        return Math.abs(curr.distance - hoveredDistance) <
+          Math.abs(prev.distance - hoveredDistance)
+          ? curr
+          : prev;
+      });
+
+      const x =
+        (closestPoint.distance / graphData[graphData.length - 1].distance) *
+        width;
+
+      const y =
+        graphHeight -
+        ((closestPoint.value - valueRanges[mapMode].minValue) /
+          (valueRanges[mapMode].maxValue - valueRanges[mapMode].minValue)) *
+          graphHeight;
+
+      setHoverX(x);
+    } else {
+      setHoverX(null);
+      setHoverValue(null);
+    }
+  }, [hoveredDistance, graphData, width, valueRanges, mapMode, graphHeight]);
 
   const handleMouseDown = (event: React.MouseEvent<SVGElement>) => {
     setIsDragging(true);
@@ -200,10 +235,10 @@ const TrackGraph: React.FC = () => {
 
     // Only dispatch map updates when dragging
     if (isDragging) {
-      dispatch(setHoveredDistance(relativeDistance));
-      dispatch(setIsProgrammaticMove(true));
-      dispatch(setMapZoom(13));
+      dispatch(setPlaybackPosition(closestPoint.distance)); // Update playback position
       dispatch(focusOnCoordinate([closestPoint.lat, closestPoint.lon]));
+    } else {
+      dispatch(setHoveredDistance(relativeDistance));
     }
   };
 
@@ -235,7 +270,7 @@ const TrackGraph: React.FC = () => {
     });
 
     dispatch(setIsProgrammaticMove(true));
-    dispatch(setMapZoom(15));
+    dispatch(setPlaybackPosition(closestPoint.distance));
     dispatch(focusOnCoordinate([closestPoint.lat, closestPoint.lon]));
   };
 
@@ -268,7 +303,7 @@ const TrackGraph: React.FC = () => {
                 const prevPoint = graphData[idx - 1];
                 const x1 =
                   (prevPoint.distance /
-                    graphData[graphData.length - 1].distance) *
+                    (graphData[graphData.length - 1]?.distance || 1)) * // Ensure denominator is valid
                   width;
                 const y1 =
                   graphHeight -
@@ -277,7 +312,8 @@ const TrackGraph: React.FC = () => {
                       valueRanges[mapMode].minValue)) *
                     graphHeight;
                 const x2 =
-                  (point.distance / graphData[graphData.length - 1].distance) *
+                  (point.distance /
+                    (graphData[graphData.length - 1]?.distance || 1)) * // Ensure denominator is valid
                   width;
                 const y2 =
                   graphHeight -
@@ -289,10 +325,10 @@ const TrackGraph: React.FC = () => {
                 return (
                   <line
                     key={`graph-line-${idx}`}
-                    x1={x1}
-                    y1={y1 + 5}
-                    x2={x2}
-                    y2={y2 + 5}
+                    x1={isNaN(x1) ? 0 : x1} // Guard against NaN
+                    y1={isNaN(y1) ? 0 : y1 + 5} // Guard against NaN
+                    x2={isNaN(x2) ? 0 : x2} // Guard against NaN
+                    y2={isNaN(y2) ? 0 : y2 + 5} // Guard against NaN
                     stroke={point.color}
                     strokeWidth="4"
                   />
@@ -309,7 +345,17 @@ const TrackGraph: React.FC = () => {
                 fill={idx === focusedWaypointIndex ? "red" : "rgb(54, 217, 0)"} // Conditional coloring
               />
             ))}
-
+            {/* Render vertical animation line */}
+            {animationLineX !== null && (
+              <line
+                x1={animationLineX}
+                y1={0}
+                x2={animationLineX}
+                y2={graphHeight}
+                stroke="black"
+                strokeWidth="2"
+              />
+            )}
             {hoverX !== null && (
               <>
                 <line

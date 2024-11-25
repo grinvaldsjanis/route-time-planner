@@ -24,7 +24,7 @@ const calculateTrackParts = (
         parseFloat(points[i + 1].lon)
       );
     }
-    return totalDistance / 1000; // Convert to kilometers
+    return totalDistance
   };
 
   for (let i = 0; i < waypoints.length - 1; i++) {

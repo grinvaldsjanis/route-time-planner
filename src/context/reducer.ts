@@ -12,6 +12,7 @@ import {
 import calculateTravelTimes from "../utils/calculateTravelTimes";
 import { calculateValueRange } from "../utils/calculateValueRange";
 import { imageService } from "../utils/globalImageService";
+import updateCalculatedSpeedsForTrack from "../utils/updateCalculatedSpeeds";
 
 export interface GlobalState {
   gpxData: GPXData | null;
@@ -37,6 +38,10 @@ export interface GlobalState {
   highlightMode: boolean;
   currentTrackIndex: number | null;
   hoveredDistance: number | null;
+  isPlaying: boolean;
+  playbackPosition: number;
+  playbackSpeed: number;
+  calculatedSpeed: number;
   valueRanges: {
     ele: { minValue: number; maxValue: number };
     curve: { minValue: number; maxValue: number };
@@ -68,6 +73,10 @@ export const initialState: GlobalState = {
   highlightRange: [0, 100],
   highlightMode: false,
   hoveredDistance: null,
+  isPlaying: false,
+  playbackPosition: 0,
+  playbackSpeed: 1,
+  calculatedSpeed: 0,
   valueRanges: getLocalStorage("valueRanges", {
     ele: { minValue: 0, maxValue: 100 },
     curve: { minValue: 0, maxValue: 100 },
@@ -174,13 +183,22 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
     case "SET_TRAVEL_MODE": {
       if (typeof action.payload === "string" && action.payload in travelModes) {
         if (state.gpxData && state.currentTrackIndex !== null) {
-          // Update travel times for the current track.
+          // Get the current track
+          const currentTrack = state.gpxData.tracks[state.currentTrackIndex];
+
+          // Update calculated speeds for the current track
+          const updatedTrackWithSpeeds = updateCalculatedSpeedsForTrack(
+            currentTrack,
+            action.payload as keyof typeof travelModes
+          );
+
+          // Update travel times for the current track
           const updatedTracks = state.gpxData.tracks.map((track, index) =>
             index === state.currentTrackIndex
               ? {
-                  ...track,
+                  ...updatedTrackWithSpeeds,
                   parts: calculateTravelTimes(
-                    [track],
+                    [updatedTrackWithSpeeds],
                     action.payload as keyof typeof travelModes
                   ),
                 }
@@ -263,10 +281,19 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
     }
 
     case "SET_GPX_DATA": {
-      const updatedTracks = action.payload.tracks.map((track) => ({
-        ...track,
-        parts: calculateTravelTimes([track], state.travelMode),
-      }));
+      const updatedTracks = action.payload.tracks.map((track) => {
+        // Update calculated speeds for the track
+        const updatedTrackWithSpeeds = updateCalculatedSpeedsForTrack(
+          track,
+          state.travelMode
+        );
+    
+        // Update travel times for the track parts
+        return {
+          ...updatedTrackWithSpeeds,
+          parts: calculateTravelTimes([updatedTrackWithSpeeds], state.travelMode),
+        };
+      });
 
       const updatedGPXData = { ...action.payload, tracks: updatedTracks };
       const currentTrack = updatedTracks[0]; // Always start with track index 0
@@ -361,7 +388,7 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
       const updatedReferenceWaypoints = state.gpxData.referenceWaypoints.map(
         (waypoint, i) => {
           if (i === index) {
-            console.log(`Updating image for waypoint ${index}: ${imageUrl}`);
+            // console.log(`Updating image for waypoint ${index}: ${imageUrl}`);
             return { ...waypoint, imageUrl };
           }
           return waypoint;
@@ -779,7 +806,7 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
         return {
           ...state,
           programmaticAction: action.payload,
-          focusCoordinate: null, // Ensure focusCoordinate is reset
+          focusCoordinate: null,
         };
       }
       return {
@@ -788,6 +815,38 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
         focusCoordinate: null,
       };
     }
+
+    case "START_PLAYBACK":
+      return {
+        ...state,
+        isPlaying: true,
+      };
+
+    case "STOP_PLAYBACK":
+      return {
+        ...state,
+        isPlaying: false,
+      };
+
+    case "SET_PLAYBACK_POSITION":
+      return {
+        ...state,
+        playbackPosition: action.payload.position,
+      };
+
+    case "SET_PLAYBACK_SPEED":
+      return {
+        ...state,
+        playbackSpeed: action.payload.speedMultiplier,
+      };
+
+    case "SET_CALCULATED_SPEED":
+      return {
+        ...state,
+        calculatedSpeed: action.payload.speed,
+      };
+
+
 
     default:
       return state;

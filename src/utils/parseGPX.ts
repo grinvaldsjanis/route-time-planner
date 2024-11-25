@@ -76,7 +76,7 @@ export default async function parseGPX(
 
     const points: TrackPoint[] = [];
     const trackParts: TrackPart[] = [];
-    let cumulativeDistance = 0; // Initialize cumulative distance
+    let cumulativeDistance = 0;
 
     for (let j = 0; j < trksegs.length; j++) {
       const seg = trksegs[j];
@@ -95,7 +95,7 @@ export default async function parseGPX(
             );
             cumulativeDistance += segmentDistance;
           }
-          pt.distanceFromStart = cumulativeDistance; // Assign cumulative distance
+          pt.distanceFromStart = cumulativeDistance;
           points.push(pt);
         }
       }

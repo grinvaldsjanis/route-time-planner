@@ -5,7 +5,7 @@ export default async function fetchImageForCoordinate(
   const requestKey = `${coord.lat}-${coord.lon}`;
 
   try {
-    console.log(`Initiating image fetch for: ${requestKey}`);
+    // console.log(`Initiating image fetch for: ${requestKey}`);
 
     const params = {
       action: "query",

@@ -16,6 +16,7 @@ import { FaPlay } from "react-icons/fa";
 import AnimatedBackground from "./components/AnimatedBackground/AnimatedBackground";
 import Menu from "./components/Menu/Menu";
 import Downloader from "./components/GPXDownloadButton/Downloader";
+import PlaybackController from "./components/PlaybackController/PlaybackController";
 
 function App() {
   const { state, dispatch } = useGlobalState();
@@ -93,6 +94,7 @@ function App() {
                 <MapView />
               </div>
               <TrackGraph />
+              <PlaybackController />
               <div className="scale-strip">
                 <ScaleStrip />
               </div>

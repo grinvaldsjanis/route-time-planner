@@ -1,6 +1,7 @@
 import { Track, TrackPart } from "./types";
 import calculateTravelTime from "./calculateTravelTime";
 import travelModes from "../constants/travelModes";
+import calculateSpeed from "./calculateSpeed";
 
 const calculateTravelTimes = (
   tracks: Track[],
@@ -12,12 +13,9 @@ const calculateTravelTimes = (
       return track;
     }
 
+    // Update track parts with travel times
     const updatedTrackParts = track.parts.map((trackPart) => {
-      const travelTime = calculateTravelTime(
-        trackPart,
-        track,
-        modeKey
-      );
+      const travelTime = calculateTravelTime(trackPart, { ...track }, modeKey);
       return {
         ...trackPart,
         travelTime,
@@ -30,7 +28,7 @@ const calculateTravelTimes = (
     };
   });
 
-  return updatedTracks.flatMap(track => track.parts);
+  return updatedTracks.flatMap((track) => track.parts);
 };
 
 export default calculateTravelTimes;

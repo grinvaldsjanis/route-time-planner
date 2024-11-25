@@ -11,11 +11,15 @@ const multipliers = [1, 1.5, 2, 5, 7];
 
 interface TrackPartProps {
   trackPart: TrackPartType;
-  trackIndex: number;  // Add trackIndex to the props
-  partIndex: number;   // Rename index to partIndex for clarity
+  trackIndex: number;
+  partIndex: number;
 }
 
-const TrackPart: React.FC<TrackPartProps> = ({ trackPart, trackIndex, partIndex }) => {
+const TrackPart: React.FC<TrackPartProps> = ({
+  trackPart,
+  trackIndex,
+  partIndex,
+}) => {
   const { dispatch } = useGlobalState();
 
   const handleMultiplierChange = (multiplier: number) => {
@@ -29,7 +33,7 @@ const TrackPart: React.FC<TrackPartProps> = ({ trackPart, trackIndex, partIndex 
         <FaArrowsUpDown />
       </div>
       <div className="track-part-info">
-        <div>{trackPart.distance.toFixed(1)} km</div>
+        <div>{(trackPart.distance / 1000).toFixed(1)} km</div>
         <SegmentedControl
           key={partIndex}
           options={multipliers}

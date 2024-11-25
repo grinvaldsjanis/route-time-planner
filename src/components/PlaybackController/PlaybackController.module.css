@@ -1,0 +1,64 @@
+.playback_controller {
+  display: flex;
+  align-items: center;
+  justify-content:space-between;
+  max-width: 100%;
+  padding: 10px 10px 10px 10px;
+  gap: 10px;
+  border-top: #aaa 1px solid;
+}
+
+.playback_controller button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 5px 10px;
+  font-size: 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  background-color: #007bff;
+  color: #fff;
+  transition: background-color 0.3s ease;
+}
+
+.playback_controller button:hover {
+  background-color: #0056b3;
+}
+
+.playback_controller button:active {
+  background-color: #004494;
+}
+
+.playback_controller button svg {
+  font-size: 18px;
+}
+
+.player_buttons {
+  display: flex;
+  justify-content: start;
+  flex-direction: row;
+  gap: 5px;
+}
+
+.speed_buttons {
+  display: flex;
+  justify-content: end;
+  flex-direction: row;
+  gap: 5px;
+}
+
+.info {
+  display: flex;
+  justify-content: space-evenly;
+  font-size: 14px;
+  flex-direction: row;
+  gap: 10px;
+}
+
+.speed_buttons .active {
+  background-color: #ff9800; /* Highlight active button */
+  color: white;
+  font-weight: bold;
+}

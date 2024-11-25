@@ -1,6 +1,7 @@
 import { Track, TrackPart } from "./types";
 import haversineDistance from "./haversineDistance";
 import travelModes from "../constants/travelModes";
+import calculateSpeed from "./calculateSpeed";
 
 const calculateTravelTime = (
   trackPart: TrackPart,
@@ -11,11 +12,6 @@ const calculateTravelTime = (
 
   if (!mode) {
     console.error("Invalid travel mode key:", modeKey);
-    return 0;
-  }
-
-  if (mode.powerFactor === undefined) {
-    console.error("Power factor is missing for mode:", modeKey);
     return 0;
   }
 
@@ -46,20 +42,24 @@ const calculateTravelTime = (
       parseFloat(pointB.lon)
     );
 
-    const curveFactor = Math.log10((pointB.curve ?? 1000) / 10 + 1) / 3;
+    // Use the calculateSpeed function for speed determination
+    const effectiveSpeedA = calculateSpeed(pointA, modeKey); // Speed at point A
+    const effectiveSpeedB = calculateSpeed(pointB, modeKey); // Speed at point B
 
-    const slopeImpact = (pointB.slope ?? 0) / 100;
-    const slopeAdjustmentFactor = Math.exp(-mode.powerFactor * slopeImpact);
-    let effectiveSpeed =
-      mode.maxSpeed *
-      (1 - mode.handlingFactor * curveFactor) *
-      slopeAdjustmentFactor;
+    // Average the speed for the segment
+    const averageSpeed = (effectiveSpeedA + effectiveSpeedB) / 2;
 
-    const time = (distance / 1000 / effectiveSpeed) * 3600;
+    if (averageSpeed <= 0) {
+      console.warn("Calculated speed is zero or negative, skipping segment");
+      continue;
+    }
+
+    // Calculate time for the segment
+    const time = (distance / 1000 / averageSpeed) * 3600; // Convert to hours and back to seconds
     totalTime += time;
   }
 
-  return Math.round(totalTime);
+  return Math.round(totalTime); // Round to nearest second
 };
 
 export default calculateTravelTime;

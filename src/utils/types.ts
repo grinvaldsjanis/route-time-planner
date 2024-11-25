@@ -44,6 +44,7 @@ export interface TrackPoint {
   roadCategory?: string | null;
   speedLimit?: number | null;
   distanceFromStart?: number;
+  calculatedSpeed?: number;
 }
 
 export interface Track {

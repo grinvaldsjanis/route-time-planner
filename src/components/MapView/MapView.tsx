@@ -27,6 +27,7 @@ import L from "leaflet";
 import { debounce } from "lodash";
 import { MdOutlineFitScreen } from "react-icons/md";
 import LayerManager from "./LayerManager/LayerManager";
+import MovingMarker from "../MovingMarker/MovingMarker";
 
 type ModeKeys = "ele" | "curve" | "slope" | "speedLimit";
 
@@ -163,7 +164,7 @@ const MapView: React.FC = () => {
       programmaticAction === "focusCoordinate" &&
       state.focusCoordinate
     ) {
-      console.log("Triggering focusCoordinate...");
+      // console.log("Triggering focusCoordinate...");
       mapRef.current?.setView(state.focusCoordinate, mapZoom, {
         animate: true,
       });
@@ -370,7 +371,7 @@ const MapView: React.FC = () => {
         }}
       >
         <MapRefSetter />
-        <LayerManager />
+        <ModeToggles currentMode={mapMode} onModeChange={handleModeChange} />
         <button
           className="fit-bounds-button"
           onClick={handleFitActiveTrack}
@@ -378,10 +379,11 @@ const MapView: React.FC = () => {
         >
           <MdOutlineFitScreen size={24} />
         </button>
-        <ModeToggles currentMode={mapMode} onModeChange={handleModeChange} />
         {renderTracks}
         {renderMarkers}
+        {currentTrack && <MovingMarker microStepCount={20} />}
         <MapEvents onMapMove={handleMapMove} />
+        <LayerManager />
       </MapContainer>
 
       {isModalOpen && focusedWaypointIndex !== null && (

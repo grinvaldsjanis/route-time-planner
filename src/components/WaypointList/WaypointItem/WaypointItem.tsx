@@ -132,9 +132,14 @@ const WaypointItem: React.FC<WaypointItemProps> = ({ index }) => {
   };
 
   const distanceFromStart = formatDistance(
-    trackWaypoint?.distanceFromStart ?? 0
+    trackWaypoint?.distanceFromStart
+      ? trackWaypoint.distanceFromStart / 1000
+      : 0
   );
-  const distanceToEnd = formatDistance(trackWaypoint?.distanceToEnd ?? 0);
+
+  const distanceToEnd = formatDistance(
+    trackWaypoint?.distanceToEnd ? trackWaypoint.distanceToEnd / 1000 : 0
+  );
 
   const handleStopTimeChange = (stopTime: number) => {
     if (trackWaypoint) {

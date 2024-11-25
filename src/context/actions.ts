@@ -28,6 +28,38 @@ export const SET_CURRENT_TRACK_INDEX = "SET_CURRENT_TRACK_INDEX";
 export const SET_VALUE_RANGES = "SET_VALUE_RANGES";
 export const SET_MAP_BOUNDS = "SET_MAP_BOUNDS";
 export const SET_PROGRAMMATIC_ACTION = "SET_PROGRAMMATIC_ACTION";
+export const START_PLAYBACK = "START_PLAYBACK";
+export const STOP_PLAYBACK = "STOP_PLAYBACK";
+export const SET_PLAYBACK_POSITION = "SET_PLAYBACK_POSITION";
+export const SET_PLAYBACK_SPEED = "SET_PLAYBACK_SPEED";
+export const SET_CALCULATED_SPEED = "SET_CALCULATED_SPEED";
+
+
+export interface StartPlaybackAction {
+  type: typeof START_PLAYBACK;
+}
+export interface StopPlaybackAction {
+  type: typeof STOP_PLAYBACK;
+}
+
+export interface SetPlaybackPositionAction {
+  type: typeof SET_PLAYBACK_POSITION;
+  payload: {
+    position: number; // Distance from the start in meters
+  };
+}
+
+export interface SetPlaybackSpeedAction {
+  type: typeof SET_PLAYBACK_SPEED;
+  payload: {
+    speedMultiplier: number;
+  };
+}
+
+export interface setCalculatedSpeedAction {
+  type: typeof SET_CALCULATED_SPEED;
+  payload: { speed: number };
+}
 
 export interface SetHighlightAction {
   type: typeof SET_HIGHLIGHT;
@@ -209,14 +241,48 @@ export type Action =
   | SetMapBoundsAction
   | SetLayerSetAction
   | SetHoveredDistanceAction
-  | SetProgrammaticAction;
+  | SetProgrammaticAction
+  | StartPlaybackAction
+  | StopPlaybackAction
+  | SetPlaybackPositionAction
+  | setCalculatedSpeedAction
+  | SetPlaybackSpeedAction;
+
+export const startPlayback = (): StartPlaybackAction => ({
+  type: START_PLAYBACK,
+});
+
+export const stopPlayback = (): StopPlaybackAction => ({
+  type: STOP_PLAYBACK,
+});
+
+export const setPlaybackPosition = (
+  position: number
+): SetPlaybackPositionAction => ({
+  type: SET_PLAYBACK_POSITION,
+  payload: { position },
+});
+
+export const setPlaybackSpeed = (
+  speedMultiplier: number
+): SetPlaybackSpeedAction => ({
+  type: SET_PLAYBACK_SPEED,
+  payload: { speedMultiplier },
+});
+
+export const setCalculatedSpeed = (
+  speed: number
+): setCalculatedSpeedAction => ({
+  type: SET_CALCULATED_SPEED,
+  payload: { speed },
+});
 
 export const focusOnCoordinate = (
   coordinate: LatLngTuple
 ): SetProgrammaticAction => ({
   type: SET_PROGRAMMATIC_ACTION,
   payload: "focusCoordinate",
-  focusCoordinate: coordinate, // Ensure this is provided
+  focusCoordinate: coordinate,
 });
 
 export const setWaypointName = (

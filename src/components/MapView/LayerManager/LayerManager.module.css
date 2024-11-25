@@ -2,7 +2,7 @@
   position: absolute;
   top: 115px;
   left: 10px;
-  z-index: 400;
+  z-index: 1000;
   color: black;
 }
 

@@ -31,7 +31,6 @@ const WaypointList: React.FC = () => {
       <div className="inner-list-container">
         <ul>
           {waypoints.map((trackWaypoint, index) => {
-
             return (
               <React.Fragment key={`waypoint-${index}`}>
                 <WaypointItem index={index} />
@@ -52,7 +51,8 @@ const WaypointList: React.FC = () => {
       <div className="resulting-info">
         <div className="total-summation">
           <div>
-            <strong>Distance:</strong> {state.totalDistance.toFixed(2)} km
+            <strong>Distance:</strong> {(state.totalDistance / 1000).toFixed(2)}{" "}
+            km
           </div>
           <div>
             <strong>Road Time:</strong>{" "}

@@ -228,7 +228,7 @@ const ColorizedPolyline: React.FC = () => {
           >
             <div>
               {hoveredDistance
-                ? `${(hoveredDistance / 1000).toFixed(2)} km`
+                ? `${(hoveredDistance/1000).toFixed(2)} km`
                 : "N/A"}
             </div>
           </Tooltip>
