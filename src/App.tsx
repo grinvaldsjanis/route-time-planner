@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import CacheBuster from "react-cache-buster";
+import version from '../package.json';
 import "./App.css";
 import FileUploader from "./components/FileUploader/FileUploader";
 import MapView from "./components/MapView/MapView";
@@ -17,8 +19,10 @@ import AnimatedBackground from "./components/AnimatedBackground/AnimatedBackgrou
 import Menu from "./components/Menu/Menu";
 import Downloader from "./components/GPXDownloadButton/Downloader";
 import PlaybackController from "./components/PlaybackController/PlaybackController";
+import Loading from "./loading";
 
 function App() {
+  const isProduction = process.env.NODE_ENV === "production";
   const { state, dispatch } = useGlobalState();
   const [isModalOpen, setModalOpen] = useState(false);
 
@@ -58,60 +62,68 @@ function App() {
   };
 
   return (
-    <div className="App">
-      <header className="App-header">
-        <div className="App-logo">
-          <h4>GPX Time Planner</h4>
-        </div>
-        <div>
-          <Menu />
-          <div>
-        {/* Hidden inputs for actions */}
-        <FileUploader />
-        {state.gpxData && <Downloader />}
-      </div>
-        </div>
-      </header>
-      <div className="App-main-container">
-        {!state.gpxData && !state.inProgress && <AnimatedBackground />}
-        {!state.gpxData && (
-          <div className="try-stored-gpx">
-            <button onClick={handleLoadStoredGPX} className="try-button">
-              <FaPlay />
-              Try Example GPX!
-            </button>
+    <CacheBuster
+      currentVersion={version}
+      isEnabled={isProduction} //If false, the library is disabled.
+      isVerboseMode={false} //If true, the library writes verbose logs to console.
+      loadingComponent={<Loading />} //If not pass, nothing appears at the time of new version check.
+      metaFileDirectory={"."} //If public assets are hosted somewhere other than root on your server.
+    >
+      <div className="App">
+        <header className="App-header">
+          <div className="App-logo">
+            <h4>GPX Time Planner</h4>
           </div>
-        )}
-        {state.inProgress && <ProgressIndicator text={state.progressText} />}
-        {state.gpxData && (
-          <>
-            <div className="App-sidebar">
-              <TravelModeSelector />
-              <WaypointList />
+          <div>
+            <Menu />
+            <div>
+              {/* Hidden inputs for actions */}
+              <FileUploader />
+              {state.gpxData && <Downloader />}
             </div>
-            <div className="App-graph-container">
-              <div className="map-view">
-                <MapView />
-              </div>
-              <TrackGraph />
-              <PlaybackController />
-              <div className="scale-strip">
-                <ScaleStrip />
-              </div>
+          </div>
+        </header>
+        <div className="App-main-container">
+          {!state.gpxData && !state.inProgress && <AnimatedBackground />}
+          {!state.gpxData && (
+            <div className="try-stored-gpx">
+              <button onClick={handleLoadStoredGPX} className="try-button">
+                <FaPlay />
+                Try Example GPX!
+              </button>
             </div>
-          </>
-        )}
+          )}
+          {state.inProgress && <ProgressIndicator text={state.progressText} />}
+          {state.gpxData && (
+            <>
+              <div className="App-sidebar">
+                <TravelModeSelector />
+                <WaypointList />
+              </div>
+              <div className="App-graph-container">
+                <div className="map-view">
+                  <MapView />
+                </div>
+                <TrackGraph />
+                <PlaybackController />
+                <div className="scale-strip">
+                  <ScaleStrip />
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+        <footer className="footer">
+          Under development by Janis Grinvalds.&emsp; &emsp;
+          <button onClick={toggleModal} className="about-button">
+            About
+          </button>
+        </footer>
+        <Modal show={isModalOpen} onClose={toggleModal}>
+          <AboutContent />
+        </Modal>
       </div>
-      <footer className="footer">
-        Under development by Janis Grinvalds.&emsp; &emsp;
-        <button onClick={toggleModal} className="about-button">
-          About
-        </button>
-      </footer>
-      <Modal show={isModalOpen} onClose={toggleModal}>
-        <AboutContent />
-      </Modal>
-    </div>
+    </CacheBuster>
   );
 }
 

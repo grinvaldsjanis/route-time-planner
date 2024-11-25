@@ -148,7 +148,7 @@ const PlaybackController: React.FC = () => {
     if (!state.isPlaying) {
       lastPositionRef.current = state.playbackPosition;
     } else if (state.playbackPosition !== lastPositionRef.current) {
-    //   console.log("External position update detected. Resetting playback...");
+      //   console.log("External position update detected. Resetting playback...");
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
@@ -168,6 +168,19 @@ const PlaybackController: React.FC = () => {
       }, 1000);
     }
   }, [state.playbackPosition, state.isPlaying]);
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && state.isPlaying) {
+        handlePause();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [state.isPlaying]);
 
   return (
     <div className={style.playback_controller}>
