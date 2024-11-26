@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import "./Menu.css";
+import "./Menu.css"
 import { FaBars, FaCircleXmark, FaUpload, FaDownload } from "react-icons/fa6";
 import { useGlobalState } from "../../context/GlobalContext";
 import {
