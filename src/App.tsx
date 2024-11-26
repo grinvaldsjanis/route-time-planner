@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 import CacheBuster from "react-cache-buster";
-import version from '../package.json';
+import version from "../package.json";
 import "./App.css";
 import FileUploader from "./components/FileUploader/FileUploader";
 import MapView from "./components/MapView/MapView";
 import WaypointList from "./components/WaypointList/WaypointList";
 import ScaleStrip from "./components/ScaleStrip/ScaleStrip";
 import { useGlobalState } from "./context/GlobalContext";
-import { clearPreviousData, setInProgress } from "./context/actions";
+import { setInProgress, setTravelMode } from "./context/actions";
 import Modal from "./components/Modal/Modal";
 import TravelModeSelector from "./components/TravelModeSelector/TravelModesSelector";
 import AboutContent from "./components/Modal/AboutContent";
@@ -17,9 +17,9 @@ import TrackGraph from "./components/TrackGraph/TrackGraph";
 import { FaPlay } from "react-icons/fa";
 import AnimatedBackground from "./components/AnimatedBackground/AnimatedBackground";
 import Menu from "./components/Menu/Menu";
-import Downloader from "./components/GPXDownloadButton/Downloader";
 import PlaybackController from "./components/PlaybackController/PlaybackController";
 import Loading from "./loading";
+import packageInfo from "../package.json";
 
 function App() {
   const isProduction = process.env.NODE_ENV === "production";
@@ -52,8 +52,9 @@ function App() {
         console.error("Fetched content is HTML, not a GPX file.");
         throw new Error("Fetched content is HTML, not a GPX file.");
       }
-
-      await processGPXData(text, state.travelMode, dispatch);
+      const newMode = "Gravel Moto-adventure"
+      dispatch({ type: "SET_TRAVEL_MODE", payload: newMode });
+      await processGPXData(text, "Gravel Moto-adventure", dispatch);
     } catch (error) {
       console.error("Error loading GPX file:", error);
     } finally {
@@ -63,11 +64,11 @@ function App() {
 
   return (
     <CacheBuster
-      currentVersion={version}
-      isEnabled={isProduction} //If false, the library is disabled.
-      isVerboseMode={false} //If true, the library writes verbose logs to console.
-      loadingComponent={<Loading />} //If not pass, nothing appears at the time of new version check.
-      metaFileDirectory={"."} //If public assets are hosted somewhere other than root on your server.
+      currentVersion={packageInfo.version}
+      isEnabled={isProduction} // If false, the library is disabled.
+      isVerboseMode={false} // If true, the library writes verbose logs to the console.
+      loadingComponent={<Loading />} // If not passed, nothing appears at the time of a new version check.
+      metaFileDirectory={"."} // If public assets are hosted somewhere other than root on your server.
     >
       <div className="App">
         <header className="App-header">
@@ -79,7 +80,6 @@ function App() {
             <div>
               {/* Hidden inputs for actions */}
               <FileUploader />
-              {state.gpxData && <Downloader />}
             </div>
           </div>
         </header>

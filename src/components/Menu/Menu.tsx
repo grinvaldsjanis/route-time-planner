@@ -2,7 +2,12 @@ import React, { useState, useRef, useEffect } from "react";
 import "./Menu.css";
 import { FaBars, FaCircleXmark, FaUpload, FaDownload } from "react-icons/fa6";
 import { useGlobalState } from "../../context/GlobalContext";
-import { clearPreviousData, setIsProgrammaticMove } from "../../context/actions";
+import {
+  clearPreviousData,
+  setIsProgrammaticMove,
+  stopPlayback,
+} from "../../context/actions";
+import { handleDownloadGPX } from "../../utils/download";
 
 const Menu: React.FC = () => {
   const { state, dispatch } = useGlobalState();
@@ -14,8 +19,24 @@ const Menu: React.FC = () => {
   };
 
   const handleClearData = () => {
+    if (state.isPlaying) {
+      dispatch(stopPlayback());
+    }
     dispatch(clearPreviousData());
     dispatch(setIsProgrammaticMove(false));
+  };
+
+  const handleDownload = () => {
+    console.log("Download button clicked");
+
+    if (state.isPlaying) {
+      dispatch(stopPlayback());
+    }
+
+    const { gpxData, startTime } = state;
+    const gpxName = gpxData?.gpxName || "My Journey";
+
+    handleDownloadGPX(gpxData, startTime, gpxName, dispatch);
   };
 
   useEffect(() => {
@@ -31,39 +52,31 @@ const Menu: React.FC = () => {
   return (
     <nav className="menu" ref={menuRef}>
       <div className="menu-links">
-        <a
-          href="#"
+        <button
+          type="button"
           className="menu-link upload-link"
-          onClick={(e) => {
-            e.preventDefault();
+          onClick={() => {
             document.getElementById("file-upload-input")?.click();
           }}
         >
           <FaUpload /> Upload GPX
-        </a>
+        </button>
         {state.gpxData && (
           <>
-            <a
-              href="#"
+            <button
+              type="button"
               className="menu-link download-link"
-              onClick={(e) => {
-                e.preventDefault();
-                const downloaderElement = document.getElementById("download-link");
-                downloaderElement?.click();
-              }}
+              onClick={handleDownload}
             >
               <FaDownload /> Download GPX
-            </a>
-            <a
-              href="#"
+            </button>
+            <button
+              type="button"
               className="menu-link clear-link"
-              onClick={(e) => {
-                e.preventDefault();
-                handleClearData();
-              }}
+              onClick={handleClearData}
             >
               <FaCircleXmark /> Clear Data
-            </a>
+            </button>
           </>
         )}
       </div>
@@ -78,44 +91,35 @@ const Menu: React.FC = () => {
 
       {isMenuOpen && (
         <div className="dropdown-menu show">
-          <a
-            href="#"
+          <button
+            type="button"
             className="menu-link upload-link"
-            onClick={(e) => {
-              e.preventDefault();
+            onClick={() => {
               document.getElementById("file-upload-input")?.click();
             }}
           >
             <FaUpload /> Upload GPX
-          </a>
+          </button>
           {state.gpxData && (
             <>
-              <a
-                href="#"
+              <button
+                type="button"
                 className="menu-link download-link"
-                onClick={(e) => {
-                  e.preventDefault();
-                  const downloaderElement = document.getElementById("download-link");
-                  downloaderElement?.click();
-                }}
+                onClick={handleDownload}
               >
                 <FaDownload /> Download GPX
-              </a>
-              <a
-                href="#"
+              </button>
+              <button
+                type="button"
                 className="menu-link clear-link"
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleClearData();
-                }}
+                onClick={handleClearData}
               >
                 <FaCircleXmark /> Clear Data
-              </a>
+              </button>
             </>
           )}
         </div>
       )}
-
     </nav>
   );
 };

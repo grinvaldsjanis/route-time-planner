@@ -16,7 +16,10 @@
 }
 
 .menu-link {
+  background: none;
+  padding: 0;
   color: #007bff;
+  font-size: 18px;
   text-decoration: none;
   font-weight: 500;
   display: flex;
@@ -26,6 +29,7 @@
 
 .menu-link:hover {
   color: #0056b3;
+  text-decoration: none;
 }
 
 /* Clear button styling */
@@ -62,9 +66,10 @@
   border-radius: 4px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   padding: 10px;
+  gap: 12px;
   z-index: 3000;
-  width: 300px; /* Ensures the dropdown is at least 300px wide */
-  min-width: 300px; /* Ensures the dropdown won't shrink below 300px */
+  width: 200px; /* Ensures the dropdown is at least 300px wide */
+  min-width: 200px; /* Ensures the dropdown won't shrink below 300px */
 }
 
 /* Adjust position if dropdown might overflow off-screen */

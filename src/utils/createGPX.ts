@@ -1,18 +1,24 @@
 import formatTimeToHHMM from "./formatTimeToHHMM";
 import { GPXData } from "./types";
 import { minutesToSeconds, formatTimeFromSeconds } from "./timeUtils";
+import { setInProgress } from "../context/actions";
 
-export default function createGPX(
+export default async function createGPX(
   gpxData: GPXData,
   startTime: string,
-  gpxName: string
+  gpxName: string,
+  dispatch: (action: any) => void
 ) {
+  console.log("Starting GPX creation...");
+
   const serializer = new XMLSerializer();
   const xmlDoc = document.implementation.createDocument(null, "gpx", null);
   const gpx = xmlDoc.documentElement;
   gpx.setAttribute("xmlns", "http://www.topografix.com/GPX/1/1");
   gpx.setAttribute("creator", "Route Time Planner");
   gpx.setAttribute("version", "1.1");
+
+  dispatch(setInProgress(true, "Preparing metadata..."));
 
   const metadata = xmlDoc.createElement("metadata");
   const name = xmlDoc.createElement("name");
@@ -33,30 +39,41 @@ export default function createGPX(
 
   let currentSeconds = 0;
 
- const times = gpxData.referenceWaypoints.map((waypoint, index) => {
-  let arrivalSeconds = currentSeconds;
-  let departureSeconds = currentSeconds;
+  // Process waypoints asynchronously
+  dispatch(setInProgress(true, "Processing waypoints..."));
+  const times = await new Promise<{ arrivalTime: string; departureTime: string }[]>(async (resolve) => {
+    const timesArray: { arrivalTime: string; departureTime: string }[] = [];
+    for (const [index, waypoint] of gpxData.referenceWaypoints.entries()) {
+      let arrivalSeconds = currentSeconds;
+      let departureSeconds = currentSeconds;
 
-  if (index > 0) {
-    const travelTime =
-      gpxData.tracks[0].parts[index - 1]?.travelTime || 0;
-    arrivalSeconds = currentSeconds += travelTime;
-  }
+      if (index > 0) {
+        const travelTime = gpxData.tracks[0].parts[index - 1]?.travelTime || 0;
+        arrivalSeconds = currentSeconds += travelTime;
+      }
 
-  const stopTimeSeconds = minutesToSeconds(
-    gpxData.tracks[0].waypoints.find((wp) => wp.referenceId === waypoint.id)
-      ?.stopTime || 0
-  );
-  departureSeconds = currentSeconds += stopTimeSeconds;
+      const stopTimeSeconds = minutesToSeconds(
+        gpxData.tracks[0].waypoints.find((wp) => wp.referenceId === waypoint.id)
+          ?.stopTime || 0
+      );
+      departureSeconds = currentSeconds += stopTimeSeconds;
 
-  return {
-    arrivalTime: formatTimeFromSeconds(arrivalSeconds + startTimeSeconds),
-    departureTime: formatTimeFromSeconds(departureSeconds + startTimeSeconds),
-  };
-});
+      timesArray.push({
+        arrivalTime: formatTimeFromSeconds(arrivalSeconds + startTimeSeconds),
+        departureTime: formatTimeFromSeconds(departureSeconds + startTimeSeconds),
+      });
 
+      // Pause between batches to prevent blocking
+      if (index % 50 === 0) {
+        await new Promise((r) => setTimeout(r, 0));
+      }
+    }
+    resolve(timesArray);
+  });
 
-  gpxData.referenceWaypoints.forEach((waypoint, index) => {
+  // Append waypoints asynchronously
+  dispatch(setInProgress(true, "Appending waypoints..."));
+  for (const [index, waypoint] of gpxData.referenceWaypoints.entries()) {
     const wpt = xmlDoc.createElement("wpt");
     wpt.setAttribute("lat", waypoint.lat);
     wpt.setAttribute("lon", waypoint.lon);
@@ -102,9 +119,16 @@ export default function createGPX(
     }
 
     gpx.appendChild(wpt);
-  });
 
-  gpxData.tracks.forEach((track) => {
+    // Pause between batches to prevent blocking
+    if (index % 50 === 0) {
+      await new Promise((r) => setTimeout(r, 0));
+    }
+  }
+
+  // Append tracks asynchronously
+  dispatch(setInProgress(true, "Appending tracks..."));
+  for (const track of gpxData.tracks) {
     const trk = xmlDoc.createElement("trk");
     if (track.name) {
       const name = xmlDoc.createElement("name");
@@ -113,7 +137,7 @@ export default function createGPX(
     }
 
     const trkseg = xmlDoc.createElement("trkseg");
-    track.points.forEach((point) => {
+    for (const [index, point] of track.points.entries()) {
       const trkpt = xmlDoc.createElement("trkpt");
       trkpt.setAttribute("lat", point.lat);
       trkpt.setAttribute("lon", point.lon);
@@ -123,10 +147,16 @@ export default function createGPX(
         trkpt.appendChild(ele);
       }
       trkseg.appendChild(trkpt);
-    });
+
+      // Pause between batches to prevent blocking
+      if (index % 50 === 0) {
+        await new Promise((r) => setTimeout(r, 0));
+      }
+    }
     trk.appendChild(trkseg);
     gpx.appendChild(trk);
-  });
+  }
 
+  dispatch(setInProgress(false, ""));
   return serializer.serializeToString(xmlDoc);
 }

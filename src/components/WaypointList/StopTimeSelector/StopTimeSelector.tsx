@@ -11,7 +11,7 @@ const StopTimeSelector: React.FC<StopTimeSelectorProps> = ({
   stopTime,
   handleStopTimeChange,
 }) => {
-  const timePresets = [0, 5, 15, 10, 20, 30, 45, 60, 75, 90, 120, 150, 180];
+  const timePresets = [0, 5, 10, 15, 20, 30, 45, 60, 75, 90, 120, 150, 180];
   const [sliderValue, setSliderValue] = useState(stopTime);
   const [isDragging, setIsDragging] = useState(false);
 

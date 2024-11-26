@@ -119,14 +119,14 @@ const travelModes = {
     IconComponent: FaMotorcycle,
     iconColor: "#795548",
   },
-  "Moderate Gravel Ride": {
+  "Gravel Moto-adventure": {
     maxSpeed: 85, // km/h
     handlingFactor: 4,
     maxSpeedRadius: 350,
     powerFactor: 40,
     weight: 300,
     terrain: "road",
-    description: "Gravel rides on challenging terrain",
+    description: "Gravel rides on easy terrain",
     IconComponent: FaMotorcycle,
     iconColor: "#8D6E63",
   },
