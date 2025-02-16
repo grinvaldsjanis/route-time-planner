@@ -3,8 +3,6 @@
 }
 
 .dropdown_toggle {
-  background-color: #fff;
-  color: black; /* Explicit text color */
   text-transform: none;
   border: 1px solid #ccc;
   padding: 10px;
@@ -12,6 +10,7 @@
   cursor: pointer;
   font-size: 16px;
   display: flex;
+  justify-content: flex-start;
   align-items: center;
   gap: 4px;
   min-width: 220px;
@@ -19,12 +18,11 @@
 }
 
 .dropdown_toggle:hover {
-  background-color: #f0f0f0; /* Change background color on hover */
-  color: black; /* Ensure text remains visible */
+
 }
 
 .dropdown_toggle.is-open {
-  color: black; /* Ensure text remains black when dropdown is open */
+  color: black;
 }
 
 .dropdown_menu {
