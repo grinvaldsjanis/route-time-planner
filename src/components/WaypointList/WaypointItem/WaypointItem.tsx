@@ -60,7 +60,7 @@ const WaypointItem: React.FC<WaypointItemProps> = ({ index }) => {
   }, [referenceWaypoint, index, state.gpxData]);
 
   useEffect(() => {
-    let isMounted = true; // Prevent state updates after unmounting
+    let isMounted = true;
     const fetchImage = async () => {
       if (
         referenceWaypoint &&
@@ -148,11 +148,14 @@ const WaypointItem: React.FC<WaypointItemProps> = ({ index }) => {
   };
 
   const handleSetMapCenter = () => {
-    if (referenceWaypoint) {
-      const newCenter = [
+    if (referenceWaypoint && referenceWaypoint.type !== "shaping") {
+      const newCenter: LatLngTuple = [
         parseFloat(referenceWaypoint.lat),
         parseFloat(referenceWaypoint.lon),
-      ] as LatLngTuple;
+      ];
+
+      console.log(`Clicked waypoint index: ${index}, referenceId: ${trackWaypoint?.referenceId}`);
+      console.log(`Expected map center:`, newCenter);
       dispatch(setFocusedWaypoint(index));
       dispatch(setProgrammaticAction("focusWaypoint"));
       dispatch(setMapCenter(newCenter));

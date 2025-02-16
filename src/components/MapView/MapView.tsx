@@ -320,7 +320,15 @@ const MapView: React.FC = () => {
         const refWaypoint = gpxData.referenceWaypoints.find(
           (ref) => ref.id === waypoint.referenceId
         );
-        if (!refWaypoint) return null;
+        if (!refWaypoint) {
+          console.warn(`Missing referenceWaypoint for waypoint index: ${idx}`);
+          return null;
+        }
+
+        console.log(
+          `Placing marker for waypoint index: ${idx}, referenceId: ${waypoint.referenceId}, position:`,
+          [parseFloat(refWaypoint.lat), parseFloat(refWaypoint.lon)]
+        );
 
         // Determine the icon type dynamically based on zoom level
         let iconType = refWaypoint.type || "via";
@@ -334,7 +342,7 @@ const MapView: React.FC = () => {
 
         return (
           <Marker
-            key={idx}
+            key={refWaypoint.id}
             position={[
               parseFloat(refWaypoint.lat),
               parseFloat(refWaypoint.lon),

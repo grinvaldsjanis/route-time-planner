@@ -33,7 +33,7 @@ const WaypointList: React.FC = () => {
           {waypoints.map((trackWaypoint, index) => {
             return (
               <React.Fragment key={`waypoint-${index}`}>
-                <WaypointItem index={index} />
+                <WaypointItem key={trackWaypoint.referenceId} index={index} />
                 {index < trackParts.length &&
                   state.currentTrackIndex !== null && (
                     <TrackPart

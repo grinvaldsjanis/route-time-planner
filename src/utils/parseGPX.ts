@@ -61,10 +61,19 @@ export default async function parseGPX(
   for (let i = 0; i < waypoints.length; i++) {
     const wpt = waypoints[i];
     const referenceWpt = parseReferenceWaypoint(wpt);
-    if (referenceWpt) {
+    if (referenceWpt && referenceWpt.type !== "shaping") {
       referenceWaypoints.push(referenceWpt);
     }
   }
+
+  console.log(
+    "Filtered referenceWaypoints:",
+    referenceWaypoints.map((wp) => ({
+      id: wp.id,
+      name: wp.name || "Unnamed",
+      type: wp.type,
+    }))
+  );
 
   dispatch(setInProgress(true, "Parsing tracks..."));
   for (let i = 0; i < tracks.length; i++) {
@@ -144,12 +153,10 @@ export default async function parseGPX(
     });
   }
 
-  // Match reference waypoints to the closest track points and create track waypoints
   dispatch(setInProgress(true, "Matching waypoints to track points..."));
+
   referenceWaypoints.forEach((refWaypoint) => {
-    if (refWaypoint.type === "shaping") {
-      return;
-    }
+    if (refWaypoint.type === "shaping") return;
 
     let closestTrackIndex = -1;
     let minDistance = Infinity;
@@ -172,7 +179,6 @@ export default async function parseGPX(
       });
     });
 
-    // Prevent adding duplicate waypoints to the same point
     if (
       closestTrackIndex !== -1 &&
       !parsedTracks[closestTrackIndex].waypoints.some(
@@ -188,7 +194,6 @@ export default async function parseGPX(
     }
   });
 
-  // Calculate track parts based on waypoints
   dispatch(setInProgress(true, "Calculating track parts..."));
   parsedTracks.forEach((track) => {
     track.waypoints.sort(
@@ -203,7 +208,6 @@ export default async function parseGPX(
     let cumulativeDistanceFromStart = 0;
 
     track.waypoints.forEach((waypoint, index) => {
-      // Assign rounded distance for display without affecting cumulative precision
       waypoint.distanceFromStart =
         Math.round(cumulativeDistanceFromStart * 10) / 10;
 
@@ -211,7 +215,6 @@ export default async function parseGPX(
         cumulativeDistanceFromStart += track.parts[index].distance;
       }
 
-      // Calculate distance to end by summing remaining track parts with rounded result
       const distanceToEnd = track.parts
         .slice(index)
         .reduce((acc, part) => acc + part.distance, 0);
@@ -220,7 +223,6 @@ export default async function parseGPX(
     });
   });
 
-  // Process elevation data if needed
   if (pointsWithoutElevation.length > 0) {
     dispatch(setInProgress(true, "Fetching elevation data..."));
     const elevations = await fetchElevationData(pointsWithoutElevation);
