@@ -71,9 +71,10 @@ const TrackGraph: React.FC = () => {
 
     if (totalDistance === 0 || width === 0) return null;
 
-    const sampleInterval = totalDistance / width;
+    const baseSampleInterval = totalDistance / width;
     let accumulatedDistance = 0;
-    let currentSampleDistance = 0;
+
+    const MAX_INTERPOLATION_STEPS = 10; // Maximum extra points between two original points
 
     currentTrack.points.slice(1).forEach((point, idx) => {
       const prevPoint = currentTrack.points[idx];
@@ -83,16 +84,25 @@ const TrackGraph: React.FC = () => {
         parseFloat(point.lat),
         parseFloat(point.lon)
       );
-      accumulatedDistance += segmentDistance;
 
-      while (accumulatedDistance >= currentSampleDistance) {
-        const ratio =
-          (currentSampleDistance - (accumulatedDistance - segmentDistance)) /
-          segmentDistance;
+      const valuePrev = prevPoint[mapMode] ?? 0;
+      const valueCurr = point[mapMode] ?? 0;
+      const valueDiff = Math.abs(valueCurr - valuePrev);
 
-        const interpolatedValue = ((1 - ratio) * (prevPoint[mapMode] ?? 0) +
-          ratio * (point[mapMode] ?? 0)) as number;
+      let interpolationSteps = 1;
 
+      // **Adaptive Subdivision Logic**
+      if (valueDiff > (maxValue - minValue) * 0.1) {
+        interpolationSteps = Math.min(
+          MAX_INTERPOLATION_STEPS,
+          Math.ceil(valueDiff / ((maxValue - minValue) * 0.05))
+        );
+      }
+
+      for (let step = 0; step <= interpolationSteps; step++) {
+        const ratio = step / interpolationSteps;
+
+        const interpolatedValue = (1 - ratio) * valuePrev + ratio * valueCurr;
         const interpolatedLat =
           (1 - ratio) * parseFloat(prevPoint.lat) +
           ratio * parseFloat(point.lat);
@@ -106,15 +116,15 @@ const TrackGraph: React.FC = () => {
             : getColorForValue(interpolatedValue, minValue, maxValue);
 
         sampledData.push({
-          distance: currentSampleDistance,
+          distance: accumulatedDistance + ratio * segmentDistance,
           value: interpolatedValue,
           lat: interpolatedLat,
           lon: interpolatedLon,
           color,
         });
-
-        currentSampleDistance += sampleInterval;
       }
+
+      accumulatedDistance += segmentDistance;
     });
 
     return sampledData;
@@ -364,7 +374,7 @@ const TrackGraph: React.FC = () => {
                   x2={hoverX}
                   y2={graphHeight}
                   stroke="red"
-                  strokeDasharray="4"
+                  strokeDasharray="2"
                 />
                 {hoverValue !== null && (
                   <text

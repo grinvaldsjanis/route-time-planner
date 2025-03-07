@@ -17,9 +17,6 @@
   transition: background-color 0.3s ease, color 0.3s ease; /* Smooth transitions */
 }
 
-.dropdown_toggle:hover {
-
-}
 
 .dropdown_toggle.is-open {
   color: black;

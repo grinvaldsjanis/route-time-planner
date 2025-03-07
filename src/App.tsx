@@ -73,7 +73,7 @@ function App() {
       <div className="App">
         <header className="App-header">
           <div className="App-logo">
-            <h4>GPX Time Planner</h4>
+            <h3>GPX Time Planner</h3>
           </div>
           <div>
             <Menu />
